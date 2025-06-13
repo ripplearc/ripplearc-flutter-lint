@@ -1,0 +1,9 @@
+name: example_lints
+description: Example custom lint configuration
+
+rules:
+  - prefer_fake_over_mock
+
+analyzer:
+  plugins:
+    - custom_lint_library 

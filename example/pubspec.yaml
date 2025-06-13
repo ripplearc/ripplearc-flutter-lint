@@ -1,0 +1,16 @@
+name: ripplearc_flutter_lint_example
+description: Example usage of custom_lint_library
+version: 1.0.0
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  mockito: ^5.4.4
+
+dev_dependencies:
+  test: ^1.25.0
+  custom_lint: ^0.7.4
+  flutter_lints: ^3.0.1
+  ripplearc_flutter_lint:
+    path: ../ 
