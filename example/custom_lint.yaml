@@ -3,6 +3,7 @@ description: Example custom lint configuration
 
 rules:
   - prefer_fake_over_mock
+  - no_optional_operators_in_tests
 
 analyzer:
   plugins:
