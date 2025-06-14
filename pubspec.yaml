@@ -4,7 +4,7 @@ version: 1.0.0
 repository: https://github.com/your-username/custom_lint_library
 
 environment:
-  sdk: '>=3.5.0 <4.0.0'
+  sdk: '3.3.0'
 
 dependencies:
   custom_lint_builder: 0.7.5
