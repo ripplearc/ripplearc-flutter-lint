@@ -35,7 +35,7 @@ class NoOptionalOperatorsInTests extends DartLintRule {
     name: 'no_optional_operators_in_tests',
     problemMessage: 'Optional operators (?., ??) are not allowed in test blocks. Tests should fail explicitly at the point of failure.',
     correctionMessage: 'Remove the optional operator and add an explicit null check if needed.',
-    errorSeverity: ErrorSeverity.WARNING,
+    errorSeverity: ErrorSeverity.ERROR,
   );
 
   @override
