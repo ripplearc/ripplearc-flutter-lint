@@ -2,52 +2,37 @@
 
 A Dart/Flutter library providing custom lint rules for better code quality and testing practices.
 
+## Project Structure
+
+```
+lib/
+  rules/                    # All lint rules go here
+    prefer_fake_over_mock_rule.dart
+    no_optional_operators_in_tests.dart
+    forbid_forced_unwrapping.dart
+test/
+  rules/                    # All rule tests go here
+    prefer_fake_over_mock_rule_test.dart
+    no_optional_operators_in_tests_test.dart
+    forbid_forced_unwrapping_test.dart
+example/                    # Example files demonstrating rules
+  example_prefer_fake_over_mock_rule.dart
+  example_no_optional_operators_in_tests_rule.dart
+  example_forbid_forced_unwrapping_rule.dart
+```
+
 ## Rules
 
 ### prefer_fake_over_mock
 
 Recommends using `Fake` instead of `Mock` for test doubles. Fakes provide more realistic behavior and are easier to maintain than mocks.
 
-## Installation
-
-Add this to your `pubspec.yaml`:
-
-```yaml
-dev_dependencies:
-  custom_lint: ^0.7.4
-  custom_lint_library:
-    git: https://github.com/your-username/custom_lint_library.git
-```
-
-## Configuration
-
-1. Add to your `analysis_options.yaml`:
-```yaml
-analyzer:
-  plugins:
-    - custom_lint
-```
-
-2. Create a `custom_lint.yaml` file:
-```yaml
-rules:
-  - prefer_fake_over_mock
-
-analyzer:
-  plugins:
-    - custom_lint_library
-```
-
-## Usage
-
-The lint will automatically flag classes extending `Mock` and suggest using `Fake` instead.
-
-### Bad ❌
+#### Bad ❌
 ```dart
 class MockUserRepository extends Mock implements UserRepository {}
 ```
 
-### Good ✅
+#### Good ✅
 ```dart
 class FakeUserRepository extends Fake implements UserRepository {
   @override
@@ -55,20 +40,56 @@ class FakeUserRepository extends Fake implements UserRepository {
 }
 ```
 
+### forbid_forced_unwrapping
+
+Forbids the use of forced unwrapping (`!`) in production code. This rule encourages the use of null-safe alternatives to prevent runtime null errors.
+
+#### Bad ❌
+```dart
+final name = user.name!;  // Will crash if name is null
+print('User: $name');
+```
+
+#### Good ✅
+```dart
+final name = user.name ?? 'Unknown';  // Safe with default value
+print('User: $name');
+```
+
+### no_optional_operators_in_tests
+
+Forbids the use of optional operators (`?.`, `??`) in test files. Tests should fail explicitly at the point of failure rather than silently handling null values. This rule is enforced as an error to ensure test reliability.
+
+#### Bad ❌
+```dart
+test('example', () {
+  final result = someObject?.someProperty;  // ERROR: Optional operators not allowed in tests
+  expect(result, equals(expected));
+});
+```
+
+#### Good ✅
+```dart
+test('example', () {
+  final result = someObject.someProperty;  // Will fail explicitly if null
+  expect(result, equals(expected));
+});
+```
+
 ## Registering a Custom Lint Rule
 
 To register a custom lint rule in your package, follow these steps:
 
-1. **Create the Lint Rule**: Implement your lint rule by extending `DartLintRule` and defining the necessary methods. For example, the `NoOptionalOperatorsInTests` rule is implemented as follows:
+1. **Create the Lint Rule**: Implement your lint rule by extending `DartLintRule` in `lib/rules/`. For example:
 
    ```dart
-   class NoOptionalOperatorsInTests extends DartLintRule {
-     const NoOptionalOperatorsInTests() : super(code: _code);
+   class ForbidForcedUnwrapping extends DartLintRule {
+     const ForbidForcedUnwrapping() : super(code: _code);
 
      static const _code = LintCode(
-       name: 'no_optional_operators_in_tests',
-       problemMessage: 'Optional operators (?., ??) are not allowed in test blocks. Tests should fail explicitly at the point of failure.',
-       correctionMessage: 'Remove the optional operator and add an explicit null check if needed.',
+       name: 'forbid_forced_unwrapping',
+       problemMessage: 'Forced unwrapping (!) is not allowed in production code.',
+       correctionMessage: 'Use null-safe alternatives like null coalescing (??) or explicit null checks.',
        errorSeverity: ErrorSeverity.WARNING,
      );
 
@@ -79,116 +100,110 @@ To register a custom lint rule in your package, follow these steps:
        CustomLintContext context,
      ) {
        context.registry.addCompilationUnit((node) {
-         if (!_isTestFile(resolver.path)) return;
-         _checkForOptionalOperators(node, reporter);
+         if (_isTestFile(resolver.path)) return;
+         _checkForForcedUnwrapping(node, reporter);
        });
      }
    }
    ```
 
-2. **Write Unit Tests**: Create unit tests to verify that your rule works as expected. For example, the `NoOptionalOperatorsInTests` rule has tests for various scenarios. Refer to the test file for more details.
+2. **Write Unit Tests**: Create unit tests in `test/rules/` to verify your rule works as expected:
 
    ```dart
    void main() {
-     group('NoOptionalOperatorsInTests', () {
-       late NoOptionalOperatorsInTests rule;
+     group('ForbidForcedUnwrapping', () {
+       late ForbidForcedUnwrapping rule;
        late TestErrorReporter reporter;
 
        setUp(() {
-         rule = const NoOptionalOperatorsInTests();
+         rule = const ForbidForcedUnwrapping();
          reporter = TestErrorReporter();
        });
 
-       test('should flag optional chaining operator (?.)', () async {
+       test('should flag forced unwrapping in production code', () async {
          const source = '''
          void main() {
-           test('example', () {
-             final result = someObject?.someProperty;  // Should flag this
-             expect(result, equals(expected));
-           });
+           final String? name = null;
+           final value = name!;  // Should flag this
+           print(value);
          }
          ''';
-         await analyzeCode(source);
+         await analyzeCode(source, path: 'lib/example.dart');
          expect(reporter.errors, hasLength(1));
-         expect(reporter.errors.first.errorCode.name, equals('no_optional_operators_in_tests'));
+         expect(reporter.errors.first.errorCode.name, equals('forbid_forced_unwrapping'));
        });
      });
    }
    ```
 
-3. **Register and Export the Rule**: In your main library file (e.g., `lib/ripplearc_flutter_lint.dart`), import your rule and add it to the list of rules in your plugin class. For example:
+3. **Create an Example File**: Create an example in `example/` that demonstrates both the violation and correct usage:
 
    ```dart
-   import 'package:custom_lint_builder/custom_lint_builder.dart';
-   import 'rules/prefer_fake_over_mock_rule.dart';
-   import 'src/rules/no_optional_operators_in_tests.dart';
+   class User {
+     final String? name;
+     User({this.name});
+   }
 
-   PluginBase createPlugin() => _RipplearcFlutterLint();
+   void main() {
+     final user = User(name: null);
+     
+     // Bad: Using forced unwrapping
+     final name = user.name!;  // LINT
+     print('User: $name');     // Will crash at runtime
+     
+     // Good: Using null-safe alternatives
+     final safeName = user.name ?? 'Unknown';
+     print('User: $safeName'); // Safe, will print "User: Unknown"
+   }
+   ```
 
+4. **Register the Rule**: In `lib/ripplearc_flutter_lint.dart`, add your rule to the list:
+
+   ```dart
    class _RipplearcFlutterLint extends PluginBase {
      @override
      List<LintRule> getLintRules(CustomLintConfigs configs) => [
-           const PreferFakeOverMockRule(),
-           const NoOptionalOperatorsInTests(), // Add your rule here
+           const ForbidForcedUnwrapping(),
+           // ... other rules
          ];
    }
    ```
 
-4. **Create an Example File**: Create an example file to demonstrate the rule in action. For example, `example/example_no_optional_operators_in_tests_rule.dart`:
-
-   ```dart
-   import 'package:test/test.dart';
-
-   class Dummy {
-     final int? someProperty;
-     Dummy(this.someProperty);
-   }
-
-   void main() {
-     const Dummy? someObject = null;
-     const someValue = null;
-     const defaultValue = 100;
-     const expected = 42;
-     const expectedValue = 100;
-
-     test('should trigger no_optional_operators_in_tests', () {
-       final result = someObject?.someProperty; // LINT: Using optional operator (?.)
-       const value = someValue ?? defaultValue; // LINT: Using null-aware operator (??)
-       expect(result, equals(expected));
-       expect(value, equals(expectedValue));
-     });
-   }
-   ```
-
-5. **Configure the Linter**: Make sure your `analysis_options.yaml` and `custom_lint.yaml` files are set up to use the custom linter. For example:
-
-   ```yaml
-   # analysis_options.yaml
-   analyzer:
-     plugins:
-       - custom_lint
-   ```
-
-   ```yaml
-   # custom_lint.yaml
-   rules:
-     - no_optional_operators_in_tests
-   ```
-
-6. **Run the Linter**: Use `dart run custom_lint` to run the linter and verify that your rule is working as expected. For example:
-
+5. **Configure the Linter**: Copy the existing configuration from `example/custom_lint.yaml` to your project root:
    ```bash
-   dart run custom_lint
+   cp example/custom_lint.yaml custom_lint.yaml
    ```
 
-   Example output:
+6. **Run the Linter**: Use `dart run custom_lint` to verify your rule works as expected.
 
-   ```
-   Analyzing...                           0.0s
+By following these steps, you can successfully register and use custom lint rules in your Dart/Flutter project.
 
-     example/example_no_optional_operators_in_tests_rule.dart:17:19 • Optional operators (?., ??) are not allowed in test blocks. Tests should fail explicitly at the point of failure. • no_optional_operators_in_tests • WARNING
+## Configuration Files
 
-   1 issue found.
-   ```
+### analysis_options.yaml
+This file configures the Dart analyzer and enables the custom lint plugin. Place it in your project root:
+
+```yaml
+analyzer:
+  plugins:
+    - custom_lint  # Enables the custom_lint plugin
+```
+
+### custom_lint.yaml
+This configuration file includes all our custom lint rules:
+- `prefer_fake_over_mock` - Prefer using Fake over Mock for test doubles
+- `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
+- `no_optional_operators_in_tests` - Forbid optional operators in test files
+
+#### Rule Configuration
+- Each rule is listed under the `rules` section
+- Rules are enabled by default when listed
+- The order of rules doesn't matter
+- All rules from the library are available to use
+
+#### Plugin Configuration
+- The `analyzer.plugins` section must include `custom_lint_library`
+- This enables our custom lint rules to be loaded
+- Multiple plugins can be listed if needed
 
 By following these steps, you can successfully register and use custom lint rules in your Dart/Flutter project. 
