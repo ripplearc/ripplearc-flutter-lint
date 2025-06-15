@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
-import 'package:ripplearc_flutter_lint/src/rules/no_optional_operators_in_tests.dart';
+import 'package:ripplearc_flutter_lint/rules/no_optional_operators_in_tests.dart';
 import '../utils/test_error_reporter.dart';
 
 void main() {

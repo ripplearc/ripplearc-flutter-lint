@@ -1,7 +1,7 @@
 name: ripplearc_flutter_lint
 description: A custom lint library providing rules like prefer_fake_over_mock for better testing practices
-version: 1.0.0
-repository: https://github.com/your-username/custom_lint_library
+version: 0.1.0
+repository: https://github.com/ripplearc/ripplearc-flutter-lint
 
 environment:
   sdk: '>=3.7.2 <4.0.0'
