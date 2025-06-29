@@ -186,7 +186,11 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'example/example_auth_service.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, hasLength(1));
+      expect(
+        reporter.errors.first.errorCode.name,
+        equals('document_fake_parameters'),
+      );
     });
 
     test('should not flag getters and setters', () async {
