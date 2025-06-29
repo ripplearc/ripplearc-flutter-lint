@@ -140,7 +140,11 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'example/example_auth_service.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, hasLength(1));
+      expect(
+        reporter.errors.first.errorCode.name,
+        equals('no_internal_method_docs'),
+      );
     });
 
     test('should not flag private fields or variables', () async {

@@ -53,10 +53,7 @@ class NoInternalMethodDocs extends DartLintRule {
   }
 
   bool _isTestFile(String path) {
-    return path.contains('_test.dart') ||
-        path.contains('/test/') ||
-        path.contains('/example/') ||
-        path.contains('example_');
+    return path.contains('_test.dart') || path.contains('/test/');
   }
 
   void _checkForPrivateMethodDocs(

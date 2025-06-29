@@ -10,15 +10,18 @@ lib/
     prefer_fake_over_mock_rule.dart
     no_optional_operators_in_tests.dart
     forbid_forced_unwrapping.dart
+    no_internal_method_docs.dart
 test/
   rules/                    # All rule tests go here
     prefer_fake_over_mock_rule_test.dart
     no_optional_operators_in_tests_test.dart
     forbid_forced_unwrapping_test.dart
+    no_internal_method_docs_test.dart
 example/                    # Example files demonstrating rules
   example_prefer_fake_over_mock_rule.dart
   example_no_optional_operators_in_tests_rule.dart
   example_forbid_forced_unwrapping_rule.dart
+  example_no_internal_method_docs_rule.dart
 ```
 
 ## Rules
@@ -74,6 +77,49 @@ test('example', () {
   final result = someObject.someProperty;  // Will fail explicitly if null
   expect(result, equals(expected));
 });
+```
+
+### no_internal_method_docs
+
+Forbids documentation on private methods to reduce documentation noise. This rule flags private methods that have documentation comments, as these are internal implementation details that don't need to be documented for external consumers. Getters, setters, and fields are ignored.
+
+#### Bad ❌
+```dart
+class AuthService {
+  /// Handles internal auth state
+  void _handleAuthState() {} // LINT: Private method should not be documented
+
+  // Validates user input
+  void _validateInput(String input) {} // LINT: Private method should not be documented
+
+  /// Processes user data internally
+  void _processUserData() {} // LINT: Private method should not be documented
+}
+```
+
+#### Good ✅
+```dart
+class AuthService {
+  void _handleAuthState() {} // Good: No documentation needed
+  void _validateInput(String input) {} // Good: No documentation needed
+  void _processUserData() {} // Good: No documentation needed
+
+  /// Authenticates the user with provided credentials
+  void authenticate() {} // Good: Public method should be documented
+}
+
+class DataService {
+  /// Internal configuration data
+  Map<String, dynamic> _config = {}; // Good: Fields can have documentation
+
+  /// Internal state getter
+  bool get _isInitialized => true; // Good: Getters can have documentation
+
+  void _loadConfig() {} // Good: No documentation needed
+
+  /// Loads configuration from external source
+  Future<void> loadConfiguration() async {}
+}
 ```
 
 ## Registering a Custom Lint Rule
@@ -194,6 +240,7 @@ This configuration file includes all our custom lint rules:
 - `prefer_fake_over_mock` - Prefer using Fake over Mock for test doubles
 - `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
 - `no_optional_operators_in_tests` - Forbid optional operators in test files
+- `no_internal_method_docs` - Forbid documentation on private methods to reduce noise
 
 #### Rule Configuration
 - Each rule is listed under the `rules` section
