@@ -114,14 +114,18 @@ void main() {
       expect(reporter.errors, isEmpty);
     });
 
-    test('should not flag abstract classes in example files', () async {
+    test('should flag abstract classes in example files', () async {
       const source = '''
       abstract class ExampleRepository {
         Future<void> syncData();
       }
       ''';
       await analyzeCode(source, path: 'example/example_repository.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, hasLength(1));
+      expect(
+        reporter.errors.first.errorCode.name,
+        equals('document_interface'),
+      );
     });
 
     test('should not flag empty documentation comments', () async {
