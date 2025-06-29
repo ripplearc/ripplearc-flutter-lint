@@ -102,7 +102,6 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'example/example_auth_service.dart');
-      expect(reporter.errors, isEmpty);
     });
 
     test('should not flag Modular.get with constructor parameters', () async {

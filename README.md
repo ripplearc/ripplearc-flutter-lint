@@ -10,15 +10,18 @@ lib/
     prefer_fake_over_mock_rule.dart
     no_optional_operators_in_tests.dart
     forbid_forced_unwrapping.dart
+    no_direct_instantiation.dart
 test/
   rules/                    # All rule tests go here
     prefer_fake_over_mock_rule_test.dart
     no_optional_operators_in_tests_test.dart
     forbid_forced_unwrapping_test.dart
+    no_direct_instantiation_test.dart
 example/                    # Example files demonstrating rules
   example_prefer_fake_over_mock_rule.dart
   example_no_optional_operators_in_tests_rule.dart
   example_forbid_forced_unwrapping_rule.dart
+  example_no_direct_instantiation_rule.dart
 ```
 
 ## Rules
@@ -75,6 +78,44 @@ test('example', () {
   expect(result, equals(expected));
 });
 ```
+
+### no_direct_instantiation
+
+Enforces dependency injection by forbidding direct class instantiation. This rule flags direct instantiations of classes to ensure proper dependency injection is used, improving testability and maintainability. Classes that extend `Module` or have factory constructors are excluded.
+
+#### Bad ❌
+```dart
+// Bad: Direct instantiation - will be flagged
+final syncService = SyncService(); // LINT: Direct instantiation not allowed
+
+// Bad: Direct instantiation with parameters - will be flagged
+final notificationService = NotificationService('token'); // LINT: Direct instantiation not allowed
+
+// Bad: Using new keyword - will be flagged
+final anotherService = new SyncService(); // LINT: Direct instantiation not allowed
+```
+
+#### Good ✅
+```dart
+// Good: Using dependency injection
+final authService = Modular.get<AuthService>();
+final userService = Modular.get<UserService>();
+
+// Good: Module instantiation - should not be flagged
+final module = AppModule();
+
+// Good: Factory class instantiation - should not be flagged
+final factoryService = AuthService();
+final factoryServiceWithParams = UserService('api-key');
+
+// Good: Static factory method - should not be flagged
+final staticFactory = AuthService.create();
+```
+
+#### Excluded Classes
+- **Module classes**: Classes that extend `Module`
+- **Factory classes**: Classes with factory constructors
+- **Static factory methods**: Classes with static factory methods
 
 ## Registering a Custom Lint Rule
 
@@ -194,6 +235,7 @@ This configuration file includes all our custom lint rules:
 - `prefer_fake_over_mock` - Prefer using Fake over Mock for test doubles
 - `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
 - `no_optional_operators_in_tests` - Forbid optional operators in test files
+- `no_direct_instantiation` - Enforce dependency injection by forbidding direct class instantiation
 
 #### Rule Configuration
 - Each rule is listed under the `rules` section
