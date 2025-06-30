@@ -6,6 +6,8 @@ rules:
   - no_optional_operators_in_tests
   - forbid_forced_unwrapping
   - no_direct_instantiation
+  - no_internal_method_docs
+  - document_interface
 
 analyzer:
   plugins:
