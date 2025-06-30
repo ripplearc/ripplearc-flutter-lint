@@ -10,15 +10,18 @@ lib/
     prefer_fake_over_mock_rule.dart
     no_optional_operators_in_tests.dart
     forbid_forced_unwrapping.dart
+    document_interface.dart
 test/
   rules/                    # All rule tests go here
     prefer_fake_over_mock_rule_test.dart
     no_optional_operators_in_tests_test.dart
     forbid_forced_unwrapping_test.dart
+    document_interface_test.dart
 example/                    # Example files demonstrating rules
   example_prefer_fake_over_mock_rule.dart
   example_no_optional_operators_in_tests_rule.dart
   example_forbid_forced_unwrapping_rule.dart
+  example_document_interface_rule.dart
 ```
 
 ## Rules
@@ -74,6 +77,50 @@ test('example', () {
   final result = someObject.someProperty;  // Will fail explicitly if null
   expect(result, equals(expected));
 });
+```
+
+### document_interface
+
+Enforces documentation on abstract classes and their public methods. This rule ensures clear API contracts for modular architecture by requiring `///` documentation for both the class and its public methods. Private methods and concrete classes are ignored.
+
+#### Bad ❌
+```dart
+abstract class SyncRepository {
+  Future<void> syncData();  // Missing method documentation
+  Future<void> clearData(); // Missing method documentation
+}
+
+/// Repository interface for data synchronization operations.
+abstract class UserRepository {
+  Future<String> getUser(String id);  // Missing method documentation
+}
+```
+
+#### Good ✅
+```dart
+/// Repository interface for data synchronization operations.
+abstract class DataRepository {
+  /// Synchronizes local data with remote Supabase instance.
+  /// Returns true if synchronization was successful.
+  Future<bool> syncData();
+
+  /// Clears all local data from the repository.
+  /// This operation cannot be undone.
+  Future<void> clearData();
+
+  /// Retrieves data by its unique identifier.
+  /// Returns null if no data is found for the given id.
+  Future<String?> getData(String id);
+}
+
+// Private methods are ignored (no documentation required)
+/// Repository interface for data synchronization operations.
+abstract class SecureRepository {
+  /// Synchronizes local data with remote Supabase instance.
+  Future<bool> syncData();
+
+  Future<void> _validateData(); // Private method - no documentation needed
+}
 ```
 
 ## Registering a Custom Lint Rule
@@ -194,6 +241,7 @@ This configuration file includes all our custom lint rules:
 - `prefer_fake_over_mock` - Prefer using Fake over Mock for test doubles
 - `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
 - `no_optional_operators_in_tests` - Forbid optional operators in test files
+- `document_interface` - Enforce documentation on abstract classes and their public methods
 
 #### Rule Configuration
 - Each rule is listed under the `rules` section
