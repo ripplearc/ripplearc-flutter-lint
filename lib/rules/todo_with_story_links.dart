@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'dart:io';
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -36,44 +35,54 @@ class TodoWithStoryLinks extends DartLintRule {
     CustomLintResolver resolver,
     ErrorReporter reporter,
     CustomLintContext context,
-  ) {
-    context.registry.addCompilationUnit((node) {
-      if (_isTestFile(resolver.path)) return;
-      final source = node.toSource();
-      final lines = const LineSplitter().convert(source);
-      int offset = 0;
-      for (final line in lines) {
-        final trimmed = line.trim();
-        if (_isTodoComment(trimmed) && !_hasYouTrackUrl(trimmed)) {
-          reporter.atOffset(
-            offset: offset + line.indexOf('//'),
-            length: line.length - line.indexOf('//'),
-            errorCode: TodoWithStoryLinks._code,
-          );
-        }
-        offset += line.length + 1; // +1 for newline
+  ) async {
+    // Skip test files
+    if (_isTestFile(resolver.path)) return;
+
+    String source;
+    try {
+      final file = File(resolver.path);
+      if (await file.exists()) {
+        source = await file.readAsString();
+      } else {
+        // For test environments where file doesn't exist on disk
+        return;
       }
-    });
+    } catch (e) {
+      // If file reading fails, skip this file
+      return;
+    }
+
+    checkSourceForTodoComments(source, reporter);
   }
 
-  bool _isTestFile(String path) {
-    return path.contains('_test.dart') ||
-        path.contains('/test/') ||
-        path.contains('/example/') ||
-        path.contains('example_');
-  }
-
-  bool _isTodoComment(String line) {
-    return line.startsWith('//TODO:') || line.startsWith('// TODO:');
-  }
-
-  bool _hasYouTrackUrl(String line) {
-    // YouTrack URL pattern: https://ripplearc.youtrack.cloud/issue/PROJECT-123
+  /// Check source code for TODO comments without YouTrack URLs.
+  /// This method is exposed for testing purposes.
+  void checkSourceForTodoComments(String source, ErrorReporter reporter) {
+    final lines = source.split('\n');
+    final todoPattern = RegExp(r'//\s*TODO:');
     final youTrackPattern = RegExp(
       r'https://ripplearc\.youtrack\.cloud/issue/[A-Z]+-\d+',
       caseSensitive: false,
     );
 
-    return youTrackPattern.hasMatch(line);
+    int offset = 0;
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (todoPattern.hasMatch(line) && !youTrackPattern.hasMatch(line)) {
+        // Report at the start of the TODO comment
+        final todoIndex = line.indexOf('TODO:');
+        reporter.atOffset(
+          offset: offset + (todoIndex > 0 ? todoIndex - 2 : 0),
+          length: line.length - (todoIndex > 0 ? todoIndex - 2 : 0),
+          errorCode: _code,
+        );
+      }
+      offset += line.length + 1; // +1 for the newline
+    }
+  }
+
+  bool _isTestFile(String path) {
+    return path.contains('_test.dart') || path.contains('/test/');
   }
 }

@@ -10,15 +10,18 @@ lib/
     prefer_fake_over_mock_rule.dart
     no_optional_operators_in_tests.dart
     forbid_forced_unwrapping.dart
+    todo_with_story_links.dart
 test/
   rules/                    # All rule tests go here
     prefer_fake_over_mock_rule_test.dart
     no_optional_operators_in_tests_test.dart
     forbid_forced_unwrapping_test.dart
+    todo_with_story_links_test.dart
 example/                    # Example files demonstrating rules
   example_prefer_fake_over_mock_rule.dart
   example_no_optional_operators_in_tests_rule.dart
   example_forbid_forced_unwrapping_rule.dart
+  example_todo_with_story_links_rule.dart
 ```
 
 ## Rules
@@ -75,6 +78,34 @@ test('example', () {
   expect(result, equals(expected));
 });
 ```
+
+### todo_with_story_links
+
+Ensures TODO comments include YouTrack story links for proper project management and technical debt tracking. This rule flags TODO comments that don't include a valid YouTrack URL, ensuring technical debt is properly linked to product backlog items.
+
+#### Bad ❌
+```dart
+//TODO: Fix this later  // LINT: Missing YouTrack URL
+// TODO: Refactor this method  // LINT: Missing YouTrack URL
+//TODO: Add error handling  // LINT: Missing YouTrack URL
+```
+
+#### Good ✅
+```dart
+//TODO: https://ripplearc.youtrack.cloud/issue/CA-123
+// TODO: https://ripplearc.youtrack.cloud/issue/UI-456
+//TODO: https://ripplearc.youtrack.cloud/issue/BE-789 - Fix authentication timeout
+```
+
+#### Valid YouTrack URL Format
+- **Domain**: `https://ripplearc.youtrack.cloud/issue/`
+- **Project code**: Any uppercase letters (e.g., `CA`, `UI`, `BE`, `API`, `PERF`)
+- **Issue number**: Any digits (e.g., `123`, `456`, `789`)
+
+#### Excluded Files
+- **Test files**: Files with `_test.dart` or in `/test/` directories are ignored
+- **Regular comments**: Comments not starting with `TODO:` are ignored
+- **Block comments**: `/* TODO: */` and `/** TODO: */` are ignored
 
 ## Registering a Custom Lint Rule
 
@@ -194,6 +225,7 @@ This configuration file includes all our custom lint rules:
 - `prefer_fake_over_mock` - Prefer using Fake over Mock for test doubles
 - `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
 - `no_optional_operators_in_tests` - Forbid optional operators in test files
+- `todo_with_story_links` - Ensure TODO comments include YouTrack story links
 
 #### Rule Configuration
 - Each rule is listed under the `rules` section
