@@ -11,6 +11,7 @@ lib/
     no_optional_operators_in_tests.dart
     forbid_forced_unwrapping.dart
     no_direct_instantiation.dart
+    todo_with_story_links.dart
     no_internal_method_docs.dart
     document_interface.dart
 test/
@@ -19,6 +20,7 @@ test/
     no_optional_operators_in_tests_test.dart
     forbid_forced_unwrapping_test.dart
     no_direct_instantiation_test.dart
+    todo_with_story_links_test.dart
     no_internal_method_docs_test.dart
     document_interface_test.dart
 example/                    # Example files demonstrating rules
@@ -26,6 +28,7 @@ example/                    # Example files demonstrating rules
   example_no_optional_operators_in_tests_rule.dart
   example_forbid_forced_unwrapping_rule.dart
   example_no_direct_instantiation_rule.dart
+  example_todo_with_story_links_rule.dart
   example_no_internal_method_docs_rule.dart
   example_document_interface_rule.dart
 ```
@@ -100,6 +103,15 @@ final notificationService = NotificationService('token'); // LINT: Direct instan
 // Bad: Using new keyword - will be flagged
 final anotherService = new SyncService(); // LINT: Direct instantiation not allowed
 
+### todo_with_story_links
+
+Ensures TODO comments include YouTrack story links for proper project management and technical debt tracking. This rule flags TODO comments that don't include a valid YouTrack URL, ensuring technical debt is properly linked to product backlog items.
+
+#### Bad ❌
+```dart
+//TODO: Fix this later  // LINT: Missing YouTrack URL
+// TODO: Refactor this method  // LINT: Missing YouTrack URL
+//TODO: Add error handling  // LINT: Missing YouTrack URL
 ### no_internal_method_docs
 
 Forbids documentation on private methods to reduce documentation noise. This rule flags private methods that have documentation comments, as these are internal implementation details that don't need to be documented for external consumers. Getters, setters, and fields are ignored.
@@ -157,6 +169,20 @@ final staticFactory = AuthService.create();
 - **Module classes**: Classes that extend `Module`
 - **Factory classes**: Classes whose names end with "Factory" (e.g., `DatabaseFactory`, `HttpClientFactory`)
 
+//TODO: https://ripplearc.youtrack.cloud/issue/CA-123
+// TODO: https://ripplearc.youtrack.cloud/issue/UI-456
+//TODO: https://ripplearc.youtrack.cloud/issue/BE-789 - Fix authentication timeout
+```
+
+#### Valid YouTrack URL Format
+- **Domain**: `https://ripplearc.youtrack.cloud/issue/`
+- **Project code**: Any uppercase letters (e.g., `CA`, `UI`, `BE`, `API`, `PERF`)
+- **Issue number**: Any digits (e.g., `123`, `456`, `789`)
+
+#### Excluded Files
+- **Test files**: Files with `_test.dart` or in `/test/` directories are ignored
+- **Regular comments**: Comments not starting with `TODO:` are ignored
+- **Block comments**: `/* TODO: */` and `/** TODO: */` are ignored
 
 class AuthService {
   void _handleAuthState() {} // Good: No documentation needed
@@ -324,6 +350,7 @@ This configuration file includes all our custom lint rules:
 - `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
 - `no_optional_operators_in_tests` - Forbid optional operators in test files
 - `no_direct_instantiation` - Enforce dependency injection by forbidding direct class instantiation
+- `todo_with_story_links` - Ensure TODO comments include YouTrack story links
 - `no_internal_method_docs` - Forbid documentation on private methods to reduce noise
 - `document_interface` - Enforce documentation on abstract classes and their public methods
 
