@@ -93,6 +93,11 @@ class _DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   }
 
   bool _isExcludedClass(String className, InstanceCreationExpression node) {
+    // Check if the class name ends with "Factory"
+    if (className.endsWith('Factory')) {
+      return true;
+    }
+
     // Check if the class extends Module
     final classDeclaration = _findClassDeclaration(className, node);
     if (classDeclaration != null) {
@@ -101,13 +106,6 @@ class _DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       if (extendsClause != null) {
         final superclass = extendsClause.superclass;
         if (superclass.name2.lexeme == 'Module') {
-          return true;
-        }
-      }
-
-      // Check if it has factory constructors
-      for (final member in classDeclaration.members) {
-        if (member is ConstructorDeclaration && member.factoryKeyword != null) {
           return true;
         }
       }

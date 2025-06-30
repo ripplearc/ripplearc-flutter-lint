@@ -81,7 +81,7 @@ test('example', () {
 
 ### no_direct_instantiation
 
-Enforces dependency injection by forbidding direct class instantiation. This rule flags direct instantiations of classes to ensure proper dependency injection is used, improving testability and maintainability. Classes that extend `Module` or have factory constructors are excluded.
+Enforces dependency injection by forbidding direct class instantiation. This rule flags direct instantiations of classes to ensure proper dependency injection is used, improving testability and maintainability. Classes that extend `Module` or have names ending with "Factory" are excluded.
 
 #### Bad ❌
 ```dart
@@ -105,8 +105,9 @@ final userService = Modular.get<UserService>();
 final module = AppModule();
 
 // Good: Factory class instantiation - should not be flagged
-final factoryService = AuthService();
-final factoryServiceWithParams = UserService('api-key');
+final databaseFactory = DatabaseFactory();
+final httpClientFactory = HttpClientFactory();
+final fileProcessorFactory = FileProcessorFactory();
 
 // Good: Static factory method - should not be flagged
 final staticFactory = AuthService.create();
@@ -114,8 +115,7 @@ final staticFactory = AuthService.create();
 
 #### Excluded Classes
 - **Module classes**: Classes that extend `Module`
-- **Factory classes**: Classes with factory constructors
-- **Static factory methods**: Classes with static factory methods
+- **Factory classes**: Classes whose names end with "Factory" (e.g., `DatabaseFactory`, `HttpClientFactory`)
 
 ## Registering a Custom Lint Rule
 
