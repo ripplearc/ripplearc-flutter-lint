@@ -7,15 +7,20 @@ import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint rule that ensures Fake classes and their non-private members have documentation.
 ///
-/// This rule flags Fake classes that implement interfaces but lack proper documentation
-/// for their test helper methods and variables. It improves test maintainability and
-/// ensures test helpers are documented for team collaboration.
+/// This rule flags Fake classes (classes that extend Fake or have "Fake" in their name)
+/// that implement interfaces but lack proper documentation for their test helper methods
+/// and variables. It improves test maintainability and ensures test helpers are documented
+/// for team collaboration.
 ///
 /// Example of code that triggers this rule:
 /// ```dart
 /// class FakeAuthService extends Fake implements AuthService {
 ///   void setAuthDelay(Duration delay) { ... }  // Missing documentation
 ///   void triggerAuthFailure() { ... }          // Missing documentation
+/// }
+///
+/// class FakeUserRepository implements UserRepository {
+///   void setMockData(List<User> users) { ... }  // Missing documentation
 /// }
 /// ```
 ///
@@ -74,8 +79,8 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    // Only check classes that extend Fake and implement interfaces
-    if (!_extendsFake(node) || !_implementsInterface(node)) return;
+    // Only check classes that are Fake classes (by name or inheritance) and implement interfaces
+    if (!_isFakeClass(node) || !_implementsInterface(node)) return;
 
     // Check if class has documentation
     final hasClassDocumentation = _hasDocumentation(node.documentationComment);
@@ -99,12 +104,9 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
     super.visitClassDeclaration(node);
   }
 
-  bool _extendsFake(ClassDeclaration node) {
-    final extendsClause = node.extendsClause;
-    if (extendsClause == null) return false;
-
-    final superclass = extendsClause.superclass;
-    return superclass.name2.lexeme == 'Fake';
+  bool _isFakeClass(ClassDeclaration node) {
+    // Check if class name starts with "Fake"
+    return node.name.lexeme.startsWith('Fake');
   }
 
   bool _implementsInterface(ClassDeclaration node) {

@@ -237,6 +237,45 @@ void main() {
       await analyzeCode(source, path: 'lib/auth_service.dart');
       expect(reporter.errors, isEmpty);
     });
+
+    test(
+      'should flag classes with Fake in name that implement interfaces but do not extend Fake',
+      () async {
+        const source = '''
+      abstract class UserRepository {
+        Future<List<User>> getUsers();
+      }
+      
+      class FakeUserRepository implements UserRepository {
+        void setMockData(List<User> users) { }
+        void triggerNetworkError() { }
+        
+        @override
+        Future<List<User>> getUsers() async { return []; }
+      }
+      ''';
+        await analyzeCode(source, path: 'lib/user_repository.dart');
+        expect(reporter.errors, hasLength(1));
+        expect(
+          reporter.errors.first.errorCode.name,
+          equals('document_fake_parameters'),
+        );
+      },
+    );
+
+    test(
+      'should not flag classes with Fake in name that do not implement interfaces',
+      () async {
+        const source = '''
+      class FakeUserRepository {
+        void setMockData(List<User> users) { }
+        void triggerNetworkError() { }
+      }
+      ''';
+        await analyzeCode(source, path: 'lib/user_repository.dart');
+        expect(reporter.errors, isEmpty);
+      },
+    );
   });
 }
 
