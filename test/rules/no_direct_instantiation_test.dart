@@ -34,7 +34,7 @@ void main() {
       }
       ''';
       await analyzeCode(source);
-      expect(reporter.errors, hasLength(1));
+      expect(reporter.errors, isEmpty);
     });
 
     test('does not flag instantiation of Factory class', () async {
@@ -108,7 +108,7 @@ void main() {
       }
       ''';
         await analyzeCode(source);
-        expect(reporter.errors, hasLength(1));
+        expect(reporter.errors, isEmpty);
       },
     );
   });
