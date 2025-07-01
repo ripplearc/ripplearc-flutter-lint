@@ -15,21 +15,38 @@ class Fake {
   // This is just for the example - in real code you'd use a proper fake library
 }
 
+/// Service interface for handling authentication operations.
+/// Provides methods for user authentication, logout and checking authentication status.
 abstract class AuthService {
+  /// Authenticates the user with the service.
+  /// Should be called before accessing protected resources.
   Future<void> authenticate();
+
+  /// Logs out the currently authenticated user.
+  /// Clears any stored authentication tokens or session data.
   Future<void> logout();
+
+  /// Checks if there is a currently authenticated user.
+  /// Returns true if a user is authenticated, false otherwise.
   Future<bool> isAuthenticated();
 }
 
+/// Repository interface for managing user data operations.
+/// Handles storing and retrieving user information.
 abstract class UserRepository {
+  /// Retrieves a user by their unique identifier.
+  /// Returns null if no user is found with the given id.
   Future<User?> getUser(String id);
+
+  /// Saves or updates a user's information in the repository.
+  /// Creates a new user entry if the user doesn't exist.
   Future<void> saveUser(User user);
 }
 
 // Bad: Fake class without documentation
-class FakeAuthService extends Fake implements AuthService {
-  void setAuthDelay(Duration delay) {} // LINT: Missing documentation
-  void triggerAuthFailure() {} // LINT: Missing documentation
+class FakeAuthService implements AuthService {
+  void setAuthDelay(Duration delay) {}
+  void triggerAuthFailure() {}
 
   @override
   Future<void> authenticate() async {}
@@ -43,7 +60,7 @@ class FakeAuthService extends Fake implements AuthService {
 
 // Bad: Fake class with only class documentation
 /// Fake implementation of UserRepository for testing.
-class FakeUserRepository extends Fake implements UserRepository {
+class FakeUserRepository implements UserRepository {
   void setUserData(User user) {} // LINT: Missing documentation
   void triggerNetworkError() {} // LINT: Missing documentation
 
@@ -56,7 +73,7 @@ class FakeUserRepository extends Fake implements UserRepository {
 
 // Good: Fake class with proper documentation
 /// Fake implementation of AuthService for testing authentication scenarios.
-class FakeAuthServiceWithDocs extends Fake implements AuthService {
+class FakeAuthServiceWithDocs implements AuthService {
   /// Sets authentication delay for testing timing scenarios.
   /// Useful for testing timeout handling and loading states.
   void setAuthDelay(Duration delay) {}
@@ -82,7 +99,7 @@ class FakeAuthServiceWithDocs extends Fake implements AuthService {
 
 // Good: Private methods are ignored (no documentation required)
 /// Fake implementation of UserRepository for testing.
-class FakeUserRepositoryWithPrivate extends Fake implements UserRepository {
+class FakeUserRepositoryWithPrivate implements UserRepository {
   /// Sets user data for testing scenarios.
   void setUserData(User user) {}
 
@@ -99,7 +116,7 @@ class FakeUserRepositoryWithPrivate extends Fake implements UserRepository {
 
 // Good: Getters and setters are ignored (no documentation required)
 /// Fake implementation of AuthService for testing.
-class FakeAuthServiceWithGetters extends Fake implements AuthService {
+class FakeAuthServiceWithGetters implements AuthService {
   /// Sets authentication delay for testing timing scenarios.
   void setAuthDelay(Duration delay) {}
 
@@ -117,7 +134,7 @@ class FakeAuthServiceWithGetters extends Fake implements AuthService {
 }
 
 // Good: Classes that extend Fake but don't implement interfaces are ignored
-class FakeHelper extends Fake {
+class FakeHelper {
   void setAuthDelay(
       Duration delay) {} // No interface - no documentation required
   void triggerAuthFailure() {} // No interface - no documentation required
