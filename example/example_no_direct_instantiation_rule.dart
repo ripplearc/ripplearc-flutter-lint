@@ -1,97 +1,35 @@
-// Example file demonstrating the no_direct_instantiation rule
-// This file shows both correct and incorrect usage patterns
+// Example for the no_direct_instantiation rule
+// This rule enforces dependency injection for better testability of auth/sync components.
 
-// Good: Module class - should not be flagged
-class Module {
-  // Base module class
-}
+// ✅ Allowed: Class ending with 'Factory'
+class FileProcessorFactory {}
 
-class AppModule extends Module {
-  // Module implementation
-}
+// ✅ Allowed: Module base class and class extending Module
+class Module {}
 
-// Good: Factory class - should not be flagged
-class AuthService {
-  factory AuthService() {
-    return AuthService._internal();
-  }
+class AppModule extends Module {}
 
-  AuthService._internal();
+// ❌ Not allowed: Regular class
+class AuthService {}
 
-  void authenticate() {
-    // Authentication logic
-  }
-
-  // Good: Static factory method - should not be flagged
-  static AuthService create() {
-    return AuthService._internal();
-  }
-}
-
-// Good: Factory class with parameters - should not be flagged
-class UserService {
-  factory UserService(String apiKey) {
-    return UserService._internal(apiKey);
-  }
-
-  UserService._internal(this.apiKey);
-
-  final String apiKey;
-
-  void getUser() {
-    // Get user logic
-  }
-}
-
-// Bad: Regular class - will be flagged when instantiated directly
-class SyncService {
-  SyncService();
-
-  void sync() {
-    // Sync logic
-  }
-}
-
-// Bad: Regular class with parameters - will be flagged when instantiated directly
-class NotificationService {
-  NotificationService(String token);
-
-  void sendNotification() {
-    // Notification logic
-  }
-}
-
-// Mock dependency injection container for example purposes
+// Mock DI container for demonstration
 class Modular {
-  static T get<T>() {
-    // Mock implementation
-    return null as T;
-  }
+  static T get<T>() => throw UnimplementedError();
 }
 
 void main() {
-  // Good: Using dependency injection
+  // ✅ Allowed: Using dependency injection
   final authService = Modular.get<AuthService>();
-  final userService = Modular.get<UserService>();
-
-  // Bad: Direct instantiation - will be flagged
-  final syncService = SyncService(); // LINT: Direct instantiation not allowed
-
-  // Bad: Direct instantiation with parameters - will be flagged
-  final notificationService =
-      NotificationService('token'); // LINT: Direct instantiation not allowed
-
-  // Bad: Using new keyword - will be flagged
-  final anotherService =
-      new SyncService(); // LINT: Direct instantiation not allowed
-
-  // Good: Module instantiation - should not be flagged
+  final factory = FileProcessorFactory();
   final module = AppModule();
 
-  // Good: Factory class instantiation - should not be flagged
-  final factoryService = AuthService();
-  final factoryServiceWithParams = UserService('api-key');
+  // ❌ Not allowed: Direct instantiation (should be flagged)
+  final badAuthService =
+      AuthService(); // LINT: Direct instantiation not allowed
 
-  // Good: Static factory method - should not be flagged
-  final staticFactory = AuthService.create();
+  // ✅ Allowed: Instantiating a Factory class
+  final goodFactory = FileProcessorFactory();
+
+  // ✅ Allowed: Instantiating a Module class
+  final goodModule = AppModule();
 }

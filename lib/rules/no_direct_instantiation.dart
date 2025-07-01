@@ -1,25 +1,26 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// A lint rule that enforces dependency injection by forbidding direct class instantiation.
+/// Enforces dependency injection for better testability of auth/sync components.
 ///
-/// This rule flags direct instantiations of classes to ensure proper dependency injection
-/// is used, improving testability and maintainability of auth/sync components.
+/// This rule flags all direct instantiations of classes, except:
+///   - Classes whose names end with 'Factory' (e.g., FileProcessorFactory)
+///   - Classes that extend 'Module'
 ///
-/// Example of code that triggers this rule:
+/// Example:
 /// ```dart
-/// fakeSupabaseWrapper = FakeSupabaseWrapper();  // LINT: Direct instantiation not allowed
-/// final service = AuthService();                // LINT: Direct instantiation not allowed
-/// ```
+/// // ❌ Not allowed:
+/// fakeSupabaseWrapper = FakeSupabaseWrapper();
+/// final service = AuthService();
 ///
-/// Example of code that doesn't trigger this rule:
-/// ```dart
-/// fakeSupabaseWrapper = Modular.get<FakeSupabaseWrapper>();  // Good: DI pattern
-/// final service = Modular.get<AuthService>();                // Good: DI pattern
+/// // ✅ Allowed:
+/// fakeSupabaseWrapper = Modular.get<FakeSupabaseWrapper>();
+/// final service = Modular.get<AuthService>();
+/// final factory = FileProcessorFactory();
+/// final module = AppModule();
 /// ```
 class NoDirectInstantiation extends DartLintRule {
   const NoDirectInstantiation() : super(code: _code);
@@ -40,89 +41,55 @@ class NoDirectInstantiation extends DartLintRule {
     CustomLintContext context,
   ) {
     context.registry.addCompilationUnit((node) {
-      if (_isTestFile(resolver.path)) return;
       _checkForDirectInstantiation(node, reporter);
     });
-  }
-
-  bool _isTestFile(String path) {
-    return path.contains('_test.dart') || path.contains('/test/');
   }
 
   void _checkForDirectInstantiation(
     CompilationUnit node,
     ErrorReporter reporter,
   ) {
-    final visitor = _DirectInstantiationVisitor(reporter);
-    node.visitChildren(visitor);
+    node.visitChildren(_DirectInstantiationVisitor(reporter));
   }
 }
 
 class _DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
-  _DirectInstantiationVisitor(this.reporter);
-
   final ErrorReporter reporter;
+  _DirectInstantiationVisitor(this.reporter);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    // Check if this is a direct instantiation (not Modular.get)
-    if (!_isModularGetCall(node)) {
-      // Check if the class being instantiated is excluded (Module or factory)
-      final className = node.constructorName.type.name2.lexeme;
-      if (!_isExcludedClass(className, node)) {
-        reporter.atNode(node, NoDirectInstantiation._code);
-      }
+    final className = node.constructorName.type.name2.lexeme;
+    if (!_isExcludedClass(className, node)) {
+      reporter.atNode(node, NoDirectInstantiation._code);
     }
-
     super.visitInstanceCreationExpression(node);
   }
 
-  bool _isModularGetCall(InstanceCreationExpression node) {
-    // Check if this is a Modular.get<ClassName>() call
-    final parent = node.parent;
-    if (parent is MethodInvocation) {
-      final methodName = parent.methodName.name;
-      final target = parent.target;
-      if (methodName == 'get' && target is PrefixedIdentifier) {
-        final prefix = target.prefix.name;
-        final identifier = target.identifier.name;
-        return prefix == 'Modular' && identifier == 'get';
-      }
-    }
-    return false;
-  }
-
   bool _isExcludedClass(String className, InstanceCreationExpression node) {
-    // Check if the class name ends with "Factory"
+    // Allow classes whose names end with 'Factory'
     if (className.endsWith('Factory')) {
       return true;
     }
-
-    // Check if the class extends Module
-    final classDeclaration = _findClassDeclaration(className, node);
-    if (classDeclaration != null) {
-      // Check if it extends Module
-      final extendsClause = classDeclaration.extendsClause;
-      if (extendsClause != null) {
-        final superclass = extendsClause.superclass;
-        if (superclass.name2.lexeme == 'Module') {
-          return true;
-        }
+    // Allow classes that extend 'Module'
+    final classDecl = _findClassDeclaration(className, node);
+    if (classDecl != null) {
+      final extendsClause = classDecl.extendsClause;
+      if (extendsClause != null &&
+          extendsClause.superclass.name2.lexeme == 'Module') {
+        return true;
       }
     }
-
     return false;
   }
 
   ClassDeclaration? _findClassDeclaration(String className, AstNode node) {
-    // Find the class declaration by traversing up the AST
     AstNode? current = node;
     while (current != null) {
       if (current is CompilationUnit) {
-        for (final declaration in current.declarations) {
-          if (declaration is ClassDeclaration &&
-              declaration.name.lexeme == className) {
-            return declaration;
+        for (final decl in current.declarations) {
+          if (decl is ClassDeclaration && decl.name.lexeme == className) {
+            return decl;
           }
         }
         break;

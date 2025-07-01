@@ -94,14 +94,35 @@ Enforces dependency injection by forbidding direct class instantiation. This rul
 
 #### Bad ❌
 ```dart
-// Bad: Direct instantiation - will be flagged
+// Direct instantiation - will be flagged
 final syncService = SyncService(); // LINT: Direct instantiation not allowed
 
-// Bad: Direct instantiation with parameters - will be flagged
+// Direct instantiation with parameters - will be flagged
 final notificationService = NotificationService('token'); // LINT: Direct instantiation not allowed
 
-// Bad: Using new keyword - will be flagged
+// Using new keyword - will be flagged
 final anotherService = new SyncService(); // LINT: Direct instantiation not allowed
+```
+
+#### Good ✅
+```dart
+// Using dependency injection
+final authService = Modular.get<AuthService>();
+final notificationService = Modular.get<NotificationService>();
+
+// Module instantiation - allowed
+class Module {}
+class AppModule extends Module {}
+final module = AppModule();
+
+// Factory class instantiation - allowed
+class FileProcessorFactory {}
+final factory = FileProcessorFactory();
+```
+
+#### Excluded Classes
+- **Module classes**: Classes that extend `Module`
+- **Factory classes**: Classes whose names end with "Factory" (e.g., `DatabaseFactory`, `HttpClientFactory`)
 
 ### todo_with_story_links
 
