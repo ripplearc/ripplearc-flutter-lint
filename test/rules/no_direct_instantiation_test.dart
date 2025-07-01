@@ -34,7 +34,7 @@ void main() {
       }
       ''';
       await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, hasLength(1));
     });
 
     test('does not flag instantiation of Factory class', () async {
@@ -73,6 +73,44 @@ void main() {
       await analyzeCode(source);
       expect(reporter.errors, isEmpty);
     });
+
+    test('does not flag direct instantiation inside a Module', () async {
+      const source = '''
+      class AuthService {}
+      class Module {}
+      class AppModule extends Module {
+        AppModule() {
+          final a = AuthService(); // Should NOT be flagged
+        }
+      }
+      void main() {
+        final m = AppModule();
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test(
+      'flags direct instantiation outside but not inside a Module',
+      () async {
+        const source = '''
+      class AuthService {}
+      class Module {}
+      class AppModule extends Module {
+        AppModule() {
+          final a = AuthService(); // Should NOT be flagged
+        }
+      }
+      void main() {
+        final a = AuthService(); // Should be flagged
+        final m = AppModule();
+      }
+      ''';
+        await analyzeCode(source);
+        expect(reporter.errors, hasLength(1));
+      },
+    );
   });
 }
 

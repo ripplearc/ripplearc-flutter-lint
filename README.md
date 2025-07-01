@@ -90,7 +90,7 @@ test('example', () {
 
 ### no_direct_instantiation
 
-Enforces dependency injection by forbidding direct class instantiation. This rule flags direct instantiations of classes to ensure proper dependency injection is used, improving testability and maintainability. Classes that extend `Module` or have names ending with "Factory" are excluded.
+Enforces dependency injection by forbidding direct class instantiation. This rule flags direct instantiations of classes to ensure proper dependency injection is used, improving testability and maintainability. Classes that extend `Module`, have names ending with "Factory", or any instantiation that occurs inside a class that extends `Module` are excluded.
 
 #### Bad ❌
 ```dart
@@ -118,11 +118,19 @@ final module = AppModule();
 // Factory class instantiation - allowed
 class FileProcessorFactory {}
 final factory = FileProcessorFactory();
+
+// Direct instantiation inside a Module is allowed
+class AppModule extends Module {
+  AppModule() {
+    final service = AuthService(); // Allowed here
+  }
+}
 ```
 
-#### Excluded Classes
+#### Excluded Classes/Contexts
 - **Module classes**: Classes that extend `Module`
 - **Factory classes**: Classes whose names end with "Factory" (e.g., `DatabaseFactory`, `HttpClientFactory`)
+- **Inside Module**: Any direct instantiation inside a class that extends `Module`
 
 ### todo_with_story_links
 

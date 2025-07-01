@@ -7,7 +7,12 @@ class FileProcessorFactory {}
 // ✅ Allowed: Module base class and class extending Module
 class Module {}
 
-class AppModule extends Module {}
+class AppModule extends Module {
+  AppModule() {
+    // ✅ Allowed: Direct instantiation inside a Module
+    final service = AuthService();
+  }
+}
 
 // ❌ Not allowed: Regular class
 class AuthService {}
