@@ -4,7 +4,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:ripplearc_flutter_lint/rules/no_direct_instantiation.dart';
 import 'package:test/test.dart';
 import '../utils/test_error_reporter.dart';

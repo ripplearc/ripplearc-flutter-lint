@@ -453,4 +453,49 @@ This configuration file includes all our custom lint rules:
 - This enables our custom lint rules to be loaded
 - Multiple plugins can be listed if needed
 
-By following these steps, you can successfully register and use custom lint rules in your Dart/Flutter project. 
+By following these steps, you can successfully register and use custom lint rules in your Dart/Flutter project.
+
+## Publishing & Updating the Package
+
+To update and publish a new version to pub.dev:
+
+1. **Add notes to the changelog**
+   - Edit `CHANGELOG.md` and add a section for the new version, describing the changes and new rules.
+2. **Run a dry run**
+   - Execute `dart pub publish --dry-run` to check for issues or warnings before publishing.
+3. **Fix any issues**
+   - Address any errors or important warnings reported by the dry run (e.g., dependency constraints, missing files, linter errors).
+4. **Publish**
+   - Update the version in `pubspec.yaml`.
+   - Run `dart pub publish` and follow the prompts to publish your package to pub.dev.
+
+> **Note:** You cannot re-publish the same version. Always increment the version number for each release.
+
+## Using the Latest Lint Rules in Your Project
+
+To update your project to use the latest version of `ripplearc_flutter_lint` and enable new rules:
+
+1. **Update your pubspec.yaml**
+   - Change the version of `ripplearc_flutter_lint` to the latest version:
+     ```yaml
+     dependencies:
+       ripplearc_flutter_lint: ^<latest_version>
+     ```
+   - Run `dart pub get` to fetch the updated package.
+
+2. **Update your custom_lint.yaml**
+   - Add or update the rules you want to enforce. For example:
+     ```yaml
+     rules:
+       - prefer_fake_over_mock
+       - forbid_forced_unwrapping
+       - no_optional_operators_in_tests
+       - no_direct_instantiation
+       - document_fake_parameters
+       - document_interface
+       - todo_with_story_links
+       - no_internal_method_docs
+     ```
+   - Only include the rules you want to enforce in your project.
+
+> **Tip:** After updating, run your linter to ensure the new rules are active and working as expected. 
