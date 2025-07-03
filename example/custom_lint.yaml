@@ -5,6 +5,7 @@ rules:
   - prefer_fake_over_mock
   - no_optional_operators_in_tests
   - forbid_forced_unwrapping
+  - no_direct_instantiation
   - document_fake_parameters
   - todo_with_story_links
   - no_internal_method_docs

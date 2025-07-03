@@ -1,4 +1,5 @@
 import 'package:custom_lint_builder/custom_lint_builder.dart';
+import 'package:ripplearc_flutter_lint/rules/no_direct_instantiation.dart';
 import 'package:ripplearc_flutter_lint/rules/document_fake_parameters.dart';
 import 'package:ripplearc_flutter_lint/rules/todo_with_story_links.dart';
 import 'package:ripplearc_flutter_lint/rules/no_internal_method_docs.dart';
@@ -15,6 +16,7 @@ class _RipplearcFlutterLint extends PluginBase {
     const ForbidForcedUnwrapping(),
     const NoOptionalOperatorsInTests(),
     const PreferFakeOverMockRule(),
+    const NoDirectInstantiation(),
     const DocumentFakeParameters(),
     const TodoWithStoryLinks(),
     const NoInternalMethodDocs(),
