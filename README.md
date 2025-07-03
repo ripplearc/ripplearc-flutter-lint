@@ -97,35 +97,44 @@ Enforces dependency injection by forbidding direct class instantiation. This rul
 
 #### Bad ❌
 ```dart
-// Direct instantiation - will be flagged
-final syncService = SyncService(); // LINT: Direct instantiation not allowed
-
-// Direct instantiation with parameters - will be flagged
-final notificationService = NotificationService('token'); // LINT: Direct instantiation not allowed
-
-// Using new keyword - will be flagged
-final anotherService = new SyncService(); // LINT: Direct instantiation not allowed
+// Bad: Direct instantiation of classes
+class BadService {
+  void doSomething() {
+    final service = AuthService(); // LINT: Direct instantiation not allowed
+    final wrapper = FakeSupabaseWrapper(); // LINT: Direct instantiation not allowed
+  }
+}
 ```
 
 #### Good ✅
 ```dart
-// Using dependency injection
-final authService = Modular.get<AuthService>();
-final notificationService = Modular.get<NotificationService>();
+// Good: Using dependency injection
+class GoodService {
+  void doSomething() {
+    final service = Modular.get<AuthService>(); // Good: Using DI
+    final wrapper = Modular.get<FakeSupabaseWrapper>(); // Good: Using DI
+  }
+}
 
-// Module instantiation - allowed
-class Module {}
-class AppModule extends Module {}
-final module = AppModule();
+// Good: Factory classes can be instantiated directly
+class FactoryExample {
+  void createFactory() {
+    final factory = FileProcessorFactory(); // Good: Factory class
+  }
+}
 
-// Factory class instantiation - allowed
-class FileProcessorFactory {}
-final factory = FileProcessorFactory();
+// Good: Module classes can be instantiated directly
+class ModuleExample {
+  void createModule() {
+    final module = AppModule(); // Good: Module class
+  }
+}
 
-// Direct instantiation inside a Module is allowed
+// Good: Instantiation inside Module class
 class AppModule extends Module {
   AppModule() {
-    final service = AuthService(); // Allowed here
+    final service = AuthService(); // ✅ Allowed: Inside Module class
+    final wrapper = FakeSupabaseWrapper(); // ✅ Allowed: Inside Module class
   }
 }
 ```

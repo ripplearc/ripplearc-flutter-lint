@@ -1,40 +1,47 @@
-// Example for the no_direct_instantiation rule
-// This rule enforces dependency injection for better testability of auth/sync components.
-
-// ✅ Allowed: Class ending with 'Factory'
-class FileProcessorFactory {}
-
-// ✅ Allowed: Module base class and class extending Module
-class Module {}
-
-class AppModule extends Module {
-  AppModule() {
-    // ✅ Allowed: Direct instantiation inside a Module
-    final service = AuthService();
+// Bad: Direct instantiation of classes
+class BadService {
+  void doSomething() {
+    final service = AuthService(); // LINT: Direct instantiation not allowed
+    final wrapper =
+        FakeSupabaseWrapper(); // LINT: Direct instantiation not allowed
   }
 }
 
-// ❌ Not allowed: Regular class
+// Good: Using dependency injection
+class GoodService {
+  void doSomething() {
+    final service = Modular.get<AuthService>(); // Good: Using DI
+    final wrapper = Modular.get<FakeSupabaseWrapper>(); // Good: Using DI
+  }
+}
+
+// Good: Factory classes can be instantiated directly
+class FactoryExample {
+  void createFactory() {
+    final fileProcessorFactory = FileProcessorFactory(); // Good: Factory class
+  }
+}
+
+// Good: Module classes can be instantiated directly
+class ModuleExample {
+  void createModule() {
+    final module = AppModule(); // Good: Module class
+  }
+}
+
+// Good: Instantiation inside Module class
+class AppModule extends Module {
+  AppModule() {
+    final service = AuthService(); // ✅ Allowed: Inside Module class
+    final wrapper = FakeSupabaseWrapper(); // ✅ Allowed: Inside Module class
+  }
+}
+
+// Supporting classes
+class Module {}
+
 class AuthService {}
 
-// Mock DI container for demonstration
-class Modular {
-  static T get<T>() => throw UnimplementedError();
-}
+class FakeSupabaseWrapper {}
 
-void main() {
-  // ✅ Allowed: Using dependency injection
-  final authService = Modular.get<AuthService>();
-  final factory = FileProcessorFactory();
-  final module = AppModule();
-
-  // ❌ Not allowed: Direct instantiation (should be flagged)
-  final badAuthService =
-      AuthService(); // LINT: Direct instantiation not allowed
-
-  // ✅ Allowed: Instantiating a Factory class
-  final goodFactory = FileProcessorFactory();
-
-  // ✅ Allowed: Instantiating a Module class
-  final goodModule = AppModule();
-}
+class FileProcessorFactory {}
