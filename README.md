@@ -11,6 +11,7 @@ lib/
     no_optional_operators_in_tests.dart
     forbid_forced_unwrapping.dart
     no_direct_instantiation.dart
+    document_fake_parameters.dart
     todo_with_story_links.dart
     no_internal_method_docs.dart
     document_interface.dart
@@ -20,6 +21,7 @@ test/
     no_optional_operators_in_tests_test.dart
     forbid_forced_unwrapping_test.dart
     no_direct_instantiation_test.dart
+    document_fake_parameters_test.dart
     todo_with_story_links_test.dart
     no_internal_method_docs_test.dart
     document_interface_test.dart
@@ -28,6 +30,7 @@ example/                    # Example files demonstrating rules
   example_no_optional_operators_in_tests_rule.dart
   example_forbid_forced_unwrapping_rule.dart
   example_no_direct_instantiation_rule.dart
+  example_document_fake_parameters_rule.dart
   example_todo_with_story_links_rule.dart
   example_no_internal_method_docs_rule.dart
   example_document_interface_rule.dart
@@ -132,6 +135,28 @@ class AppModule extends Module {
 - **Factory classes**: Classes whose names end with "Factory" (e.g., `DatabaseFactory`, `HttpClientFactory`)
 - **Inside Module**: Any direct instantiation inside a class that extends `Module`
 
+### document_fake_parameters
+
+Enforces documentation on Fake classes and their non-private members. This rule ensures that test helper methods and variables in Fake classes are properly documented for better test maintainability and team collaboration. Only applies to classes that extend `Fake` and implement interfaces.
+
+#### Bad ❌
+```dart
+class FakeAuthService extends Fake implements AuthService {
+  void setAuthDelay(Duration delay) {} // Missing documentation
+  void triggerAuthFailure() {} // Missing documentation
+
+  @override
+  Future<void> authenticate() async {}
+}
+
+/// Fake implementation of UserRepository for testing.
+class FakeUserRepository extends Fake implements UserRepository {
+  void setUserData(User user) {} // Missing documentation
+  void triggerNetworkError() {} // Missing documentation
+
+  @override
+  Future<User?> getUser(String id) async => null;
+  
 ### todo_with_story_links
 
 Ensures TODO comments include YouTrack story links for proper project management and technical debt tracking. This rule flags TODO comments that don't include a valid YouTrack URL, ensuring technical debt is properly linked to product backlog items.
@@ -198,6 +223,30 @@ final staticFactory = AuthService.create();
 - **Module classes**: Classes that extend `Module`
 - **Factory classes**: Classes whose names end with "Factory" (e.g., `DatabaseFactory`, `HttpClientFactory`)
 
+/// Fake implementation of AuthService for testing authentication scenarios.
+class FakeAuthService extends Fake implements AuthService {
+  /// Sets authentication delay for testing timing scenarios.
+  /// Useful for testing timeout handling and loading states.
+  void setAuthDelay(Duration delay) {}
+
+  /// Simulates authentication failure for error handling tests.
+  /// Triggers the same error conditions as the real service.
+  void triggerAuthFailure() {}
+
+  @override
+  Future<void> authenticate() async {} // Override - no documentation needed
+}
+
+/// Fake implementation of UserRepository for testing.
+class FakeUserRepository extends Fake implements UserRepository {
+  /// Sets user data for testing scenarios.
+  void setUserData(User user) {}
+
+  void _validateUser(User user) {} // Private method - no documentation needed
+
+  @override
+  Future<User?> getUser(String id) async => null; // Override - no documentation needed
+  
 //TODO: https://ripplearc.youtrack.cloud/issue/CA-123
 // TODO: https://ripplearc.youtrack.cloud/issue/UI-456
 //TODO: https://ripplearc.youtrack.cloud/issue/BE-789 - Fix authentication timeout
@@ -379,6 +428,7 @@ This configuration file includes all our custom lint rules:
 - `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
 - `no_optional_operators_in_tests` - Forbid optional operators in test files
 - `no_direct_instantiation` - Enforce dependency injection by forbidding direct class instantiation
+- `document_fake_parameters` - Enforce documentation on Fake classes and their non-private members
 - `todo_with_story_links` - Ensure TODO comments include YouTrack story links
 - `no_internal_method_docs` - Forbid documentation on private methods to reduce noise
 - `document_interface` - Enforce documentation on abstract classes and their public methods
