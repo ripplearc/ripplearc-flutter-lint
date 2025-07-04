@@ -8,6 +8,7 @@ import 'rules/forbid_forced_unwrapping.dart';
 import 'rules/no_optional_operators_in_tests.dart';
 import 'rules/document_interface.dart';
 import 'rules/specific_exception_types.dart';
+import 'rules/sealed_over_dynamic.dart';
 
 PluginBase createPlugin() => _RipplearcFlutterLint();
 
@@ -23,5 +24,6 @@ class _RipplearcFlutterLint extends PluginBase {
     const NoInternalMethodDocs(),
     const DocumentInterface(),
     const SpecificExceptionTypes(),
+    const SealedOverDynamic(),
   ];
 }
