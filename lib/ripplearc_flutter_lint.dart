@@ -9,6 +9,7 @@ import 'rules/no_optional_operators_in_tests.dart';
 import 'rules/document_interface.dart';
 import 'rules/specific_exception_types.dart';
 import 'rules/sealed_over_dynamic.dart';
+import 'rules/avoid_test_timeouts.dart';
 
 PluginBase createPlugin() => _RipplearcFlutterLint();
 
@@ -25,5 +26,6 @@ class _RipplearcFlutterLint extends PluginBase {
     const DocumentInterface(),
     const SpecificExceptionTypes(),
     const SealedOverDynamic(),
+    const AvoidTestTimeouts(),
   ];
 }
