@@ -7,6 +7,7 @@ import 'rules/prefer_fake_over_mock_rule.dart';
 import 'rules/forbid_forced_unwrapping.dart';
 import 'rules/no_optional_operators_in_tests.dart';
 import 'rules/document_interface.dart';
+import 'rules/test_file_mutation_coverage.dart';
 
 PluginBase createPlugin() => _RipplearcFlutterLint();
 
@@ -21,5 +22,6 @@ class _RipplearcFlutterLint extends PluginBase {
     const TodoWithStoryLinks(),
     const NoInternalMethodDocs(),
     const DocumentInterface(),
+    const TestFileMutationCoverage(),
   ];
 }
