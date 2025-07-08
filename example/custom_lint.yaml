@@ -10,6 +10,7 @@ rules:
   - todo_with_story_links
   - no_internal_method_docs
   - document_interface
+  - specific_exception_types
 
 analyzer:
   plugins:

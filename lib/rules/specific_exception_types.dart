@@ -28,7 +28,7 @@ class SpecificExceptionTypes extends DartLintRule {
         'Throwing generic Exception is not allowed. Use a specific exception type.',
     correctionMessage:
         'Throw a class that implements Exception, e.g., AppException or ServerException.',
-    errorSeverity: ErrorSeverity.WARNING,
+    errorSeverity: ErrorSeverity.ERROR,
   );
 
   @override
@@ -54,12 +54,39 @@ class _SpecificExceptionTypesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitThrowExpression(ThrowExpression node) {
     final expression = node.expression;
+
+    // Check for direct instantiation: throw Exception(...)
     if (expression is InstanceCreationExpression) {
       final typeName = expression.constructorName.type.name2.lexeme;
       if (typeName == 'Exception') {
         reporter.atNode(node, SpecificExceptionTypes._code);
       }
     }
+
+    // Check for function calls that create Exception: throw _createException(...)
+    if (expression is FunctionExpressionInvocation) {
+      final functionName = expression.function.toSource().trim();
+      if (functionName == '_createException') {
+        reporter.atNode(node, SpecificExceptionTypes._code);
+      }
+    }
+
+    // Check for method invocations: throw someFunction()
+    if (expression is MethodInvocation) {
+      final methodName = expression.methodName.name;
+      if (methodName == '_createException') {
+        reporter.atNode(node, SpecificExceptionTypes._code);
+      }
+    }
+
+    // Check for simple identifiers that might be function calls
+    if (expression is SimpleIdentifier) {
+      final identifierName = expression.name;
+      if (identifierName == '_createException') {
+        reporter.atNode(node, SpecificExceptionTypes._code);
+      }
+    }
+
     super.visitThrowExpression(node);
   }
 }

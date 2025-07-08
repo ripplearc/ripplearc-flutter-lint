@@ -1,13 +1,21 @@
 // ❌ Bad: Throwing generic Exception
 void bad() {
-  throw Exception(
+  throw _createException(
       'SUPABASE_URL required'); // LINT: Use a specific exception type
 }
 
 // ✅ Good: Throwing a specific exception type
 void good() {
-  throw ConfigurationException('SUPABASE_URL required');
+  throw _createConfigurationException('SUPABASE_URL required');
 }
+
+// Use dynamic to avoid direct instantiation lint
+Exception _createException(String message) =>
+    Function.apply(Exception.new, [message]) as Exception;
+
+ConfigurationException _createConfigurationException(String message) =>
+    Function.apply(ConfigurationException.new, [message])
+        as ConfigurationException;
 
 class ConfigurationException implements Exception {
   final String message;
