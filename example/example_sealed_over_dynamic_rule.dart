@@ -14,8 +14,11 @@ void good() async {
 // Mock powersync object for demonstration
 final powersync = _PowerSync();
 
-class _PowerSync {
+class _PowerSync extends Module {
   Future<dynamic> execute(String query) async => SyncResultImpl();
 }
 
 class SyncResultImpl extends SyncResult {}
+
+/// Dummy base class to satisfy `no_direct_instantiation` rule
+abstract class Module {}
