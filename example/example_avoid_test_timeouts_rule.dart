@@ -23,7 +23,7 @@ Duration getDuration() => getExistingDuration();
 Future<void> getDelayedFuture() async => await getExistingDelayedFuture();
 
 // These would be provided by dependency injection in real code
-Stream<String> getExistingStream() => const Stream.empty();
+Stream<String> getExistingStream() => StreamModule().createStream();
 Duration getExistingDuration() => Duration.zero;
 Future<void> getExistingDelayedFuture() async {}
 
@@ -32,3 +32,13 @@ Future<void> pumpAndSettle() async {}
 Future<void> expectLater(Stream<String> stream, dynamic matcher) async {}
 
 dynamic emits(dynamic value) => value;
+
+class StreamModule extends Module {
+  Stream<String> createStream() {
+    Stream<String> stream = const Stream.empty();
+    return stream;
+  }
+}
+
+/// Dummy base class to satisfy `no_direct_instantiation` rule
+abstract class Module {}
