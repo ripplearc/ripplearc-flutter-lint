@@ -4,15 +4,21 @@ import 'package:analyzer/error/error.dart' hide LintCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
-/// Enforces the use of sealed classes over dynamic for sync results.
+/// A lint rule that enforces the use of sealed classes instead of `dynamic` for sync results.
+///
+/// Using `dynamic` for sync results bypasses Dart’s type system, making code less safe and harder to maintain.
+/// Sealed classes provide explicit, type-safe alternatives that improve code clarity, enable exhaustive handling, and enhance IDE support.
 ///
 /// This rule flags any use of `dynamic` for sync results and suggests using a sealed class instead.
 ///
-/// Example:
+/// Example of code that triggers this rule:
 /// ```dart
 /// // ❌ Not allowed:
 /// dynamic syncResult = await powersync.execute(query);
+/// ```
 ///
+/// Example of code that doesn't trigger this rule:
+/// ```dart
 /// // ✅ Allowed:
 /// sealed class SyncResult {}
 /// SyncResult result = await powersync.execute(query);
