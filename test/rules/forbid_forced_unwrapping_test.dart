@@ -56,6 +56,42 @@ void main() {
       await analyzeCode(source, path: 'test/example_test.dart');
       expect(reporter.errors, isEmpty);
     });
+
+    test('should not flag forced unwrapping in /testing/ with fake in the path', () async {
+      const source = '''
+      void main() {
+        final String? name = null;
+        final value = name!;  // Should not flag this in /testing/**/fake* files
+        print(value);
+      }
+      ''';
+      await analyzeCode(source, path: 'lib/testing/fake_user.dart');
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('should not flag forced unwrapping in freezed-generated files', () async {
+      const source = '''
+      void main() {
+        final String? name = null;
+        final value = name!;  // Should not flag this in *.freezed.dart files
+        print(value);
+      }
+      ''';
+      await analyzeCode(source, path: 'lib/models/user.freezed.dart');
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('should not flag forced unwrapping in json_serializable-generated .g.dart files', () async {
+      const source = '''
+      void main() {
+        final String? name = null;
+        final value = name!;  // Should not flag this in *.g.dart files
+        print(value);
+      }
+      ''';
+      await analyzeCode(source, path: 'lib/models/auth_state.g.dart');
+      expect(reporter.errors, isEmpty);
+    });
   });
 }
 
