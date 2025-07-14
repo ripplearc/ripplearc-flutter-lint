@@ -1,3 +1,8 @@
+/// ## Why this rule?
+///
+/// Streams and Subjects (such as BehaviorSubject, ReplaySubject, PublishSubject) are often used to manage state and events in Dart and Flutter applications.
+/// If these Subject variables are public, external code can add events, close, or otherwise manipulate the stream, leading to unpredictable behavior, bugs, or security issues.
+/// By enforcing that Subject variables are private (using an underscore prefix), we ensure that only the owning class can interact with the Subject directly, promoting encapsulation and safer, more maintainable code.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart' hide LintCode;
@@ -5,6 +10,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 
 /// A lint rule that enforces Subject variables to be private.
+///
+/// Prevents external manipulation of Subject streams.
 ///
 /// This rule prevents external manipulation of Subject streams by ensuring
 /// that all Subject variables (BehaviorSubject, ReplaySubject, PublishSubject)
