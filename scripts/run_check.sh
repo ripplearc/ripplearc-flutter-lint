@@ -1,5 +1,5 @@
 #!/bin/bash
-# run_check_new.sh
+# run_check.sh
 # Runs the exact_dependency_version.sh script and passes through its exit code
 
 set -euo pipefail
