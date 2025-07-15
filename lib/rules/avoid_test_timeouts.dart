@@ -87,11 +87,42 @@ class _TestTimeoutVisitor extends RecursiveAstVisitor<void> {
       // Check for Future.delayed() method calls
       if (_isInTestBlock && !_isInSetupOrTeardown && name == 'delayed') {
         final target = node.target;
-        if (target is Identifier && target.name == 'Future') {
+        // Support both Identifier and PrefixedIdentifier for Future
+        if ((target is Identifier && target.name == 'Future') ||
+            (target is PrefixedIdentifier &&
+                target.identifier.name == 'Future')) {
           _reporter.atNode(node, AvoidTestTimeouts._code);
         }
       }
       super.visitMethodInvocation(node);
     }
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    // Check if we're inside a Module class
+    final parent = node.parent;
+    if (parent is ClassDeclaration &&
+        parent.extendsClause?.superclass.toString() == 'Module') {
+      _isInTestBlock = true;
+      super.visitMethodDeclaration(node);
+      _isInTestBlock = false;
+    } else {
+      super.visitMethodDeclaration(node);
+    }
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    final constructorName = node.constructorName;
+    final typeName = constructorName.type.toString();
+    final name = constructorName.name?.name;
+    if (_isInTestBlock &&
+        !_isInSetupOrTeardown &&
+        typeName == 'Future' &&
+        name == 'delayed') {
+      _reporter.atNode(node, AvoidTestTimeouts._code);
+    }
+    super.visitInstanceCreationExpression(node);
   }
 }
