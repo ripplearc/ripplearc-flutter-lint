@@ -3,18 +3,28 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that enforces dependency injection by forbidding direct class instantiation.
+///
+/// Flags all direct instantiations of classes, except:
+///   - Classes whose names end with 'Factory'
+///   - Classes that extend 'Module'
+///   - Instantiations inside a class that extends 'Module'
 class DirectInstantiationAnalyzer extends BaseAnalyzer {
+  /// The unique name of the lint rule implemented by this analyzer.
   @override
   String get ruleName => 'no_direct_instantiation';
 
+  /// The main problem message shown when this rule is violated.
   @override
   String get problemMessage =>
       'Direct instantiation is not allowed. Use dependency injection instead.';
 
+  /// The suggested correction message for fixing a violation of this rule.
   @override
   String get correctionMessage =>
       'Replace direct instantiation with Modular.get<ClassName>().';
 
+  /// Analyze the given [CompilationUnit] and return a list of [LintIssue]s for direct instantiation violations.
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
     final visitor = _DirectInstantiationVisitor(this);
@@ -22,6 +32,7 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
     return visitor.issues;
   }
 
+  /// Returns true if the class should be excluded from the rule (e.g., Factory or Module classes).
   bool isExcludedClass(String className, InstanceCreationExpression node) {
     // Allow classes whose names end with 'Factory'
     if (className.endsWith('Factory')) return true;
@@ -34,6 +45,7 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
     return false;
   }
 
+  /// Returns true if the given [node] is inside a class that extends 'Module'.
   bool isInsideModule(AstNode node) {
     AstNode? current = node.parent;
     while (current != null) {
@@ -47,6 +59,7 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
     return false;
   }
 
+  /// Finds the [ClassDeclaration] for the given [className] in the AST tree rooted at [node].
   ClassDeclaration? _findClassDeclaration(String className, AstNode node) {
     AstNode? current = node;
     while (current != null) {
@@ -64,12 +77,18 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
   }
 }
 
+/// AST visitor that collects direct instantiation violations for the analyzer.
 class _DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
+  /// The analyzer instance to use for rule logic and issue creation.
   final DirectInstantiationAnalyzer analyzer;
+
+  /// The list of issues found during the visit.
   final List<LintIssue> issues = [];
 
+  /// Creates a visitor for the given [analyzer].
   _DirectInstantiationVisitor(this.analyzer);
 
+  /// Visits instance creation expressions and adds issues if they violate the rule.
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     final className = node.constructorName.type.name2.lexeme;

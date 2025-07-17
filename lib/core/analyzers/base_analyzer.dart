@@ -1,21 +1,39 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import '../models/lint_issue.dart';
 
+/// The base interface for all custom lint analyzers.
+///
+/// Implement this to define a custom lint rule. Each analyzer is responsible for
+/// analyzing a Dart AST [CompilationUnit] and returning a list of [LintIssue]s
+/// that represent violations of the rule.
 abstract class BaseAnalyzer {
+  /// The unique name of the lint rule implemented by this analyzer.
   String get ruleName;
+
+  /// The main problem message shown when this rule is violated.
   String get problemMessage;
+
+  /// The suggested correction message for fixing a violation of this rule.
   String get correctionMessage;
+
+  /// The severity of the lint rule (e.g., 'ERROR', 'WARNING').
   String get severity => 'ERROR';
 
-  /// Common utility to check if a file is a test file
+  /// Utility to check if a file is a test file (by path).
+  ///
+  /// Returns true if the file path contains '_test.dart' or is under a '/test/' directory.
   static bool isTestFile(String path) {
     return path.contains('_test.dart') || path.contains('/test/');
   }
 
-  /// Core analysis method - implement rule-specific logic
+  /// Analyze the given [CompilationUnit] and return a list of [LintIssue]s.
+  ///
+  /// Implement this method to provide the core logic for your custom lint rule.
   List<LintIssue> analyze(CompilationUnit unit);
 
-  /// Helper to create issues with consistent formatting
+  /// Helper to create a [LintIssue] from an [AstNode] with consistent formatting.
+  ///
+  /// Optionally provide a [customMessage] to override the default problem message.
   LintIssue createIssue(AstNode node, {String? customMessage}) {
     final root = node.root;
     final lineInfo = root is CompilationUnit ? root.lineInfo : null;
