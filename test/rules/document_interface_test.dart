@@ -37,10 +37,11 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/repository.dart');
-      expect(reporter.errors, hasLength(1));
+      // Both class and method are undocumented, so expect 2 errors
+      expect(reporter.errors, hasLength(2));
       expect(
-        reporter.errors.first.errorCode.name,
-        equals('document_interface'),
+        reporter.errors.map((e) => e.errorCode.name).toSet(),
+        equals({'document_interface'}),
       );
     });
 
@@ -55,10 +56,11 @@ void main() {
       }
       ''';
         await analyzeCode(source, path: 'lib/repository.dart');
-        expect(reporter.errors, hasLength(1));
+        // Both methods are undocumented, so expect 2 errors
+        expect(reporter.errors, hasLength(2));
         expect(
-          reporter.errors.first.errorCode.name,
-          equals('document_interface'),
+          reporter.errors.map((e) => e.errorCode.name).toSet(),
+          equals({'document_interface'}),
         );
       },
     );
@@ -121,10 +123,11 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'example/example_repository.dart');
-      expect(reporter.errors, hasLength(1));
+      // Both class and method are undocumented, so expect 2 errors
+      expect(reporter.errors, hasLength(2));
       expect(
-        reporter.errors.first.errorCode.name,
-        equals('document_interface'),
+        reporter.errors.map((e) => e.errorCode.name).toSet(),
+        equals({'document_interface'}),
       );
     });
 
@@ -137,10 +140,11 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/repository.dart');
-      expect(reporter.errors, hasLength(1));
+      // Both class and method have empty docs, so expect 2 errors
+      expect(reporter.errors, hasLength(2));
       expect(
-        reporter.errors.first.errorCode.name,
-        equals('document_interface'),
+        reporter.errors.map((e) => e.errorCode.name).toSet(),
+        equals({'document_interface'}),
       );
     });
   });

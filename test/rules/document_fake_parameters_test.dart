@@ -45,10 +45,11 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/auth_service.dart');
-      expect(reporter.errors, hasLength(1));
+      // Class and both methods are undocumented, so expect 3 errors
+      expect(reporter.errors, hasLength(3));
       expect(
-        reporter.errors.first.errorCode.name,
-        equals('document_fake_parameters'),
+        reporter.errors.map((e) => e.errorCode.name).toSet(),
+        equals({'document_fake_parameters'}),
       );
     });
 
@@ -68,10 +69,11 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/auth_service.dart');
-      expect(reporter.errors, hasLength(1));
+      // Class and both methods are undocumented, so expect 3 errors
+      expect(reporter.errors, hasLength(3));
       expect(
-        reporter.errors.first.errorCode.name,
-        equals('document_fake_parameters'),
+        reporter.errors.map((e) => e.errorCode.name).toSet(),
+        equals({'document_fake_parameters'}),
       );
     });
 
@@ -186,10 +188,11 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'example/example_auth_service.dart');
-      expect(reporter.errors, hasLength(1));
+      // Class and both methods are undocumented, so expect 3 errors
+      expect(reporter.errors, hasLength(3));
       expect(
-        reporter.errors.first.errorCode.name,
-        equals('document_fake_parameters'),
+        reporter.errors.map((e) => e.errorCode.name).toSet(),
+        equals({'document_fake_parameters'}),
       );
     });
 
@@ -255,10 +258,11 @@ void main() {
       }
       ''';
         await analyzeCode(source, path: 'lib/user_repository.dart');
-        expect(reporter.errors, hasLength(1));
+        // Class and both methods are undocumented, so expect 3 errors
+        expect(reporter.errors, hasLength(3));
         expect(
-          reporter.errors.first.errorCode.name,
-          equals('document_fake_parameters'),
+          reporter.errors.map((e) => e.errorCode.name).toSet(),
+          equals({'document_fake_parameters'}),
         );
       },
     );
