@@ -100,6 +100,11 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
       reporter.atNode(node, DocumentFakeParameters._code);
     }
 
+    // Report error for each undocumented non-private member
+    for (final member in undocumentedMembers) {
+      reporter.atNode(member, DocumentFakeParameters._code);
+    }
+
     super.visitClassDeclaration(node);
   }
 
@@ -114,6 +119,10 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
   }
 
   bool _shouldCheckMember(ClassMember member) {
+    // Skip constructors
+    if (member is ConstructorDeclaration) {
+      return false;
+    }
     // Skip private members
     if (member is MethodDeclaration && member.name.lexeme.startsWith('_')) {
       return false;

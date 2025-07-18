@@ -77,8 +77,10 @@ class _DocumentationVisitor extends RecursiveAstVisitor<void> {
 
     for (final member in node.members) {
       if (member is MethodDeclaration) {
-        // Only check public methods (not starting with _)
-        if (!member.name.lexeme.startsWith('_')) {
+        // Only check public methods (not starting with _), and skip getters/setters
+        if (!member.name.lexeme.startsWith('_') &&
+            !member.isGetter &&
+            !member.isSetter) {
           if (!_hasDocumentation(member.documentationComment)) {
             undocumentedMethods.add(member);
           }
@@ -86,9 +88,14 @@ class _DocumentationVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    // Report error if class or any public method lacks documentation
-    if (!hasClassDocumentation || undocumentedMethods.isNotEmpty) {
+    // Report error if class lacks documentation
+    if (!hasClassDocumentation) {
       reporter.atNode(node, DocumentInterface._code);
+    }
+
+    // Report error for each undocumented public method
+    for (final method in undocumentedMethods) {
+      reporter.atNode(method, DocumentInterface._code);
     }
 
     super.visitClassDeclaration(node);
