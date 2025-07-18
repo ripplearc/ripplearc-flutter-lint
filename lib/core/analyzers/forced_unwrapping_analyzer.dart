@@ -4,6 +4,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that forbids forced unwrapping (!) in production code.
+///
+/// This analyzer flags any usage of the postfix `!` operator, which forces a nullable
+/// value to be treated as non-null. The intent is to encourage safer null handling
+/// practices and prevent runtime exceptions due to null values.
+///
+/// The rule triggers on:
+///   - Any use of the `!` (bang) operator for forced unwrapping.
+///
+/// To fix a violation, use null-safe alternatives like null coalescing (`??`) or explicit null checks.
 class ForcedUnwrappingAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'forbid_forced_unwrapping';

@@ -2,6 +2,18 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that enforces the inclusion of YouTrack story links in TODO comments.
+///
+/// This analyzer scans all TODO comments in the source code and flags any TODO
+/// that does not include a valid YouTrack issue URL (e.g., https://ripplearc.youtrack.cloud/issue/CA-123).
+///
+/// The goal is to ensure that all TODOs are traceable to a specific story or task,
+/// improving project management and accountability.
+///
+/// The rule triggers on:
+///   - Any line containing `// TODO:` without a YouTrack URL.
+///
+/// To fix a violation, add a valid YouTrack issue link after the TODO comment.
 class TodoWithStoryLinksAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'todo_with_story_links';

@@ -3,6 +3,17 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that enforces the use of sealed classes instead of dynamic for sync results.
+///
+/// This analyzer flags any variable declaration or assignment where the type is `dynamic`.
+/// The intent is to encourage the use of sealed classes for type safety and maintainability
+/// instead of relying on dynamic typing for synchronous results.
+///
+/// The rule triggers on:
+///   - Variable declarations with type `dynamic`
+///   - Assignments to variables of type `dynamic`
+///
+/// To fix a violation, declare a sealed class and use it for sync results instead of `dynamic`.
 class SealedOverDynamicAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'sealed_over_dynamic';

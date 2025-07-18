@@ -4,6 +4,18 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that forbids the use of optional operators (?. and ??) in test blocks.
+///
+/// This analyzer flags any usage of the null-aware operators `?.` and `??` inside
+/// test or group blocks, except within setUp or tearDown. The intent is to ensure
+/// that tests fail explicitly at the point of failure, rather than silently passing
+/// due to null values.
+///
+/// The rule triggers on:
+///   - Use of `?.` (null-aware method/property access) in test/group blocks
+///   - Use of `??` (null-coalescing) in test/group blocks
+///
+/// To fix a violation, remove the optional operator and add an explicit null check if needed.
 class NoOptionalOperatorsInTestsAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'no_optional_operators_in_tests';

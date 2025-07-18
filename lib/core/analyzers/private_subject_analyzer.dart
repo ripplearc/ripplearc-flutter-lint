@@ -3,6 +3,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that enforces subject variables to be private.
+///
+/// This analyzer flags any variable whose initializer is a Subject (e.g., BehaviorSubject,
+/// ReplaySubject, PublishSubject) but whose name does not start with an underscore.
+/// The goal is to prevent external manipulation of subject streams by enforcing privacy.
+///
+/// The rule triggers on:
+///   - Any variable initialized as a Subject but not named with a leading underscore.
+///
+/// To fix a violation, rename the variable to start with an underscore to make it private.
 class PrivateSubjectAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'private_subject';

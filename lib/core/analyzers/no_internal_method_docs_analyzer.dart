@@ -4,6 +4,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that forbids documentation comments on private methods.
+///
+/// This analyzer flags any private method (name starts with `_`) that has a documentation
+/// comment (///) or a line comment immediately above it. The intent is to reduce noise
+/// in the codebase and encourage documentation only for public APIs.
+///
+/// The rule triggers on:
+///   - Any private method with a documentation comment or a line comment above it.
+///
+/// To fix a violation, remove the documentation comment from the private method.
 class NoInternalMethodDocsAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'no_internal_method_docs';

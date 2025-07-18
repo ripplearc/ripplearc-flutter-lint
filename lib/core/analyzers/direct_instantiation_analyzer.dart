@@ -10,21 +10,17 @@ import '../models/lint_issue.dart';
 ///   - Classes that extend 'Module'
 ///   - Instantiations inside a class that extends 'Module'
 class DirectInstantiationAnalyzer extends BaseAnalyzer {
-  /// The unique name of the lint rule implemented by this analyzer.
   @override
   String get ruleName => 'no_direct_instantiation';
 
-  /// The main problem message shown when this rule is violated.
   @override
   String get problemMessage =>
       'Direct instantiation is not allowed. Use dependency injection instead.';
 
-  /// The suggested correction message for fixing a violation of this rule.
   @override
   String get correctionMessage =>
       'Replace direct instantiation with Modular.get<ClassName>().';
 
-  /// Analyze the given [CompilationUnit] and return a list of [LintIssue]s for direct instantiation violations.
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
     final visitor = _DirectInstantiationVisitor(this);
@@ -88,7 +84,6 @@ class _DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   /// Creates a visitor for the given [analyzer].
   _DirectInstantiationVisitor(this.analyzer);
 
-  /// Visits instance creation expressions and adds issues if they violate the rule.
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     final className = node.constructorName.type.name2.lexeme;
