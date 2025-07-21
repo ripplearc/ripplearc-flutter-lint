@@ -147,6 +147,54 @@ void main() {
         equals({'document_interface'}),
       );
     });
+
+    test(
+      'should flag only class if class is undocumented but methods are documented',
+      () async {
+        const source = '''
+      abstract class SyncRepository {
+        /// Synchronizes local data with remote Supabase instance.
+        Future<void> syncData();
+      }
+      ''';
+        await analyzeCode(source, path: 'lib/repository.dart');
+        // Only class is undocumented
+        expect(reporter.errors, hasLength(1));
+        final classOffset = source.indexOf('abstract class SyncRepository');
+        expect(reporter.errors.first.offset, equals(classOffset));
+      },
+    );
+
+    test(
+      'should flag only method if class is documented but method is not',
+      () async {
+        const source = '''
+      /// Repository interface for data synchronization operations.
+      abstract class SyncRepository {
+        Future<void> syncData();
+      }
+      ''';
+        await analyzeCode(source, path: 'lib/repository.dart');
+        // Only method is undocumented
+        expect(reporter.errors, hasLength(1));
+        final methodOffset = source.indexOf('Future<void> syncData();');
+        expect(reporter.errors.first.offset, equals(methodOffset));
+      },
+    );
+
+    test('should not flag undocumented getter/setter', () async {
+      const source = '''
+      /// Repository interface for data synchronization operations.
+      abstract class SyncRepository {
+        /// Synchronizes local data with remote Supabase instance.
+        Future<void> syncData();
+        int get value;
+        set value(int v);
+      }
+      ''';
+      await analyzeCode(source, path: 'lib/repository.dart');
+      expect(reporter.errors, isEmpty);
+    });
   });
 }
 

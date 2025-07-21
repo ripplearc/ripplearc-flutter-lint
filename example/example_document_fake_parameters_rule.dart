@@ -45,6 +45,9 @@ abstract class UserRepository {
 
 // Bad: Fake class without documentation
 class FakeAuthService implements AuthService {
+
+  FakeAuthService()
+
   void setAuthDelay(Duration delay) {}
   void triggerAuthFailure() {}
 

@@ -84,10 +84,19 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
     // Check if class has documentation
     final hasClassDocumentation = _hasDocumentation(node.documentationComment);
 
-    // Check non-private members for documentation
+    // Check non-private members and constructors for documentation
     final undocumentedMembers = <AstNode>[];
 
     for (final member in node.members) {
+      // Check constructors (public only)
+      if (member is ConstructorDeclaration) {
+        final isPrivateCtor =
+            member.name != null && member.name!.lexeme.startsWith('_');
+        if (!isPrivateCtor && !_hasDocumentation(member.documentationComment)) {
+          undocumentedMembers.add(member);
+        }
+        continue;
+      }
       if (_shouldCheckMember(member)) {
         if (!_hasDocumentation(member.documentationComment)) {
           undocumentedMembers.add(member);
@@ -95,12 +104,12 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    // Report error if class or any non-private member lacks documentation
-    if (!hasClassDocumentation || undocumentedMembers.isNotEmpty) {
+    // Report error if class itself lacks documentation
+    if (!hasClassDocumentation) {
       reporter.atNode(node, DocumentFakeParameters._code);
     }
 
-    // Report error for each undocumented non-private member
+    // Report error for each undocumented public constructor or non-private member
     for (final member in undocumentedMembers) {
       reporter.atNode(member, DocumentFakeParameters._code);
     }
