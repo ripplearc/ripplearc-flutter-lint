@@ -4,16 +4,28 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that forbids forced unwrapping (!) in production code.
+/// Analyzer that forbids using forced unwrapping (`!`) in production code.
 ///
-/// This analyzer flags any usage of the postfix `!` operator, which forces a nullable
-/// value to be treated as non-null. The intent is to encourage safer null handling
-/// practices and prevent runtime exceptions due to null values.
+/// This rule flags forced unwrapping operators to ensure null values are handled
+/// explicitly using null-safe alternatives like null coalescing (`??`) or explicit
+/// null checks. This helps prevent runtime crashes and makes the code more robust.
 ///
-/// The rule triggers on:
-///   - Any use of the `!` (bang) operator for forced unwrapping.
+/// Example of code that triggers this rule:
+/// ```dart
+/// final name = user.name!;  // Will crash if name is null
+/// print('User: $name');
+/// ```
 ///
-/// To fix a violation, use null-safe alternatives like null coalescing (`??`) or explicit null checks.
+/// Example of code that doesn't trigger this rule:
+/// ```dart
+/// final name = user.name ?? 'Unknown';  // Safe with default value
+/// print('User: $name');
+///
+/// if (user.name != null) {
+///   final checkedName = user.name;  // Safe after null check
+///   print('User: $checkedName');
+/// }
+/// ```
 class ForcedUnwrappingAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'forbid_forced_unwrapping';

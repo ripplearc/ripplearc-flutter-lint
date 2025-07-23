@@ -4,18 +4,29 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that forbids the use of optional operators (?. and ??) in test blocks.
+/// Analyzer that forbids using optional operators (?., ??) in test files.
 ///
-/// This analyzer flags any usage of the null-aware operators `?.` and `??` inside
-/// test or group blocks, except within setUp or tearDown. The intent is to ensure
-/// that tests fail explicitly at the point of failure, rather than silently passing
-/// due to null values.
+/// This rule flags optional operators in test blocks to ensure tests fail explicitly
+/// at the point of failure rather than silently handling nulls.
 ///
-/// The rule triggers on:
-///   - Use of `?.` (null-aware method/property access) in test/group blocks
-///   - Use of `??` (null-coalescing) in test/group blocks
+/// Example of code that triggers this rule:
+/// ```dart
+/// test('example', () {
+///   final result = someObject?.someProperty;  // LINT
+///   final value = someValue ?? defaultValue;  // LINT
+/// });
+/// ```
 ///
-/// To fix a violation, remove the optional operator and add an explicit null check if needed.
+/// Example of code that doesn't trigger this rule:
+/// ```dart
+/// test('example', () {
+///   expect(someObject, isNotNull);
+///   final result = someObject.someProperty;
+///   expect(someValue, isNotNull);
+///   final value = someValue;
+///   final assertion = someValue!;  // This is fine
+/// });
+/// ```
 class NoOptionalOperatorsInTestsAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'no_optional_operators_in_tests';

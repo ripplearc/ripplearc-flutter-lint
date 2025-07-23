@@ -2,15 +2,24 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that enforces the use of Fake instead of Mock for test doubles.
+/// Analyzer that encourages using [Fake] instead of [Mock] for test doubles.
 ///
-/// This analyzer flags any class that extends `Mock` and suggests using `Fake` instead.
-/// Fakes provide more realistic behavior and are easier to maintain than mocks.
+/// This rule flags classes that extend [Mock] from the mockito package and
+/// suggests using [Fake] instead. Fakes provide more realistic behavior and
+/// are easier to maintain than mocks.
 ///
-/// The rule triggers on:
-///   - Any class declaration that extends `Mock`.
+/// Example of code that triggers this rule:
+/// ```dart
+/// class MyRepository extends Mock implements Repository {}
+/// ```
 ///
-/// To fix a violation, replace `extends Mock` with `extends Fake` in the class declaration.
+/// Example of code that doesn't trigger this rule:
+/// ```dart
+/// class MyRepository extends Fake implements Repository {
+///   @override
+///   Future<String> getData() async => 'fake data';
+/// }
+/// ```
 class PreferFakeOverMockAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'prefer_fake_over_mock';

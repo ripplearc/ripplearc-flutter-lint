@@ -4,16 +4,28 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that forbids documentation comments on private methods.
+/// Analyzer that forbids documentation on private methods to reduce documentation noise.
 ///
-/// This analyzer flags any private method (name starts with `_`) that has a documentation
-/// comment (///) or a line comment immediately above it. The intent is to reduce noise
-/// in the codebase and encourage documentation only for public APIs.
+/// This rule flags private methods that have documentation comments, as these are
+/// internal implementation details that don't need to be documented for external
+/// consumers. This reduces documentation noise and focuses on public API documentation.
 ///
-/// The rule triggers on:
-///   - Any private method with a documentation comment or a line comment above it.
+/// Example of code that triggers this rule:
+/// ```dart
+/// /// Handles internal auth state
+/// void _handleAuthState() { ... }  // LINT: Private method should not be documented
 ///
-/// To fix a violation, remove the documentation comment from the private method.
+/// // Validates user input
+/// void _validateInput(String input) { ... }  // LINT: Private method should not be documented
+/// ```
+///
+/// Example of code that doesn't trigger this rule:
+/// ```dart
+/// void _handleAuthState() { ... }  // No documentation - good
+///
+/// /// Public method that should be documented
+/// void authenticate() { ... }  // Public method - documentation required
+/// ```
 class NoInternalMethodDocsAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'no_internal_method_docs';

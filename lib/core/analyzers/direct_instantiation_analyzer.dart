@@ -3,12 +3,32 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that enforces dependency injection by forbidding direct class instantiation.
+/// Analyzer that enforces dependency injection for better testability of auth/sync components.
 ///
-/// Flags all direct instantiations of classes, except:
-///   - Classes whose names end with 'Factory'
+/// This rule flags all direct instantiations of classes, except:
+///   - Classes whose names end with 'Factory' (e.g., FileProcessorFactory)
 ///   - Classes that extend 'Module'
-///   - Instantiations inside a class that extends 'Module'
+///   - Any instantiation that occurs inside a class that extends 'Module'
+///
+/// Example:
+/// ```dart
+/// // ❌ Not allowed:
+/// fakeSupabaseWrapper = FakeSupabaseWrapper();
+/// final service = AuthService();
+///
+/// // ✅ Allowed:
+/// fakeSupabaseWrapper = Modular.get<FakeSupabaseWrapper>();
+/// final service = Modular.get<AuthService>();
+/// final factory = FileProcessorFactory();
+/// final module = AppModule();
+///
+/// // ✅ Allowed: Instantiation inside a Module
+/// class AppModule extends Module {
+///   AppModule() {
+///     final service = AuthService(); // Allowed here
+///   }
+/// }
+/// ```
 class DirectInstantiationAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'no_direct_instantiation';
@@ -55,7 +75,6 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
     return false;
   }
 
-  /// Finds the [ClassDeclaration] for the given [className] in the AST tree rooted at [node].
   ClassDeclaration? _findClassDeclaration(String className, AstNode node) {
     AstNode? current = node;
     while (current != null) {
@@ -73,7 +92,6 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
   }
 }
 
-/// AST visitor that collects direct instantiation violations for the analyzer.
 class _DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   /// The analyzer instance to use for rule logic and issue creation.
   final DirectInstantiationAnalyzer analyzer;
@@ -81,7 +99,6 @@ class _DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   /// The list of issues found during the visit.
   final List<LintIssue> issues = [];
 
-  /// Creates a visitor for the given [analyzer].
   _DirectInstantiationVisitor(this.analyzer);
 
   @override

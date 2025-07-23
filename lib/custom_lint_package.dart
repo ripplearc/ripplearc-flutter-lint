@@ -11,9 +11,9 @@ import 'custom_lint_rules/todo_with_story_links.dart';
 import 'custom_lint_rules/no_optional_operators_in_tests.dart';
 import 'custom_lint_rules/prefer_fake_over_mock_rule.dart';
 
-PluginBase createPlugin() => _YourLintPlugin();
+PluginBase createPlugin() => _CustomLintPlugin();
 
-class _YourLintPlugin extends PluginBase {
+class _CustomLintPlugin extends PluginBase {
   @override
   List<LintRule> getLintRules(CustomLintConfigs configs) => [
     ForbidForcedUnwrapping(),

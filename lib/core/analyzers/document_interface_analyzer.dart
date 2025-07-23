@@ -3,6 +3,27 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that ensures abstract classes and their public methods have documentation.
+///
+/// This rule flags abstract classes that are exported/public but lack proper documentation.
+/// It ensures clear API contracts for modular architecture by requiring /// documentation
+/// for both the class and its public methods.
+///
+/// Example of code that triggers this rule:
+/// ```dart
+/// abstract class SyncRepository {  // Missing class documentation
+///   Future<void> syncData();      // Missing method documentation
+/// }
+/// ```
+///
+/// Example of code that doesn't trigger this rule:
+/// ```dart
+/// /// Repository interface for data synchronization operations.
+/// abstract class SyncRepository {
+///   /// Synchronizes local data with remote Supabase instance.
+///   Future<void> syncData();
+/// }
+/// ```
 class DocumentInterfaceAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'document_interface';

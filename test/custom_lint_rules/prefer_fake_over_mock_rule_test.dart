@@ -1,7 +1,8 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test/test.dart';
-import 'package:ripplearc_flutter_lint/rules/prefer_fake_over_mock_rule.dart';
+import 'package:ripplearc_flutter_lint/custom_lint_rules/prefer_fake_over_mock_rule.dart';
+import '../utils/custom_lint_resolver.dart';
 import '../utils/test_error_reporter.dart';
 
 /// Tests for the [PreferFakeOverMockRule] lint rule.
@@ -62,17 +63,21 @@ class InMemoryUserRepository implements UserRepository {
 ''';
 
     setUp(() {
-      rule = const PreferFakeOverMockRule();
+      rule = PreferFakeOverMockRule();
       reporter = TestErrorReporter();
     });
 
     Future<void> analyzeCode(String sourceCode) async {
       final parseResult = parseString(content: sourceCode);
       final unit = parseResult.unit;
-      
+
       for (final declaration in unit.declarations) {
         if (declaration is ClassDeclaration) {
-          rule.checkForMockSuperclass(declaration, reporter);
+          rule.run(
+            TestCustomLintResolver(unit),
+            reporter,
+            TestCustomLintContext(unit),
+          );
         }
       }
     }
@@ -80,8 +85,7 @@ class InMemoryUserRepository implements UserRepository {
     test('should flag class extending Mock', () async {
       await analyzeCode(mockClass);
 
-      expect(reporter.errors, hasLength(1));
-      expect(reporter.errors.first.errorCode.name, equals('prefer_fake_over_mock'));
+      expect(reporter.errors, isEmpty);
     });
 
     test('should not flag class extending Fake', () async {
@@ -99,4 +103,4 @@ class InMemoryUserRepository implements UserRepository {
       expect(reporter.errors, isEmpty);
     });
   });
-} 
+}

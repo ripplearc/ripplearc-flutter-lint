@@ -3,18 +3,21 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that enforces the use of specific exception types instead of generic Exception.
+/// Analyzer that enforces throwing specific exception types instead of generic Exception.
 ///
-/// This analyzer flags any code that throws a generic [Exception] or uses a private
-/// exception factory (such as `_createException`). The goal is to encourage the use
-/// of meaningful, specific exception classes (e.g., `AppException`, `ServerException`)
-/// to improve error handling and debugging.
+/// This rule flags any `throw Exception(...)` and suggests using a specific exception type
+/// that implements [Exception], such as [AppException] or [ServerException].
 ///
-/// The rule triggers on:
-///   - `throw Exception(...)`
-///   - `throw _createException(...)` (by function, method, or identifier)
+/// Example:
+/// ```dart
+/// // ❌ Not allowed:
+/// throw Exception('SUPABASE_URL required');
 ///
-/// To fix a violation, define and throw a custom exception class that implements [Exception].
+/// // ✅ Allowed:
+/// throw ConfigurationException('SUPABASE_URL required');
+/// throw AppException(...);
+/// throw ServerException(...);
+/// ```
 class SpecificExceptionTypesAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'specific_exception_types';

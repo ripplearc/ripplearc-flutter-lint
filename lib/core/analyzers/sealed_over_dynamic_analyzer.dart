@@ -3,17 +3,25 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that enforces the use of sealed classes instead of dynamic for sync results.
+/// Analyzer that enforces the use of sealed classes instead of `dynamic` for sync results.
 ///
-/// This analyzer flags any variable declaration or assignment where the type is `dynamic`.
-/// The intent is to encourage the use of sealed classes for type safety and maintainability
-/// instead of relying on dynamic typing for synchronous results.
+/// Using `dynamic` for sync results bypasses Dart’s type system, making code less safe and harder to maintain.
+/// Sealed classes provide explicit, type-safe alternatives that improve code clarity, enable exhaustive handling, and enhance IDE support.
 ///
-/// The rule triggers on:
-///   - Variable declarations with type `dynamic`
-///   - Assignments to variables of type `dynamic`
+/// This rule flags any use of `dynamic` for sync results and suggests using a sealed class instead.
 ///
-/// To fix a violation, declare a sealed class and use it for sync results instead of `dynamic`.
+/// Example of code that triggers this rule:
+/// ```dart
+/// // ❌ Not allowed:
+/// dynamic syncResult = await powersync.execute(query);
+/// ```
+///
+/// Example of code that doesn't trigger this rule:
+/// ```dart
+/// // ✅ Allowed:
+/// sealed class SyncResult {}
+/// SyncResult result = await powersync.execute(query);
+/// ```
 class SealedOverDynamicAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'sealed_over_dynamic';
