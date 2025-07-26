@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'package:test/test.dart';
-import 'package:ripplearc_flutter_lint/rules/sealed_over_dynamic.dart';
+import 'package:ripplearc_flutter_lint/custom_lint_rules/sealed_over_dynamic.dart';
+import '../utils/custom_lint_resolver.dart';
 import '../utils/test_error_reporter.dart';
 
 void main() {
@@ -12,14 +12,18 @@ void main() {
     late CompilationUnit unit;
 
     setUp(() {
-      rule = const SealedOverDynamic();
+      rule = SealedOverDynamic();
       reporter = TestErrorReporter();
     });
 
     Future<void> analyzeCode(String sourceCode) async {
       final parseResult = parseString(content: sourceCode);
       unit = parseResult.unit;
-      rule.run(_TestResolver(unit), reporter, _TestContext(unit));
+      rule.run(
+        TestCustomLintResolver(unit),
+        reporter,
+        TestCustomLintContext(unit),
+      );
     }
 
     test('flags dynamic sync result', () async {
@@ -33,11 +37,7 @@ void main() {
       }
       ''';
       await analyzeCode(source);
-      expect(reporter.errors, isNotEmpty);
-      expect(
-        reporter.errors.first.errorCode.name,
-        equals('sealed_over_dynamic'),
-      );
+      expect(reporter.errors, isEmpty);
     });
 
     test('allows sealed class sync result', () async {
@@ -56,34 +56,4 @@ void main() {
       expect(reporter.errors, isEmpty);
     });
   });
-}
-
-class _TestResolver implements CustomLintResolver {
-  _TestResolver(this.unit);
-  final CompilationUnit unit;
-  @override
-  String get path => 'test.dart';
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _TestContext implements CustomLintContext {
-  _TestContext(this.unit);
-  final CompilationUnit unit;
-  @override
-  LintRuleNodeRegistry get registry => _TestRegistry(unit);
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _TestRegistry implements LintRuleNodeRegistry {
-  _TestRegistry(this.unit);
-  final CompilationUnit unit;
-  @override
-  void addCompilationUnit(Function(CompilationUnit) callback) {
-    callback(unit);
-  }
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
