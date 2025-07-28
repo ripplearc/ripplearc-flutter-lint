@@ -36,7 +36,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/auth_service.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should flag multiple private methods with documentation', () async {
@@ -52,7 +52,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/auth_service.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag private methods without documentation', () async {
@@ -124,7 +124,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'example/example_auth_service.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag private fields or variables', () async {

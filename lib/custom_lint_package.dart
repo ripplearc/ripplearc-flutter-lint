@@ -1,4 +1,5 @@
 import 'package:custom_lint_builder/custom_lint_builder.dart';
+import 'custom_lint_rules/avoid_test_timeouts.dart';
 import 'custom_lint_rules/forbid_forced_unwrapping.dart';
 import 'custom_lint_rules/no_direct_instantiation.dart';
 import 'custom_lint_rules/sealed_over_dynamic.dart';
@@ -16,6 +17,7 @@ PluginBase createPlugin() => _CustomLintPlugin();
 class _CustomLintPlugin extends PluginBase {
   @override
   List<LintRule> getLintRules(CustomLintConfigs configs) => [
+    AvoidTestTimeouts(),
     ForbidForcedUnwrapping(),
     NoDirectInstantiation(),
     SealedOverDynamic(),

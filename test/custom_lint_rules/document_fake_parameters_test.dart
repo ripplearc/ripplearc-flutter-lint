@@ -41,7 +41,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/auth_service.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should flag Fake class with undocumented methods', () async {
@@ -60,7 +60,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/auth_service.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag Fake class with proper documentation', () async {
@@ -174,7 +174,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'example/example_auth_service.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag getters and setters', () async {
@@ -239,7 +239,7 @@ void main() {
       }
       ''';
         await analyzeCode(source, path: 'lib/user_repository.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
 

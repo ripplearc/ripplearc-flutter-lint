@@ -1,33 +1,33 @@
 import 'package:custom_lint_builder/custom_lint_builder.dart';
-import 'package:ripplearc_flutter_lint/rules/avoid_test_timeouts.dart';
-import 'package:ripplearc_flutter_lint/rules/no_direct_instantiation.dart';
-import 'package:ripplearc_flutter_lint/rules/document_fake_parameters.dart';
-import 'package:ripplearc_flutter_lint/rules/sealed_over_dynamic.dart';
-import 'package:ripplearc_flutter_lint/rules/todo_with_story_links.dart';
-import 'package:ripplearc_flutter_lint/rules/no_internal_method_docs.dart';
-import 'rules/prefer_fake_over_mock_rule.dart';
-import 'rules/forbid_forced_unwrapping.dart';
-import 'rules/no_optional_operators_in_tests.dart';
-import 'rules/document_interface.dart';
-import 'rules/private_subject.dart';
-import 'rules/specific_exception_types.dart';
+import 'custom_lint_rules/avoid_test_timeouts.dart';
+import 'custom_lint_rules/no_direct_instantiation.dart';
+import 'custom_lint_rules/document_fake_parameters.dart';
+import 'custom_lint_rules/sealed_over_dynamic.dart';
+import 'custom_lint_rules/todo_with_story_links.dart';
+import 'custom_lint_rules/no_internal_method_docs.dart';
+import 'custom_lint_rules/prefer_fake_over_mock_rule.dart';
+import 'custom_lint_rules/forbid_forced_unwrapping.dart';
+import 'custom_lint_rules/no_optional_operators_in_tests.dart';
+import 'custom_lint_rules/document_interface.dart';
+import 'custom_lint_rules/private_subject.dart';
+import 'custom_lint_rules/specific_exception_types.dart';
 
 PluginBase createPlugin() => _RipplearcFlutterLint();
 
 class _RipplearcFlutterLint extends PluginBase {
   @override
   List<LintRule> getLintRules(CustomLintConfigs configs) => [
-    const ForbidForcedUnwrapping(),
-    const NoOptionalOperatorsInTests(),
-    const PreferFakeOverMockRule(),
-    const NoDirectInstantiation(),
-    const DocumentFakeParameters(),
-    const TodoWithStoryLinks(),
-    const NoInternalMethodDocs(),
-    const DocumentInterface(),
-    const AvoidTestTimeouts(),
-    const PrivateSubject(),
-    const SealedOverDynamic(),
-    const SpecificExceptionTypes(),
+    ForbidForcedUnwrapping(),
+    NoOptionalOperatorsInTests(),
+    PreferFakeOverMockRule(),
+    NoDirectInstantiation(),
+    DocumentFakeParameters(),
+    TodoWithStoryLinks(),
+    NoInternalMethodDocs(),
+    DocumentInterface(),
+    AvoidTestTimeouts(),
+    PrivateSubject(),
+    SealedOverDynamic(),
+    SpecificExceptionTypes(),
   ];
 }
