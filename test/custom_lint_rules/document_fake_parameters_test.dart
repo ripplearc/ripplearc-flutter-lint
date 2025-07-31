@@ -275,7 +275,7 @@ void main() {
       ''';
         await analyzeCode(source, path: 'lib/auth_service.dart');
         // Class, constructor, and both methods are undocumented, so expect 4 errors
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
 
@@ -300,7 +300,7 @@ void main() {
       ''';
         await analyzeCode(source, path: 'lib/auth_service.dart');
         // Only constructor is undocumented
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
 
@@ -326,7 +326,7 @@ void main() {
       expect(reporter.errors, isEmpty);
     });
 
-    test('should not flag undocumented private constructor', () async {
+    test('should flag undocumented private constructor', () async {
       const source = '''
       abstract class AuthService {
         Future<void> authenticate();

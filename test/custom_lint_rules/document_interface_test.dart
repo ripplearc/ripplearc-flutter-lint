@@ -135,7 +135,7 @@ void main() {
       ''';
         await analyzeCode(source, path: 'lib/repository.dart');
         // Only class is undocumented
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
 
@@ -150,11 +150,11 @@ void main() {
       ''';
         await analyzeCode(source, path: 'lib/repository.dart');
         // Only method is undocumented
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
 
-    test('should not flag undocumented getter/setter', () async {
+    test('should flag undocumented getter/setter', () async {
       const source = '''
       /// Repository interface for data synchronization operations.
       abstract class SyncRepository {

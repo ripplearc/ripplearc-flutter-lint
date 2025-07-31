@@ -61,23 +61,47 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    // Only check classes that are Fake classes (by name or inheritance) and implement interfaces
     if (!_isFakeClass(node) || !_implementsInterface(node)) return;
+
+    // Check if class has documentation
     final hasClassDocumentation = _hasDocumentation(node.documentationComment);
+
+    // Check non-private members and constructors for documentation
     final undocumentedMembers = <AstNode>[];
+
     for (final member in node.members) {
+      // Check constructors (public only)
+      if (member is ConstructorDeclaration) {
+        final isPrivateCtor =
+            member.name != null && member.name!.lexeme.startsWith('_');
+        if (!isPrivateCtor && !_hasDocumentation(member.documentationComment)) {
+          undocumentedMembers.add(member);
+        }
+        continue;
+      }
       if (_shouldCheckMember(member)) {
         if (!_hasDocumentation(member.documentationComment)) {
           undocumentedMembers.add(member);
         }
       }
     }
-    if (!hasClassDocumentation || undocumentedMembers.isNotEmpty) {
+
+    // Report error if class itself lacks documentation
+    if (!hasClassDocumentation) {
       issues.add(analyzer.createIssue(node));
     }
+
+    // Report error for each undocumented public constructor or non-private member
+    for (final member in undocumentedMembers) {
+      issues.add(analyzer.createIssue(member));
+    }
+
     super.visitClassDeclaration(node);
   }
 
   bool _isFakeClass(ClassDeclaration node) {
+    // Check if class name starts with "Fake"
     return node.name.lexeme.startsWith('Fake');
   }
 
@@ -87,6 +111,11 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
   }
 
   bool _shouldCheckMember(ClassMember member) {
+    // Skip constructors
+    if (member is ConstructorDeclaration) {
+      return false;
+    }
+    // Skip private members
     if (member is MethodDeclaration && member.name.lexeme.startsWith('_')) {
       return false;
     }
@@ -97,26 +126,35 @@ class _FakeDocumentationVisitor extends RecursiveAstVisitor<void> {
         }
       }
     }
+
+    // Skip methods with @override annotation (interface method overrides)
     if (member is MethodDeclaration &&
         member.metadata.any((m) => m.name.name == 'override')) {
       return false;
     }
+
+    // Skip getters and setters
     if (member is MethodDeclaration && (member.isGetter || member.isSetter)) {
       return false;
     }
+
     return true;
   }
 
   bool _hasDocumentation(Comment? comment) {
     if (comment == null) return false;
+
+    // Check for /// documentation (not /** */ or //)
     for (final token in comment.tokens) {
       if (token.lexeme.startsWith('///')) {
+        // Check if there's actual content (not just ///)
         final content = token.lexeme.substring(3).trim();
         if (content.isNotEmpty) {
           return true;
         }
       }
     }
+
     return false;
   }
 }

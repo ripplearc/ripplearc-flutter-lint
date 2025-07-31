@@ -49,34 +49,55 @@ class _DocumentationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    // Only check abstract classes
     if (node.abstractKeyword == null) return;
+
+    // Check if class has documentation
     final hasClassDocumentation = _hasDocumentation(node.documentationComment);
+
+    // Check public methods for documentation
     final undocumentedMethods = <MethodDeclaration>[];
+
     for (final member in node.members) {
       if (member is MethodDeclaration) {
-        if (!member.name.lexeme.startsWith('_')) {
+        // Only check public methods (not starting with _), and skip getters/setters
+        if (!member.name.lexeme.startsWith('_') &&
+            !member.isGetter &&
+            !member.isSetter) {
           if (!_hasDocumentation(member.documentationComment)) {
             undocumentedMethods.add(member);
           }
         }
       }
     }
-    if (!hasClassDocumentation || undocumentedMethods.isNotEmpty) {
+
+    // Report error if class lacks documentation
+    if (!hasClassDocumentation) {
       issues.add(analyzer.createIssue(node));
     }
+
+    // Report error for each undocumented public method
+    for (final method in undocumentedMethods) {
+      issues.add(analyzer.createIssue(method));
+    }
+
     super.visitClassDeclaration(node);
   }
 
   bool _hasDocumentation(Comment? comment) {
     if (comment == null) return false;
+
+    // Check for /// documentation (not /** */ or //)
     for (final token in comment.tokens) {
       if (token.lexeme.startsWith('///')) {
+        // Check if there's actual content (not just ///)
         final content = token.lexeme.substring(3).trim();
         if (content.isNotEmpty) {
           return true;
         }
       }
     }
+
     return false;
   }
 }
