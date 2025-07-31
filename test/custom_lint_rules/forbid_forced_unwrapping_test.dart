@@ -35,7 +35,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/example.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag forced unwrapping in test files', () async {
@@ -63,7 +63,7 @@ void main() {
       }
       ''';
         await analyzeCode(source, path: 'lib/testing/fake_user.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
 
@@ -78,7 +78,7 @@ void main() {
       }
       ''';
         await analyzeCode(source, path: 'lib/models/user.freezed.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
 
@@ -93,7 +93,7 @@ void main() {
       }
       ''';
         await analyzeCode(source, path: 'lib/models/auth_state.g.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
   });

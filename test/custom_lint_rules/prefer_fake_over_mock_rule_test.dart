@@ -85,7 +85,7 @@ class InMemoryUserRepository implements UserRepository {
     test('should flag class extending Mock', () async {
       await analyzeCode(mockClass);
 
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag class extending Fake', () async {

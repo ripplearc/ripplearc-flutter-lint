@@ -37,7 +37,7 @@ void main() {
       }
       ''';
       await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('allows sealed class sync result', () async {

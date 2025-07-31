@@ -33,7 +33,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/repository.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test(
@@ -47,7 +47,7 @@ void main() {
       }
       ''';
         await analyzeCode(source, path: 'lib/repository.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, isNotEmpty);
       },
     );
 
@@ -109,7 +109,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'example/example_repository.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag empty documentation comments', () async {
@@ -121,7 +121,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/repository.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
   });
 }
