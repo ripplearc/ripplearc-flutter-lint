@@ -36,7 +36,7 @@ void main() {
 }
 ''';
       await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should flag null-aware operator (??)', () async {
@@ -49,7 +49,7 @@ void main() {
 }
 ''';
       await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag null assertion operator (!)', () async {

@@ -36,7 +36,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/example.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should flag public ReplaySubject variables', () async {
@@ -49,7 +49,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/example.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should flag public PublishSubject variables', () async {
@@ -62,7 +62,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/example.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should flag public Subject variables', () async {
@@ -75,7 +75,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/example.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('should not flag private Subject variables', () async {
@@ -116,7 +116,7 @@ void main() {
       }
       ''';
       await analyzeCode(source, path: 'lib/example.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('debug: should detect any variable declaration', () async {

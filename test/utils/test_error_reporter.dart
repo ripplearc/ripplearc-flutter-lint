@@ -36,14 +36,16 @@ class TestErrorReporter implements ErrorReporter {
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    errors.add(AnalysisError.forValues(
-      source: _dummySource,
-      offset: node.offset,
-      length: node.length,
-      errorCode: errorCode,
-      message: errorCode.problemMessage,
-      contextMessages: contextMessages ?? const [],
-    ));
+    errors.add(
+      AnalysisError.forValues(
+        source: _dummySource,
+        offset: node.offset,
+        length: node.length,
+        errorCode: errorCode,
+        message: errorCode.problemMessage,
+        contextMessages: contextMessages ?? const [],
+      ),
+    );
   }
 
   @override
@@ -81,14 +83,16 @@ class TestErrorReporter implements ErrorReporter {
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    errors.add(AnalysisError.forValues(
-      source: _dummySource,
-      offset: node.offset,
-      length: node.length,
-      errorCode: errorCode,
-      message: errorCode.problemMessage,
-      contextMessages: contextMessages ?? const [],
-    ));
+    errors.add(
+      AnalysisError.forValues(
+        source: _dummySource,
+        offset: node.offset,
+        length: node.length,
+        errorCode: errorCode,
+        message: errorCode.problemMessage,
+        contextMessages: contextMessages ?? const [],
+      ),
+    );
   }
 
   @override
@@ -99,7 +103,18 @@ class TestErrorReporter implements ErrorReporter {
     List<Object>? arguments,
     List<dynamic>? contextMessages,
     Object? data,
-  }) {}
+  }) {
+    errors.add(
+      AnalysisError.forValues(
+        source: _dummySource,
+        offset: offset,
+        length: length,
+        errorCode: errorCode,
+        message: errorCode.problemMessage,
+        contextMessages: const [],
+      ),
+    );
+  }
 
   @override
   void atSourceSpan(
@@ -130,4 +145,4 @@ class TestErrorReporter implements ErrorReporter {
   set lockLevel(int value) => _lockLevel = value;
   @override
   get source => _dummySource;
-} 
+}
