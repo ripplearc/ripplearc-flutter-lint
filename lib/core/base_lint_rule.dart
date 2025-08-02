@@ -17,13 +17,10 @@ abstract class BaseLintRule extends DartLintRule {
     : _testOnly = testOnly,
       super(code: code);
 
-  /// Whether this rule should only run on test files (true) or skip test files (false).
   final bool _testOnly;
 
-  /// The analyzer instance that implements the lint logic.
   BaseAnalyzer get analyzer;
 
-  /// Helper method to create a LintCode from an analyzer.
   static LintCode createLintCode(BaseAnalyzer analyzer) {
     return LintCode(
       name: analyzer.ruleName,
@@ -41,15 +38,12 @@ abstract class BaseLintRule extends DartLintRule {
   ) {
     final isTestFile = BaseAnalyzer.isTestFile(resolver.path);
 
-    // Skip based on test file preference
     if (_testOnly && !isTestFile) return;
     if (!_testOnly && isTestFile) return;
 
     context.registry.addCompilationUnit((node) {
-      // Use shared analyzer
       final issues = analyzer.analyze(node);
 
-      // Report issues to custom_lint
       for (final issue in issues) {
         reporter.atOffset(
           offset: issue.offset,
