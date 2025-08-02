@@ -61,7 +61,6 @@ class _PrivateMethodDocsVisitor extends RecursiveAstVisitor<void> {
       super.visitMethodDeclaration(node);
       return;
     }
-    // Best-effort: Check for // comments immediately above the method in the source
     final methodOffset = node.offset;
     final lineInfo = unit.lineInfo;
     final methodLine = lineInfo.getLocation(methodOffset).lineNumber;
