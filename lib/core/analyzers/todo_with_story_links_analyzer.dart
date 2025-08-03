@@ -32,8 +32,6 @@ class TodoWithStoryLinksAnalyzer extends BaseAnalyzer {
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
-    // This analyzer only works if the source is available in the CompilationUnit.
-    // If not, it will not report any issues.
     final source = unit.toSource();
     if (source == null) return [];
     final issues = <LintIssue>[];
