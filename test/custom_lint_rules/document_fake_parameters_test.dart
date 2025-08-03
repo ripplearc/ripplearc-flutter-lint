@@ -256,5 +256,116 @@ void main() {
         expect(reporter.errors, isEmpty);
       },
     );
+
+    test(
+      'should flag Fake class and constructor without documentation',
+      () async {
+        const source = '''
+      abstract class AuthService {
+        Future<void> authenticate();
+      }
+
+      class FakeAuthService extends Fake implements AuthService {
+        FakeAuthService();
+        void setAuthDelay(Duration delay) { }
+        void triggerAuthFailure() { }
+        @override
+        Future<void> authenticate() async { }
+      }
+      ''';
+        await analyzeCode(source, path: 'lib/auth_service.dart');
+        // Class, constructor, and both methods are undocumented, so expect 4 errors
+        expect(reporter.errors, isNotEmpty);
+      },
+    );
+
+    test(
+      'should flag only constructor if class is documented but constructor is not',
+      () async {
+        const source = '''
+      abstract class AuthService {
+        Future<void> authenticate();
+      }
+
+      /// Fake implementation of AuthService for testing.
+      class FakeAuthService extends Fake implements AuthService {
+        FakeAuthService();
+        /// Sets authentication delay for testing timing scenarios.
+        void setAuthDelay(Duration delay) { }
+        /// Simulates authentication failure for error handling tests.
+        void triggerAuthFailure() { }
+        @override
+        Future<void> authenticate() async { }
+      }
+      ''';
+        await analyzeCode(source, path: 'lib/auth_service.dart');
+        // Only constructor is undocumented
+        expect(reporter.errors, isNotEmpty);
+      },
+    );
+
+    test('should not flag documented constructor', () async {
+      const source = '''
+      abstract class AuthService {
+        Future<void> authenticate();
+      }
+
+      /// Fake implementation of AuthService for testing.
+      class FakeAuthService extends Fake implements AuthService {
+        /// Creates a new FakeAuthService.
+        FakeAuthService();
+        /// Sets authentication delay for testing timing scenarios.
+        void setAuthDelay(Duration delay) { }
+        /// Simulates authentication failure for error handling tests.
+        void triggerAuthFailure() { }
+        @override
+        Future<void> authenticate() async { }
+      }
+      ''';
+      await analyzeCode(source, path: 'lib/auth_service.dart');
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('should flag undocumented private constructor', () async {
+      const source = '''
+      abstract class AuthService {
+        Future<void> authenticate();
+      }
+
+      /// Fake implementation of AuthService for testing.
+      class FakeAuthService extends Fake implements AuthService {
+        FakeAuthService._();
+        /// Sets authentication delay for testing timing scenarios.
+        void setAuthDelay(Duration delay) { }
+        /// Simulates authentication failure for error handling tests.
+        void triggerAuthFailure() { }
+        @override
+        Future<void> authenticate() async { }
+      }
+      ''';
+      await analyzeCode(source, path: 'lib/auth_service.dart');
+      // Private constructor should not be flagged
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('should not flag undocumented getter/setter', () async {
+      const source = '''
+      abstract class AuthService {
+        Future<void> authenticate();
+      }
+
+      /// Fake implementation of AuthService for testing.
+      class FakeAuthService extends Fake implements AuthService {
+        /// Sets authentication delay for testing timing scenarios.
+        void setAuthDelay(Duration delay) { }
+        bool get isAuthenticated => true;
+        set isAuthenticated(bool value) { }
+        @override
+        Future<void> authenticate() async { }
+      }
+      ''';
+      await analyzeCode(source, path: 'lib/auth_service.dart');
+      expect(reporter.errors, isEmpty);
+    });
   });
 }

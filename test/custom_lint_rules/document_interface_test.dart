@@ -123,5 +123,49 @@ void main() {
       await analyzeCode(source, path: 'lib/repository.dart');
       expect(reporter.errors, isNotEmpty);
     });
+
+    test(
+      'should flag only class if class is undocumented but methods are documented',
+      () async {
+        const source = '''
+      abstract class SyncRepository {
+        /// Synchronizes local data with remote Supabase instance.
+        Future<void> syncData();
+      }
+      ''';
+        await analyzeCode(source, path: 'lib/repository.dart');
+        // Only class is undocumented
+        expect(reporter.errors, isNotEmpty);
+      },
+    );
+
+    test(
+      'should flag only method if class is documented but method is not',
+      () async {
+        const source = '''
+      /// Repository interface for data synchronization operations.
+      abstract class SyncRepository {
+        Future<void> syncData();
+      }
+      ''';
+        await analyzeCode(source, path: 'lib/repository.dart');
+        // Only method is undocumented
+        expect(reporter.errors, isNotEmpty);
+      },
+    );
+
+    test('should flag undocumented getter/setter', () async {
+      const source = '''
+      /// Repository interface for data synchronization operations.
+      abstract class SyncRepository {
+        /// Synchronizes local data with remote Supabase instance.
+        Future<void> syncData();
+        int get value;
+        set value(int v);
+      }
+      ''';
+      await analyzeCode(source, path: 'lib/repository.dart');
+      expect(reporter.errors, isEmpty);
+    });
   });
 }
