@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mutations>
+  <mutation>
+    <description>Change email validation logic</description>
+    <original>email.contains('@') && email.contains('.')</original>
+    <mutated>email.contains('@')</mutated>
+    <expectedFailure>true</expectedFailure>
+  </mutation>
+  <mutation>
+    <description>Change password strength validation</description>
+    <original>password.length >= 8</original>
+    <mutated>password.length >= 4</mutated>
+    <expectedFailure>true</expectedFailure>
+  </mutation>
+  <mutation>
+    <description>Remove uppercase requirement</description>
+    <original>password.contains(RegExp(r'[A-Z]'))</original>
+    <mutated>true</mutated>
+    <expectedFailure>true</expectedFailure>
+  </mutation>
+</mutations> 

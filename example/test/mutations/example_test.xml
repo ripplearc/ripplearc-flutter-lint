@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mutations>
+  <mutation>
+    <description>Change addition operator to subtraction</description>
+    <original>1 + 1</original>
+    <mutated>1 - 1</mutated>
+    <expectedFailure>true</expectedFailure>
+  </mutation>
+  <mutation>
+    <description>Change string concatenation to different string</description>
+    <original>'Hello' + ' World'</original>
+    <mutated>'Hello' + ' Universe'</mutated>
+    <expectedFailure>true</expectedFailure>
+  </mutation>
+</mutations> 

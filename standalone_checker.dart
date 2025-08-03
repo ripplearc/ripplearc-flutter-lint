@@ -13,8 +13,15 @@ import 'lib/core/analyzers/no_internal_method_docs_analyzer.dart';
 import 'lib/core/analyzers/todo_with_story_links_analyzer.dart';
 import 'lib/core/analyzers/no_optional_operators_in_tests_analyzer.dart';
 import 'lib/core/analyzers/prefer_fake_over_mock_analyzer.dart';
+import 'lib/core/analyzers/test_file_mutation_coverage_analyzer.dart';
 import 'package:path/path.dart' as p;
 import 'package:analyzer/dart/analysis/utilities.dart';
+
+/// Simple resolver mock for TestFileMutationCoverageAnalyzer
+class _SimpleResolver {
+  final String path;
+  _SimpleResolver(this.path);
+}
 
 class StandaloneLintChecker {
   final List<BaseAnalyzer> analyzers = [
@@ -29,6 +36,7 @@ class StandaloneLintChecker {
     TodoWithStoryLinksAnalyzer(),
     NoOptionalOperatorsInTestsAnalyzer(),
     PreferFakeOverMockAnalyzer(),
+    TestFileMutationCoverageAnalyzer(),
     // Add other analyzers here as you refactor them
   ];
 
@@ -36,6 +44,8 @@ class StandaloneLintChecker {
     List<String> filePaths, {
     List<String>? enabledRules,
   }) async {
+    final shouldCheckTestFiles =
+        enabledRules?.contains('test_file_mutation_coverage') ?? false;
     final allIssues = <String>[];
     final activeAnalyzers =
         enabledRules != null
@@ -65,7 +75,8 @@ class StandaloneLintChecker {
 
     // Analyze individual files directly (fast path)
     for (final filePath in files) {
-      if (!filePath.endsWith('.dart') || BaseAnalyzer.isTestFile(filePath))
+      if (!filePath.endsWith('.dart') ||
+          (!shouldCheckTestFiles && BaseAnalyzer.isTestFile(filePath)))
         continue;
       final parseResult = parseString(
         path: filePath,
@@ -73,7 +84,14 @@ class StandaloneLintChecker {
       );
       final unit = parseResult.unit;
       for (final analyzer in activeAnalyzers) {
-        final issues = analyzer.analyze(unit);
+        List<dynamic> issues;
+        if (analyzer is TestFileMutationCoverageAnalyzer) {
+          // Create a simple resolver mock for TestFileMutationCoverageAnalyzer
+          final resolver = _SimpleResolver(filePath);
+          issues = analyzer.analyzeWithResolver(unit, resolver);
+        } else {
+          issues = analyzer.analyze(unit);
+        }
         for (final issue in issues) {
           allIssues.add(
             '$filePath:${issue.line}:${issue.column} • ${issue.message} • ${issue.ruleName}',
@@ -87,12 +105,20 @@ class StandaloneLintChecker {
       final collection = AnalysisContextCollection(includedPaths: directories);
       for (final context in collection.contexts) {
         for (final filePath in context.contextRoot.analyzedFiles()) {
-          if (!filePath.endsWith('.dart') || BaseAnalyzer.isTestFile(filePath))
+          if (!filePath.endsWith('.dart') ||
+              (!shouldCheckTestFiles && BaseAnalyzer.isTestFile(filePath)))
             continue;
           final result = await context.currentSession.getResolvedUnit(filePath);
           if (result is ResolvedUnitResult) {
             for (final analyzer in activeAnalyzers) {
-              final issues = analyzer.analyze(result.unit);
+              List<dynamic> issues;
+              if (analyzer is TestFileMutationCoverageAnalyzer) {
+                // Create a simple resolver mock for TestFileMutationCoverageAnalyzer
+                final resolver = _SimpleResolver(filePath);
+                issues = analyzer.analyzeWithResolver(result.unit, resolver);
+              } else {
+                issues = analyzer.analyze(result.unit);
+              }
               for (final issue in issues) {
                 allIssues.add(
                   '$filePath:${issue.line}:${issue.column} • ${issue.message} • ${issue.ruleName}',
@@ -129,7 +155,7 @@ void main(List<String> args) async {
       'Usage: dart run standalone_checker.dart [--rules rule1,rule2] <files_or_directories>',
     );
     print(
-      'Available rules: forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock',
+      'Available rules: forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage',
     );
     exit(1);
   }
