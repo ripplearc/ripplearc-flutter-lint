@@ -50,9 +50,7 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
 
   /// Returns true if the class should be excluded from the rule (e.g., Factory or Module classes).
   bool isExcludedClass(String className, InstanceCreationExpression node) {
-    // Allow classes whose names end with 'Factory'
     if (className.endsWith('Factory')) return true;
-    // Allow classes that extend 'Module'
     final classDecl = _findClassDeclaration(className, node);
     if (classDecl != null) {
       final extendsClause = classDecl.extendsClause;
@@ -93,10 +91,8 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
 }
 
 class _DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
-  /// The analyzer instance to use for rule logic and issue creation.
   final DirectInstantiationAnalyzer analyzer;
 
-  /// The list of issues found during the visit.
   final List<LintIssue> issues = [];
 
   _DirectInstantiationVisitor(this.analyzer);

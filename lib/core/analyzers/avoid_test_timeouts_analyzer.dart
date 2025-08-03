@@ -63,14 +63,11 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
       _isInSetupOrTeardown = false;
       _isInTestBlock = false;
     } else {
-      // Check for .timeout() method calls
       if (_isInTestBlock && name == 'timeout') {
         issues.add(analyzer.createIssue(node));
       }
-      // Check for Future.delayed() method calls
       if (_isInTestBlock && name == 'delayed') {
         final target = node.target;
-        // Support both Identifier and PrefixedIdentifier for Future
         if ((target is Identifier && target.name == 'Future') ||
             (target is PrefixedIdentifier &&
                 target.identifier.name == 'Future')) {
@@ -83,7 +80,6 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    // Check if we're inside a Module class
     final parent = node.parent;
     if (parent is ClassDeclaration &&
         parent.extendsClause?.superclass.toString() == 'Module') {
