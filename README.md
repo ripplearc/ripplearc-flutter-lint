@@ -6,34 +6,33 @@ A Dart/Flutter library providing custom lint rules for better code quality and t
 
 ```
 lib/
-  rules/                    # All lint rules go here
+  core/                     # Core framework and base classes
+    analyzers/              # All analyzer implementations
+      base_analyzer.dart
+      prefer_fake_over_mock_analyzer.dart
+      no_optional_operators_in_tests_analyzer.dart
+      ...more analyzers
+    base_lint_rule.dart     # Base class for all lint rules
+    models/
+      lint_issue.dart       # Data model for lint issues
+  custom_lint_rules/        # All lint rule implementations
     prefer_fake_over_mock_rule.dart
     no_optional_operators_in_tests.dart
-    forbid_forced_unwrapping.dart
-    no_direct_instantiation.dart
-    document_fake_parameters.dart
-    todo_with_story_links.dart
-    no_internal_method_docs.dart
-    document_interface.dart
+    ...more rules
+  ripplearc_flutter_lint.dart  # Main plugin entry point
+  custom_lint_package.dart     # Package configuration
 test/
-  rules/                    # All rule tests go here
+  custom_lint_rules/        # All rule tests go here
     prefer_fake_over_mock_rule_test.dart
     no_optional_operators_in_tests_test.dart
-    forbid_forced_unwrapping_test.dart
-    no_direct_instantiation_test.dart
-    document_fake_parameters_test.dart
-    todo_with_story_links_test.dart
-    no_internal_method_docs_test.dart
-    document_interface_test.dart
+    ...more tests
+  utils/                    # Test utilities
+    custom_lint_resolver.dart
+    test_error_reporter.dart
 example/                    # Example files demonstrating rules
   example_prefer_fake_over_mock_rule.dart
   example_no_optional_operators_in_tests_rule.dart
-  example_forbid_forced_unwrapping_rule.dart
-  example_no_direct_instantiation_rule.dart
-  example_document_fake_parameters_rule.dart
-  example_todo_with_story_links_rule.dart
-  example_no_internal_method_docs_rule.dart
-  example_document_interface_rule.dart
+  ...more examples
 ```
 
 ## Rules
@@ -322,34 +321,46 @@ abstract class SecureRepository {
 
 To register a custom lint rule in your package, follow these steps:
 
-1. **Create the Lint Rule**: Implement your lint rule by extending `DartLintRule` in `lib/rules/`. For example:
+1. **Create the Analyzer**: Implement your analyzer by extending `BaseAnalyzer` in `lib/core/analyzers/`. For example:
 
    ```dart
-   class ForbidForcedUnwrapping extends DartLintRule {
-     const ForbidForcedUnwrapping() : super(code: _code);
-
-     static const _code = LintCode(
-       name: 'forbid_forced_unwrapping',
-       problemMessage: 'Forced unwrapping (!) is not allowed in production code.',
-       correctionMessage: 'Use null-safe alternatives like null coalescing (??) or explicit null checks.',
-       errorSeverity: ErrorSeverity.WARNING,
-     );
+   class ForcedUnwrappingAnalyzer extends BaseAnalyzer {
+     @override
+     String get ruleName => 'forbid_forced_unwrapping';
 
      @override
-     void run(
-       CustomLintResolver resolver,
-       ErrorReporter reporter,
-       CustomLintContext context,
-     ) {
-       context.registry.addCompilationUnit((node) {
-         if (_isTestFile(resolver.path)) return;
-         _checkForForcedUnwrapping(node, reporter);
-       });
+     String get problemMessage => 'Forced unwrapping (!) is not allowed in production code.';
+
+     @override
+     String get correctionMessage => 'Use null-safe alternatives like null coalescing (??) or explicit null checks.';
+
+     @override
+     List<LintIssue> analyze(CompilationUnit node) {
+       final issues = <LintIssue>[];
+       // Implement your analysis logic here
+       return issues;
      }
    }
    ```
 
-2. **Write Unit Tests**: Create unit tests in `test/rules/` to verify your rule works as expected:
+2. **Create the Lint Rule**: Implement your lint rule by extending `BaseLintRule` in `lib/custom_lint_rules/`. For example:
+
+   ```dart
+   import '../core/base_lint_rule.dart';
+   import '../core/analyzers/forced_unwrapping_analyzer.dart';
+   import '../core/analyzers/base_analyzer.dart';
+
+   class ForbidForcedUnwrapping extends BaseLintRule {
+     ForbidForcedUnwrapping() : super(BaseLintRule.createLintCode(_analyzer));
+
+     static final _analyzer = ForcedUnwrappingAnalyzer();
+
+     @override
+     BaseAnalyzer get analyzer => _analyzer;
+   }
+   ```
+
+3. **Write Unit Tests**: Create unit tests in `test/custom_lint_rules/` to verify your rule works as expected:
 
    ```dart
    void main() {
@@ -358,7 +369,7 @@ To register a custom lint rule in your package, follow these steps:
        late TestErrorReporter reporter;
 
        setUp(() {
-         rule = const ForbidForcedUnwrapping();
+         rule = ForbidForcedUnwrapping();
          reporter = TestErrorReporter();
        });
 
@@ -378,7 +389,7 @@ To register a custom lint rule in your package, follow these steps:
    }
    ```
 
-3. **Create an Example File**: Create an example in `example/` that demonstrates both the violation and correct usage:
+4. **Create an Example File**: Create an example in `example/` that demonstrates both the violation and correct usage:
 
    ```dart
    class User {
@@ -399,24 +410,24 @@ To register a custom lint rule in your package, follow these steps:
    }
    ```
 
-4. **Register the Rule**: In `lib/ripplearc_flutter_lint.dart`, add your rule to the list:
+5. **Register the Rule**: In `lib/ripplearc_flutter_lint.dart`, add your rule to the list:
 
    ```dart
    class _RipplearcFlutterLint extends PluginBase {
      @override
      List<LintRule> getLintRules(CustomLintConfigs configs) => [
-           const ForbidForcedUnwrapping(),
-           // ... other rules
-         ];
+       ForbidForcedUnwrapping(),
+       // ... other rules
+     ];
    }
    ```
 
-5. **Configure the Linter**: Copy the existing configuration from `example/custom_lint.yaml` to your project root:
+6. **Configure the Linter**: Copy the existing configuration from `example/custom_lint.yaml` to your project root:
    ```bash
    cp example/custom_lint.yaml custom_lint.yaml
    ```
 
-6. **Run the Linter**: Use `dart run custom_lint` to verify your rule works as expected.
+7. **Run the Linter**: Use `dart run custom_lint` to verify your rule works as expected.
 
 By following these steps, you can successfully register and use custom lint rules in your Dart/Flutter project.
 

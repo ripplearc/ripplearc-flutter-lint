@@ -43,7 +43,6 @@ abstract class BaseLintRule extends DartLintRule {
 
     context.registry.addCompilationUnit((node) {
       final issues = analyzer.analyze(node);
-
       for (final issue in issues) {
         reporter.atOffset(
           offset: issue.offset,
