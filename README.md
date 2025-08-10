@@ -11,64 +11,28 @@ lib/
       base_analyzer.dart
       prefer_fake_over_mock_analyzer.dart
       no_optional_operators_in_tests_analyzer.dart
-      forbid_forced_unwrapping_analyzer.dart
-      no_direct_instantiation_analyzer.dart
-      document_fake_parameters_analyzer.dart
-      todo_with_story_links_analyzer.dart
-      no_internal_method_docs_analyzer.dart
-      document_interface_analyzer.dart
-      avoid_test_timeouts_analyzer.dart
-      private_subject_analyzer.dart
-      sealed_over_dynamic_analyzer.dart
-      specific_exception_types_analyzer.dart
+      ...more analyzers
     base_lint_rule.dart     # Base class for all lint rules
     models/
       lint_issue.dart       # Data model for lint issues
   custom_lint_rules/        # All lint rule implementations
     prefer_fake_over_mock_rule.dart
     no_optional_operators_in_tests.dart
-    forbid_forced_unwrapping.dart
-    no_direct_instantiation.dart
-    document_fake_parameters.dart
-    todo_with_story_links.dart
-    no_internal_method_docs.dart
-    document_interface.dart
-    avoid_test_timeouts.dart
-    private_subject.dart
-    sealed_over_dynamic.dart
-    specific_exception_types.dart
+    ...more rules
   ripplearc_flutter_lint.dart  # Main plugin entry point
   custom_lint_package.dart     # Package configuration
 test/
   custom_lint_rules/        # All rule tests go here
     prefer_fake_over_mock_rule_test.dart
     no_optional_operators_in_tests_test.dart
-    forbid_forced_unwrapping_test.dart
-    no_direct_instantiation_test.dart
-    document_fake_parameters_test.dart
-    todo_with_story_links_test.dart
-    no_internal_method_docs_test.dart
-    document_interface_test.dart
-    avoid_test_timeouts_test.dart
-    private_subject_test.dart
-    sealed_over_dynamic_test.dart
-    specific_exception_types_test.dart
+    ...more tests
   utils/                    # Test utilities
     custom_lint_resolver.dart
     test_error_reporter.dart
 example/                    # Example files demonstrating rules
   example_prefer_fake_over_mock_rule.dart
   example_no_optional_operators_in_tests_rule.dart
-  example_forbid_forced_unwrapping_rule.dart
-  example_no_direct_instantiation_rule.dart
-  example_document_fake_parameters_rule.dart
-  example_todo_with_story_links_rule.dart
-  example_no_internal_method_docs_rule.dart
-  example_document_interface_rule.dart
-  example_avoid_test_timeouts_rule.dart
-  example_private_subject_rule.dart
-  example_sealed_over_dynamic_rule.dart
-  example_specific_exception_types_rule.dart
+  ...more examples
 ```
 
 ## Rules
