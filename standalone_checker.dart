@@ -23,6 +23,38 @@ class _SimpleResolver {
   _SimpleResolver(this.path);
 }
 
+/// A standalone lint checker that can analyze Dart files and directories
+/// without requiring the full Flutter/Dart analysis context.
+///
+/// This class provides a lightweight alternative to the full custom lint package,
+/// useful for:
+/// - CI/CD pipelines where you want fast linting
+/// - Command-line tools for developers
+/// - Integration with other build systems
+///
+/// **Performance Characteristics:**
+/// - Individual files are analyzed using fast parsing (parseString)
+/// - Directories use the full analysis context for better accuracy
+/// - Test files are only analyzed when the 'test_file_mutation_coverage' rule is enabled
+///
+/// **Usage Examples:**
+/// ```dart
+/// // Check all files in a directory with all rules
+/// final checker = StandaloneLintChecker();
+/// final issues = await checker.check(['lib/', 'test/']);
+///
+/// // Check with only specific rules enabled
+/// final issues = await checker.check(
+///   ['lib/'],
+///   enabledRules: ['forbid_forced_unwrapping', 'no_direct_instantiation']
+/// );
+///
+/// // Check test files (requires test_file_mutation_coverage rule)
+/// final issues = await checker.check(
+///   ['test/'],
+///   enabledRules: ['test_file_mutation_coverage']
+/// );
+/// ```
 class StandaloneLintChecker {
   final List<BaseAnalyzer> analyzers = [
     ForcedUnwrappingAnalyzer(),
@@ -40,6 +72,45 @@ class StandaloneLintChecker {
     // Add other analyzers here as you refactor them
   ];
 
+  /// Analyzes the given files and directories for linting issues.
+  ///
+  /// This method processes both individual files and directories, using different
+  /// analysis strategies for optimal performance and accuracy.
+  ///
+  /// **Parameters:**
+  /// - [filePaths]: List of file or directory paths to analyze. Can be a mix of
+  ///   individual .dart files and directory paths.
+  /// - [enabledRules]: Optional list of specific rules to run. If null, all rules are run.
+  ///   Use this to limit analysis to specific concerns or improve performance.
+  ///
+  /// **Returns:** A list of issue strings in the format:
+  /// `filepath:line:column • message • rule_name`
+  ///
+  /// **Analysis Strategy:**
+  /// - **Individual files**: Uses fast parsing (parseString) for quick analysis
+  /// - **Directories**: Uses full analysis context for better accuracy and symbol resolution
+  /// - **Test files**: Only analyzed when 'test_file_mutation_coverage' is in enabledRules
+  /// - **Performance**: Fast path is ~5-10x faster than full analysis context
+  ///
+  /// **Example Usage:**
+  /// ```dart
+  /// final checker = StandaloneLintChecker();
+  ///
+  /// // Check specific files with all rules
+  /// final issues = await checker.check(['lib/main.dart', 'lib/utils.dart']);
+  ///
+  /// // Check directories with specific rules
+  /// final issues = await checker.check(
+  ///   ['lib/', 'test/'],
+  ///   enabledRules: ['forbid_forced_unwrapping', 'no_direct_instantiation']
+  /// );
+  ///
+  /// // Check only test mutation coverage
+  /// final issues = await checker.check(
+  ///   ['test/'],
+  ///   enabledRules: ['test_file_mutation_coverage']
+  /// );
+  /// ```
   Future<List<String>> check(
     List<String> filePaths, {
     List<String>? enabledRules,
@@ -134,6 +205,22 @@ class StandaloneLintChecker {
   }
 }
 
+/// Main entry point for the standalone lint checker.
+///
+/// **Command Line Usage:**
+/// ```bash
+/// # Check all files in a directory with all rules
+/// dart run standalone_checker.dart lib/
+///
+/// # Check specific files with all rules
+/// dart run standalone_checker.dart lib/main.dart lib/utils.dart
+///
+/// # Check with only specific rules enabled
+/// dart run standalone_checker.dart --rules forbid_forced_unwrapping,no_direct_instantiation lib/
+///
+/// # Check test files (requires test_file_mutation_coverage rule)
+/// dart run standalone_checker.dart --rules test_file_mutation_coverage test/
+/// ```
 void main(List<String> args) async {
   final stopwatch = Stopwatch()..start();
 
