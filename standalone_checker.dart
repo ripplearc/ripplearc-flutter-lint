@@ -115,27 +115,46 @@ class StandaloneLintChecker {
     List<String> filePaths, {
     List<String>? enabledRules,
   }) async {
-    final shouldCheckTestFiles =
-        enabledRules?.contains('test_file_mutation_coverage') ?? false;
+    final shouldCheckTestFiles = _shouldCheckTestFiles(enabledRules);
+    final activeAnalyzers = _getActiveAnalyzers(enabledRules);
+    final pathGroups = _categorizePaths(filePaths);
+
     final allIssues = <String>[];
-    final activeAnalyzers =
-        enabledRules != null
-            ? analyzers.where((a) => enabledRules.contains(a.ruleName)).toList()
-            : analyzers;
 
-    // Convert all input paths to absolute, normalized, canonicalized paths
-    final absolutePaths =
-        filePaths.map((p0) {
-          final abs =
-              FileSystemEntity.isDirectorySync(p0)
-                  ? Directory(p0).absolute.path
-                  : File(p0).absolute.path;
-          return p.normalize(p.canonicalize(abs));
-        }).toList();
+    allIssues.addAll(
+      _analyzeIndividualFiles(
+        pathGroups.files,
+        activeAnalyzers,
+        shouldCheckTestFiles,
+      ),
+    );
 
-    // Separate files and directories
+    allIssues.addAll(
+      await _analyzeDirectories(
+        pathGroups.directories,
+        activeAnalyzers,
+        shouldCheckTestFiles,
+      ),
+    );
+
+    return allIssues;
+  }
+
+  bool _shouldCheckTestFiles(List<String>? enabledRules) {
+    return enabledRules?.contains('test_file_mutation_coverage') ?? false;
+  }
+
+  List<BaseAnalyzer> _getActiveAnalyzers(List<String>? enabledRules) {
+    return enabledRules != null
+        ? analyzers.where((a) => enabledRules.contains(a.ruleName)).toList()
+        : analyzers;
+  }
+
+  _PathGroups _categorizePaths(List<String> filePaths) {
+    final absolutePaths = _normalizePaths(filePaths);
     final files = <String>[];
     final directories = <String>[];
+
     for (final path in absolutePaths) {
       if (FileSystemEntity.isDirectorySync(path)) {
         directories.add(path);
@@ -144,65 +163,112 @@ class StandaloneLintChecker {
       }
     }
 
-    // Analyze individual files directly (fast path)
+    return _PathGroups(files: files, directories: directories);
+  }
+
+  List<String> _normalizePaths(List<String> filePaths) {
+    return filePaths.map((path) {
+      final absolute =
+          FileSystemEntity.isDirectorySync(path)
+              ? Directory(path).absolute.path
+              : File(path).absolute.path;
+      return p.normalize(p.canonicalize(absolute));
+    }).toList();
+  }
+
+  List<String> _analyzeIndividualFiles(
+    List<String> files,
+    List<BaseAnalyzer> activeAnalyzers,
+    bool shouldCheckTestFiles,
+  ) {
+    final issues = <String>[];
+
     for (final filePath in files) {
-      if (!filePath.endsWith('.dart') ||
-          (!shouldCheckTestFiles && BaseAnalyzer.isTestFile(filePath)))
-        continue;
+      if (!_shouldAnalyzeFile(filePath, shouldCheckTestFiles)) continue;
+
       final parseResult = parseString(
         path: filePath,
         content: File(filePath).readAsStringSync(),
       );
-      final unit = parseResult.unit;
-      for (final analyzer in activeAnalyzers) {
-        List<dynamic> issues;
-        if (analyzer is TestFileMutationCoverageAnalyzer) {
-          // Create a simple resolver mock for TestFileMutationCoverageAnalyzer
-          final resolver = _SimpleResolver(filePath);
-          issues = analyzer.analyzeWithResolver(unit, resolver);
-        } else {
-          issues = analyzer.analyze(unit);
-        }
-        for (final issue in issues) {
-          allIssues.add(
-            '$filePath:${issue.line}:${issue.column} • ${issue.message} • ${issue.ruleName}',
-          );
-        }
-      }
+
+      issues.addAll(_analyzeUnit(parseResult.unit, filePath, activeAnalyzers));
     }
 
-    // Analyze directories using AnalysisContextCollection (existing logic)
-    if (directories.isNotEmpty) {
-      final collection = AnalysisContextCollection(includedPaths: directories);
-      for (final context in collection.contexts) {
-        for (final filePath in context.contextRoot.analyzedFiles()) {
-          if (!filePath.endsWith('.dart') ||
-              (!shouldCheckTestFiles && BaseAnalyzer.isTestFile(filePath)))
-            continue;
-          final result = await context.currentSession.getResolvedUnit(filePath);
-          if (result is ResolvedUnitResult) {
-            for (final analyzer in activeAnalyzers) {
-              List<dynamic> issues;
-              if (analyzer is TestFileMutationCoverageAnalyzer) {
-                // Create a simple resolver mock for TestFileMutationCoverageAnalyzer
-                final resolver = _SimpleResolver(filePath);
-                issues = analyzer.analyzeWithResolver(result.unit, resolver);
-              } else {
-                issues = analyzer.analyze(result.unit);
-              }
-              for (final issue in issues) {
-                allIssues.add(
-                  '$filePath:${issue.line}:${issue.column} • ${issue.message} • ${issue.ruleName}',
-                );
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return allIssues;
+    return issues;
   }
+
+  Future<List<String>> _analyzeDirectories(
+    List<String> directories,
+    List<BaseAnalyzer> activeAnalyzers,
+    bool shouldCheckTestFiles,
+  ) async {
+    if (directories.isEmpty) return [];
+
+    final issues = <String>[];
+    final collection = AnalysisContextCollection(includedPaths: directories);
+
+    for (final context in collection.contexts) {
+      for (final filePath in context.contextRoot.analyzedFiles()) {
+        if (!_shouldAnalyzeFile(filePath, shouldCheckTestFiles)) continue;
+
+        final result = await context.currentSession.getResolvedUnit(filePath);
+        if (result is ResolvedUnitResult) {
+          issues.addAll(_analyzeUnit(result.unit, filePath, activeAnalyzers));
+        }
+      }
+    }
+
+    return issues;
+  }
+
+  bool _shouldAnalyzeFile(String filePath, bool shouldCheckTestFiles) {
+    return filePath.endsWith('.dart') &&
+        (shouldCheckTestFiles || !BaseAnalyzer.isTestFile(filePath));
+  }
+
+  List<String> _analyzeUnit(
+    dynamic unit,
+    String filePath,
+    List<BaseAnalyzer> activeAnalyzers,
+  ) {
+    final issues = <String>[];
+
+    for (final analyzer in activeAnalyzers) {
+      final analyzerIssues = _runAnalyzer(analyzer, unit, filePath);
+      issues.addAll(_formatIssues(analyzerIssues, filePath));
+    }
+
+    return issues;
+  }
+
+  List<dynamic> _runAnalyzer(
+    BaseAnalyzer analyzer,
+    dynamic unit,
+    String filePath,
+  ) {
+    if (analyzer is TestFileMutationCoverageAnalyzer) {
+      final resolver = _SimpleResolver(filePath);
+      return analyzer.analyzeWithResolver(unit, resolver);
+    } else {
+      return analyzer.analyze(unit);
+    }
+  }
+
+  List<String> _formatIssues(List<dynamic> issues, String filePath) {
+    return issues
+        .map(
+          (issue) =>
+              '$filePath:${issue.line}:${issue.column} • ${issue.message} • ${issue.ruleName}',
+        )
+        .toList();
+  }
+}
+
+class _PathGroups {
+  final List<String> files;
+  final List<String> directories;
+
+  _PathGroups({required this.files, required this.directories});
 }
 
 /// Main entry point for the standalone lint checker.
