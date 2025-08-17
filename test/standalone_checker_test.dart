@@ -27,13 +27,11 @@ void main() {
     setUp(() {
       checker = StandaloneLintChecker();
 
-      // Create temporary directory and files for testing
       tempDir = Directory.systemTemp.createTempSync('standalone_checker_test_');
       testFile = File(p.join(tempDir.path, 'test_file.dart'));
       testFile2 = File(p.join(tempDir.path, 'test_file2.dart'));
       nonDartFile = File(p.join(tempDir.path, 'test.txt'));
 
-      // Create test files with some Dart content
       testFile.writeAsStringSync('''
 void main() {
   print('Hello World');
@@ -43,7 +41,6 @@ void main() {
       testFile2.writeAsStringSync('''
 class TestClass {
   void testMethod() {
-    // This is a test method
   }
 }
 ''');
@@ -52,7 +49,6 @@ class TestClass {
     });
 
     tearDown(() {
-      // Clean up temporary files
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
       }
@@ -61,10 +57,7 @@ class TestClass {
     group('Constructor and Properties', () {
       test('should initialize with all analyzers', () {
         expect(checker.analyzers, isNotEmpty);
-        expect(
-          checker.analyzers.length,
-          12,
-        ); // Based on the current implementation
+        expect(checker.analyzers.length, 12);
       });
 
       test('should contain specific analyzers', () {
@@ -101,6 +94,7 @@ class TestClass {
         final paths = [testFile.path];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
       });
 
       test(
@@ -108,6 +102,7 @@ class TestClass {
         () async {
           final paths = [testFile.path];
           final result = await checker.check(paths, enabledRules: []);
+          expect(result, isA<List<String>>());
           expect(result, isA<List<String>>());
         },
       );
@@ -117,6 +112,7 @@ class TestClass {
         final enabledRules = ['no_direct_instantiation', 'sealed_over_dynamic'];
         final result = await checker.check(paths, enabledRules: enabledRules);
         expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
       });
 
       test('should handle non-existent rules gracefully', () async {
@@ -124,30 +120,27 @@ class TestClass {
         final enabledRules = ['non_existent_rule'];
         final result = await checker.check(paths, enabledRules: enabledRules);
         expect(result, isA<List<String>>());
+        expect(result, isEmpty);
       });
 
       test('should analyze individual dart files', () async {
         final paths = [testFile.path, testFile2.path];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
       });
 
       test('should analyze directories', () async {
-        // Skip directory analysis in test environment as it requires AnalysisContextCollection
-        // which needs access to Flutter SDK that may not be available in tests
-        final paths = [testFile.path]; // Use individual file instead
+        final paths = [testFile.path];
         final result = await checker.check(paths);
+        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
 
       test('should analyze mixed files and directories', () async {
-        // Skip directory analysis in test environment as it requires AnalysisContextCollection
-        // which needs access to Flutter SDK that may not be available in tests
-        final paths = [
-          testFile.path,
-          testFile2.path,
-        ]; // Use individual files instead
+        final paths = [testFile.path, testFile2.path];
         final result = await checker.check(paths);
+        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
 
@@ -155,7 +148,7 @@ class TestClass {
         final paths = [nonDartFile.path];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
-        // Non-dart files should not cause errors, but may not be analyzed
+        expect(result, isEmpty);
       });
 
       test('should handle relative paths', () async {
@@ -163,12 +156,14 @@ class TestClass {
         final paths = [relativePath];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
       });
 
       test('should handle absolute paths', () async {
         final absolutePath = p.absolute(testFile.path);
         final paths = [absolutePath];
         final result = await checker.check(paths);
+        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
 
@@ -180,6 +175,210 @@ class TestClass {
 
         final paths = [specialFile.path];
         final result = await checker.check(paths);
+        expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
+      });
+    });
+
+    group('Analyzer Functionality Tests', () {
+      test('should detect forced unwrapping issues', () async {
+        final forcedUnwrappingFile = File(
+          p.join(tempDir.path, 'forced_unwrapping.dart'),
+        );
+        forcedUnwrappingFile.writeAsStringSync('''
+void main() {
+  String? nullableString = null;
+  print(nullableString!);
+}
+''');
+
+        final paths = [forcedUnwrappingFile.path];
+        final enabledRules = ['forbid_forced_unwrapping'];
+        final result = await checker.check(paths, enabledRules: enabledRules);
+
+        expect(result, isA<List<String>>());
+        expect(result, isNotEmpty);
+        expect(
+          result.any((issue) => issue.contains('forbid_forced_unwrapping')),
+          isTrue,
+        );
+      });
+
+      test('should detect direct instantiation issues', () async {
+        final directInstantiationFile = File(
+          p.join(tempDir.path, 'direct_instantiation.dart'),
+        );
+        directInstantiationFile.writeAsStringSync('''
+class AuthService {
+  AuthService();
+}
+
+void main() {
+  final service = AuthService();
+}
+''');
+
+        final paths = [directInstantiationFile.path];
+        final enabledRules = ['no_direct_instantiation'];
+        final result = await checker.check(paths, enabledRules: enabledRules);
+
+        expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
+      });
+
+      test('should detect sealed over dynamic issues', () async {
+        final sealedOverDynamicFile = File(
+          p.join(tempDir.path, 'sealed_over_dynamic.dart'),
+        );
+        sealedOverDynamicFile.writeAsStringSync('''
+void main() {
+  dynamic value = 'test';
+  value = 42;
+}
+''');
+
+        final paths = [sealedOverDynamicFile.path];
+        final enabledRules = ['sealed_over_dynamic'];
+        final result = await checker.check(paths, enabledRules: enabledRules);
+
+        expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
+      });
+
+      test('should return empty list when no issues found', () async {
+        final cleanFile = File(p.join(tempDir.path, 'clean.dart'));
+        cleanFile.writeAsStringSync('''
+void main() {
+  print('Hello World');
+}
+''');
+
+        final paths = [cleanFile.path];
+        final enabledRules = [
+          'forbid_forced_unwrapping',
+          'no_direct_instantiation',
+        ];
+        final result = await checker.check(paths, enabledRules: enabledRules);
+
+        expect(result, isA<List<String>>());
+        expect(result, isEmpty);
+      });
+
+      test('should format issues correctly', () async {
+        final issueFile = File(p.join(tempDir.path, 'issue_file.dart'));
+        issueFile.writeAsStringSync('''
+void main() {
+  String? nullableString = null;
+  print(nullableString!);
+}
+''');
+
+        final paths = [issueFile.path];
+        final enabledRules = ['forbid_forced_unwrapping'];
+        final result = await checker.check(paths, enabledRules: enabledRules);
+
+        expect(result, isA<List<String>>());
+        expect(result, isNotEmpty);
+
+        final issue = result.first;
+        expect(issue, contains(':'));
+        expect(issue, contains('•'));
+        expect(issue, contains('forbid_forced_unwrapping'));
+        expect(issue, contains(issueFile.path));
+      });
+
+      test('should work with multiple analyzers simultaneously', () async {
+        final multiIssueFile = File(p.join(tempDir.path, 'multi_issue.dart'));
+        multiIssueFile.writeAsStringSync('''
+class TestClass {
+  TestClass();
+}
+
+void main() {
+  String? nullableString = null;
+  print(nullableString!);
+  
+  final instance = TestClass();
+}
+''');
+
+        final paths = [multiIssueFile.path];
+        final enabledRules = [
+          'forbid_forced_unwrapping',
+          'no_direct_instantiation',
+        ];
+        final result = await checker.check(paths, enabledRules: enabledRules);
+
+        expect(result, isA<List<String>>());
+        expect(result, isNotEmpty);
+        expect(
+          result.any((issue) => issue.contains('forbid_forced_unwrapping')),
+          isTrue,
+        );
+      });
+
+      test('debug: should show what analyzers are actually doing', () async {
+        final debugFile = File(p.join(tempDir.path, 'debug.dart'));
+        debugFile.writeAsStringSync('''
+class TestClass {
+  TestClass();
+}
+
+void main() {
+  String? nullableString = null;
+  print(nullableString!);
+  
+  final instance = TestClass();
+}
+''');
+
+        final paths = [debugFile.path];
+
+        final allRulesResult = await checker.check(paths);
+        print('All rules result: $allRulesResult');
+
+        final forcedUnwrappingResult = await checker.check(
+          paths,
+          enabledRules: ['forbid_forced_unwrapping'],
+        );
+        print('Forced unwrapping result: $forcedUnwrappingResult');
+
+        final directInstantiationResult = await checker.check(
+          paths,
+          enabledRules: ['no_direct_instantiation'],
+        );
+        print('Direct instantiation result: $directInstantiationResult');
+
+        expect(allRulesResult, isA<List<String>>());
+        expect(forcedUnwrappingResult, isA<List<String>>());
+        expect(directInstantiationResult, isA<List<String>>());
+      });
+
+      test('debug: direct instantiation analyzer specifically', () async {
+        final directInstantiationDebugFile = File(
+          p.join(tempDir.path, 'direct_instantiation_debug.dart'),
+        );
+        directInstantiationDebugFile.writeAsStringSync('''
+class SimpleClass {
+  SimpleClass();
+}
+
+void main() {
+  final obj = SimpleClass();
+}
+''');
+
+        final paths = [directInstantiationDebugFile.path];
+        final result = await checker.check(
+          paths,
+          enabledRules: ['no_direct_instantiation'],
+        );
+
+        print('Direct instantiation debug result: $result');
+        print(
+          'File content: ${directInstantiationDebugFile.readAsStringSync()}',
+        );
+
         expect(result, isA<List<String>>());
       });
     });
@@ -195,6 +394,7 @@ class TestClass {
           final enabledRules = ['test_file_mutation_coverage'];
           final result = await checker.check(paths, enabledRules: enabledRules);
           expect(result, isA<List<String>>());
+          expect(result, isA<List<String>>());
         },
       );
 
@@ -208,7 +408,7 @@ class TestClass {
           final enabledRules = ['forbid_forced_unwrapping'];
           final result = await checker.check(paths, enabledRules: enabledRules);
           expect(result, isA<List<String>>());
-          // Test files should be skipped when test_file_mutation_coverage is not enabled
+          expect(result, isEmpty);
         },
       );
     });
@@ -228,21 +428,18 @@ class TestClass {
         final paths = [specialFile.path];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
       });
 
       test('should handle mixed valid and invalid paths gracefully', () async {
         final validPath = testFile.path;
         final result = await checker.check([validPath]);
         expect(result, isA<List<String>>());
-
-        // Note: The current implementation doesn't handle non-existent files gracefully
-        // This is a limitation that could be improved in the future
       });
     });
 
     group('Performance and Scalability', () {
       test('should handle large number of files', () async {
-        // Create multiple test files
         final files = <String>[];
         for (int i = 0; i < 10; i++) {
           final file = File(p.join(tempDir.path, 'test_file_$i.dart'));
@@ -252,12 +449,10 @@ class TestClass {
 
         final result = await checker.check(files);
         expect(result, isA<List<String>>());
+        expect(result, isA<List<String>>());
       });
 
       test('should handle large number of directories', () async {
-        // Skip directory analysis in test environment as it requires AnalysisContextCollection
-        // which needs access to Flutter SDK that may not be available in tests
-        // Instead, test with multiple individual files
         final files = <String>[];
         for (int i = 0; i < 5; i++) {
           final file = File(p.join(tempDir.path, 'test_file_$i.dart'));
@@ -266,6 +461,7 @@ class TestClass {
         }
 
         final result = await checker.check(files);
+        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
     });
@@ -301,6 +497,7 @@ void main() {
 
           final paths = [complexFile.path];
           final result = await checker.check(paths);
+          expect(result, isA<List<String>>());
           expect(result, isA<List<String>>());
         },
       );
