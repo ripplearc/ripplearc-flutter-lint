@@ -94,7 +94,6 @@ class TestClass {
         final paths = [testFile.path];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
-        expect(result, isA<List<String>>());
       });
 
       test(
@@ -103,7 +102,6 @@ class TestClass {
           final paths = [testFile.path];
           final result = await checker.check(paths, enabledRules: []);
           expect(result, isA<List<String>>());
-          expect(result, isA<List<String>>());
         },
       );
 
@@ -111,7 +109,6 @@ class TestClass {
         final paths = [testFile.path];
         final enabledRules = ['no_direct_instantiation', 'sealed_over_dynamic'];
         final result = await checker.check(paths, enabledRules: enabledRules);
-        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
 
@@ -127,20 +124,17 @@ class TestClass {
         final paths = [testFile.path, testFile2.path];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
-        expect(result, isA<List<String>>());
       });
 
       test('should analyze directories', () async {
         final paths = [testFile.path];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
-        expect(result, isA<List<String>>());
       });
 
       test('should analyze mixed files and directories', () async {
         final paths = [testFile.path, testFile2.path];
         final result = await checker.check(paths);
-        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
 
@@ -156,14 +150,12 @@ class TestClass {
         final paths = [relativePath];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
-        expect(result, isA<List<String>>());
       });
 
       test('should handle absolute paths', () async {
         final absolutePath = p.absolute(testFile.path);
         final paths = [absolutePath];
         final result = await checker.check(paths);
-        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
 
@@ -175,7 +167,6 @@ class TestClass {
 
         final paths = [specialFile.path];
         final result = await checker.check(paths);
-        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
     });
@@ -223,7 +214,6 @@ void main() {
         final result = await checker.check(paths, enabledRules: enabledRules);
 
         expect(result, isA<List<String>>());
-        expect(result, isA<List<String>>());
       });
 
       test('should detect sealed over dynamic issues', () async {
@@ -241,7 +231,6 @@ void main() {
         final enabledRules = ['sealed_over_dynamic'];
         final result = await checker.check(paths, enabledRules: enabledRules);
 
-        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
 
@@ -394,7 +383,6 @@ void main() {
           final enabledRules = ['test_file_mutation_coverage'];
           final result = await checker.check(paths, enabledRules: enabledRules);
           expect(result, isA<List<String>>());
-          expect(result, isA<List<String>>());
         },
       );
 
@@ -428,7 +416,6 @@ void main() {
         final paths = [specialFile.path];
         final result = await checker.check(paths);
         expect(result, isA<List<String>>());
-        expect(result, isA<List<String>>());
       });
 
       test('should handle mixed valid and invalid paths gracefully', () async {
@@ -449,7 +436,6 @@ void main() {
 
         final result = await checker.check(files);
         expect(result, isA<List<String>>());
-        expect(result, isA<List<String>>());
       });
 
       test('should handle large number of directories', () async {
@@ -461,7 +447,6 @@ void main() {
         }
 
         final result = await checker.check(files);
-        expect(result, isA<List<String>>());
         expect(result, isA<List<String>>());
       });
     });
@@ -497,7 +482,6 @@ void main() {
 
           final paths = [complexFile.path];
           final result = await checker.check(paths);
-          expect(result, isA<List<String>>());
           expect(result, isA<List<String>>());
         },
       );
