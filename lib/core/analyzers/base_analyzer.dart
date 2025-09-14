@@ -31,6 +31,14 @@ abstract class BaseAnalyzer {
   /// Implement this method to provide the core logic for your custom lint rule.
   List<LintIssue> analyze(CompilationUnit unit);
 
+  /// Analyze the given [CompilationUnit] with resolver context and return a list of [LintIssue]s.
+  ///
+  /// This method provides access to the resolver for file path and other context information.
+  /// Default implementation calls analyze(unit) for backward compatibility.
+  List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
+    return analyze(unit);
+  }
+
   /// Helper to create a [LintIssue] from an [AstNode] with consistent formatting.
   ///
   /// Optionally provide a [customMessage] to override the default problem message.

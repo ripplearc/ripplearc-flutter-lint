@@ -11,6 +11,7 @@ import 'custom_lint_rules/no_optional_operators_in_tests.dart';
 import 'custom_lint_rules/document_interface.dart';
 import 'custom_lint_rules/private_subject.dart';
 import 'custom_lint_rules/specific_exception_types.dart';
+import 'custom_lint_rules/test_file_mutation_coverage.dart';
 
 PluginBase createPlugin() => _RipplearcFlutterLint();
 
@@ -29,5 +30,6 @@ class _RipplearcFlutterLint extends PluginBase {
     PrivateSubject(),
     SealedOverDynamic(),
     SpecificExceptionTypes(),
+    TestFileMutationCoverage(),
   ];
 }

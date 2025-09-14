@@ -42,7 +42,7 @@ abstract class BaseLintRule extends DartLintRule {
     if (!_testOnly && isTestFile) return;
 
     context.registry.addCompilationUnit((node) {
-      final issues = analyzer.analyze(node);
+      final issues = analyzer.analyzeWithResolver(node, resolver);
       for (final issue in issues) {
         reporter.atOffset(
           offset: issue.offset,

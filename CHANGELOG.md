@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.4
+- Added `test_file_mutation_coverage` rule (**error**): Ensures that every test file in the `test/units` directory has a corresponding mutation file in the `test/mutations` directory with `.xml` extension. This rule enforces mutation testing coverage by requiring each test file to have an associated XML mutation configuration file.
+
 ## 0.2.3
 - Add package to ripplearc.com publisher
 

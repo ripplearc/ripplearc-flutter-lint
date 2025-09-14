@@ -11,6 +11,7 @@ rules:
   - no_internal_method_docs
   - document_interface
   - specific_exception_types
+  - test_file_mutation_coverage
 
 analyzer:
   plugins:
