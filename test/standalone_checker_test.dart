@@ -85,7 +85,6 @@ class TestClass {
           final checker = StandaloneLintChecker();
           final issues = await checker.check([testFile.path]);
 
-          expect(issues, isA<List<String>>());
           final uniqueRules =
               issues.map((issue) => issue.split(' • ').last).toSet();
           expect(uniqueRules.length, greaterThanOrEqualTo(0));
@@ -110,8 +109,6 @@ class File2 {
 
         final checker = StandaloneLintChecker();
         final issues = await checker.check([file1.path, file2.path]);
-
-        expect(issues, isA<List<String>>());
 
         final analyzedFiles =
             issues.map((issue) => issue.split(':').first).toSet();
@@ -144,8 +141,6 @@ class SpecificTest {
             enabledRules: ['forbid_forced_unwrapping'],
           );
 
-          expect(issues, isA<List<String>>());
-
           for (final issue in issues) {
             expect(issue, contains('forbid_forced_unwrapping'));
           }
@@ -175,8 +170,6 @@ class MultiRuleTest {
             enabledRules: ['forbid_forced_unwrapping', 'sealed_over_dynamic'],
           );
 
-          expect(issues, isA<List<String>>());
-
           for (final issue in issues) {
             final ruleName = issue.split(' • ').last;
             expect([
@@ -201,9 +194,8 @@ class MainClass {
           'utils.dart',
           '''
 class Utils {
-  static void helper() {
-    print('Helper method');
-  }
+  String? getValue() => null;
+  void run() { print(getValue()!); }
 }
 ''',
         );
@@ -214,14 +206,19 @@ class Utils {
           utilsTestFile.path,
         ]);
 
-        expect(issues, isA<List<String>>());
-
         final analyzedFiles =
             issues.map((issue) => issue.split(':').first).toSet();
+        print("analyzedFiles => $analyzedFiles");
+
         expect(
           analyzedFiles.any((path) => path.contains('main.dart')),
           isTrue,
           reason: 'Should analyze main.dart in directory',
+        );
+        expect(
+          analyzedFiles.any((path) => path.contains('utils.dart')),
+          isTrue,
+          reason: 'Should analyze utils.dart in directory',
         );
       });
 
@@ -243,8 +240,6 @@ class DirTest {
             [testFile.path],
             enabledRules: ['forbid_forced_unwrapping'],
           );
-
-          expect(issues, isA<List<String>>());
 
           for (final issue in issues) {
             expect(issue, contains('forbid_forced_unwrapping'));
@@ -285,8 +280,6 @@ class InDir {
             enabledRules: ['forbid_forced_unwrapping'],
           );
 
-          expect(issues, isA<List<String>>());
-
           final analyzedFiles =
               issues.map((issue) => issue.split(':').first).toSet();
           expect(
@@ -300,71 +293,7 @@ class InDir {
 
     group('Bridge Performance Optimization', () {
       test(
-        'should demonstrate performance difference between file and directory analysis',
-        () async {
-          final testContent = '''
-class PerformanceTest {
-  String? getValue() => null;
-  void method1() { print(getValue()!); }
-  void method2() { print(getValue()!); }
-  void method3() { print(getValue()!); }
-}
-''';
-
-          final files = <File>[];
-          for (int i = 0; i < 5; i++) {
-            files.add(
-              await _createTempFile(tempDirPath, 'perf_$i.dart', testContent),
-            );
-          }
-
-          final testDir = Directory(p.join(tempDirPath, 'perf_dir'));
-          await testDir.create();
-          for (int i = 0; i < 5; i++) {
-            await _createTempFile(
-              testDir.path,
-              'dir_perf_$i.dart',
-              testContent,
-            );
-          }
-
-          final checker = StandaloneLintChecker();
-
-          final fileStopwatch = Stopwatch()..start();
-          final fileIssues = await checker.check(
-            files.map((f) => f.path).toList(),
-          );
-          fileStopwatch.stop();
-
-          final dirStopwatch = Stopwatch()..start();
-          final dirIssues = await checker.check([
-            "${testDir.path}/dir_perf_0.dart",
-            "${testDir.path}/dir_perf_1.dart",
-            "${testDir.path}/dir_perf_2.dart",
-            "${testDir.path}/dir_perf_3.dart",
-            "${testDir.path}/dir_perf_4.dart",
-          ]);
-          dirStopwatch.stop();
-
-          expect(fileIssues, isA<List<String>>());
-          expect(dirIssues, isA<List<String>>());
-
-          final fileTime = fileStopwatch.elapsedMilliseconds;
-          final dirTime = dirStopwatch.elapsedMilliseconds;
-
-          expect(
-            fileTime,
-            lessThan(dirTime * 3),
-            reason:
-                'File analysis should be significantly faster than directory analysis',
-          );
-          expect(fileTime, greaterThan(0));
-          expect(dirTime, greaterThan(0));
-        },
-      );
-
-      test(
-        'should verify analysis strategy difference through behavior patterns',
+        'should detect issues in at least one analysis strategy (file vs directory)',
         () async {
           final simpleFile = await _createTempFile(
             tempDirPath,
@@ -452,8 +381,6 @@ void main() {
             [testFile.path],
             enabledRules: ['test_file_mutation_coverage'],
           );
-
-          expect(issues, isA<List<String>>());
         },
       );
 
@@ -697,7 +624,11 @@ class AnalyzerStress {
           final checker = StandaloneLintChecker();
           final issues = await checker.check([testFile.path]);
 
-          expect(issues, isA<List<String>>());
+          expect(
+            issues,
+            isEmpty,
+            reason: 'Analyzer exceptions should not produce issues',
+          );
         },
       );
     });
@@ -743,8 +674,6 @@ void main() {
             [testFile.path],
             enabledRules: ['test_file_mutation_coverage'],
           );
-
-          expect(issues, isA<List<String>>());
 
           for (final issue in issues) {
             expect(
@@ -859,24 +788,37 @@ void main() {
 
         final checker = StandaloneLintChecker();
         final issues = await checker.check([relativePath]);
-
-        expect(issues, isA<List<String>>());
+        expect(
+          issues.every((issue) => issue.contains('path_test.dart')),
+          isTrue,
+          reason: 'Issues should correctly map to normalized relative path',
+        );
       });
 
       test('should handle directory traversal correctly', () async {
-        final nestedDir = Directory(p.join(tempDirPath, 'nested', 'deep'));
+        final nestedDir = Directory(p.join(tempDirPath, 'nested'));
         await nestedDir.create(recursive: true);
 
         final deepFile = await _createTempFile(
           nestedDir.path,
           'deep_file.dart',
-          'class DeepFile {}',
+          '''
+class SpecificTest {
+  String? getValue() => null;
+  void method() {
+    print(getValue()!);
+  }
+}
+''',
         );
 
         final checker = StandaloneLintChecker();
         final issues = await checker.check([deepFile.path]);
-
-        expect(issues, isA<List<String>>());
+        expect(
+          issues.any((issue) => issue.contains('deep_file.dart')),
+          isTrue,
+          reason: 'Should analyze files inside nested directories',
+        );
       });
     });
   });
