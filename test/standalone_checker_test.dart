@@ -208,17 +208,12 @@ class Utils {
 
         final analyzedFiles =
             issues.map((issue) => issue.split(':').first).toSet();
-        print("analyzedFiles => $analyzedFiles");
 
         expect(
-          analyzedFiles.any((path) => path.contains('main.dart')),
+          analyzedFiles.any((p) => p.contains('main.dart')) &&
+              analyzedFiles.any((p) => p.contains('utils.dart')),
           isTrue,
-          reason: 'Should analyze main.dart in directory',
-        );
-        expect(
-          analyzedFiles.any((path) => path.contains('utils.dart')),
-          isTrue,
-          reason: 'Should analyze utils.dart in directory',
+          reason: 'Should analyze both main.dart and utils.dart in directory',
         );
       });
 
