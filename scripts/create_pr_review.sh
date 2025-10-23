@@ -235,7 +235,7 @@ echo "Please review this PR with the following Flutter Lint specific considerati
 echo "" >> "$OUTPUT_FILE"
 echo "### 🎯 **Core Rule Quality**" >> "$OUTPUT_FILE"
 echo "1. **Analyzer Implementation**: Does the analyzer extend BaseAnalyzer and follow established patterns?" >> "$OUTPUT_FILE"
-echo "2. **Rule Registration**: Is the rule properly registered in ripplearc_flutter_lint.dart?" >> "$OUTPUT_FILE"
+echo "2. **Rule Registration**: Is the rule properly registered in ripplearc_lint_rules.dart?" >> "$OUTPUT_FILE"
 echo "3. **Error Messages**: Are lint messages clear, actionable, and consistent with other rules?" >> "$OUTPUT_FILE"
 echo "4. **Performance**: Is the analyzer efficient for large files and complex code structures?" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"

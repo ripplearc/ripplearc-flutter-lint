@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:ripplearc_flutter_lints/custom_lint_rules/private_subject.dart';
+import 'package:ripplearc_lint_rules/custom_lint_rules/private_subject.dart';
 import 'package:test/test.dart';
 import '../utils/custom_lint_resolver.dart';
 import '../utils/test_error_reporter.dart';
