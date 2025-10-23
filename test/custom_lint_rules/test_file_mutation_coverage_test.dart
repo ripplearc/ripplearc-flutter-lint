@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:io' as io;
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:ripplearc_flutter_lint/custom_lint_rules/test_file_mutation_coverage.dart';
+import 'package:ripplearc_flutter_lints/custom_lint_rules/test_file_mutation_coverage.dart';
 import 'package:test/test.dart';
 import '../utils/custom_lint_resolver.dart';
 import '../utils/test_error_reporter.dart';
