@@ -23,7 +23,11 @@ abstract class BaseAnalyzer {
   ///
   /// Returns true if the file path contains '_test.dart' or is under a '/test/' directory.
   static bool isTestFile(String path) {
-    return path.contains('_test.dart') || path.contains('/test/');
+    return path.contains('_test.dart') || 
+           path.contains('/test/') || 
+           path.contains('\\test\\') ||
+           path.startsWith('test/') ||
+           path.startsWith('test\\');
   }
 
   /// Analyze the given [CompilationUnit] and return a list of [LintIssue]s.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2 - Test File Detection Fix
+
+### Fixed
+- **Test file detection now works on Windows**: Fixed `BaseAnalyzer.isTestFile()` method to properly detect test files on Windows by adding support for `\test\` paths and `test\` prefixes.
+
+## 0.1.1 - Bug Fixes
+
+### Fixed
+- **Test file rules now work correctly**: Fixed `no_optional_operators_in_tests`, `prefer_fake_over_mock`, `document_fake_parameters`, and `private_subject` rules to properly check test files by adding `testOnly: true` flag.
+
 ## 0.1.0 - Initial Release
 
 A comprehensive custom lint library for Dart/Flutter projects with 13 carefully crafted lint rules to enforce best practices, improve code quality, and ensure robust testing standards.

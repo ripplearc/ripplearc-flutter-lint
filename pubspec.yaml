@@ -1,6 +1,6 @@
 name: ripplearc_lint_rules
 description: A custom lint library following best engineering practice 
-version: 0.1.0
+version: 0.1.2
 repository: https://github.com/ripplearc/ripplearc-flutter-lint
 publisher: ripplearc.com
 

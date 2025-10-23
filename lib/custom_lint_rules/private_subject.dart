@@ -3,7 +3,7 @@ import '../core/analyzers/private_subject_analyzer.dart';
 import '../core/analyzers/base_analyzer.dart';
 
 class PrivateSubject extends BaseLintRule {
-  PrivateSubject() : super(BaseLintRule.createLintCode(_analyzer));
+  PrivateSubject() : super(BaseLintRule.createLintCode(_analyzer), testOnly: true);
 
   static final _analyzer = PrivateSubjectAnalyzer();
 

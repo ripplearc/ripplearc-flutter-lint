@@ -3,7 +3,7 @@ import '../core/analyzers/document_fake_parameters_analyzer.dart';
 import '../core/analyzers/base_analyzer.dart';
 
 class DocumentFakeParameters extends BaseLintRule {
-  DocumentFakeParameters() : super(BaseLintRule.createLintCode(_analyzer));
+  DocumentFakeParameters() : super(BaseLintRule.createLintCode(_analyzer), testOnly: true);
 
   static final _analyzer = DocumentFakeParametersAnalyzer();
 
