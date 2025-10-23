@@ -1,4 +1,4 @@
-name: ripplearc_flutter_lint
+name: ripplearc_flutter_lints
 description: A custom lint library following best engineering practice 
 version: 0.1.0
 repository: https://github.com/ripplearc/ripplearc-flutter-lint
