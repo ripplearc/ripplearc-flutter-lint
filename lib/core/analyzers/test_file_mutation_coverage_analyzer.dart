@@ -96,9 +96,4 @@ class TestFileMutationCoverageAnalyzer extends BaseAnalyzer {
 
     return path.join('test', 'mutations', mutationFileName);
   }
-
-  String _getMissingMutationMessage(String testFilePath) {
-    final expectedMutationPath = _getMutationFilePath(testFilePath);
-    return 'Missing mutation file: $expectedMutationPath. Each test file should have a corresponding mutation file.';
-  }
 }

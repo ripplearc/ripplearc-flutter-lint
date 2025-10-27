@@ -13,9 +13,9 @@ import 'custom_lint_rules/private_subject.dart';
 import 'custom_lint_rules/specific_exception_types.dart';
 import 'custom_lint_rules/test_file_mutation_coverage.dart';
 
-PluginBase createPlugin() => _RipplearcFlutterLint();
+PluginBase createPlugin() => _RipplearcLintRules();
 
-class _RipplearcFlutterLint extends PluginBase {
+class _RipplearcLintRules extends PluginBase {
   @override
   List<LintRule> getLintRules(CustomLintConfigs configs) => [
     ForbidForcedUnwrapping(),
@@ -33,3 +33,4 @@ class _RipplearcFlutterLint extends PluginBase {
     TestFileMutationCoverage(),
   ];
 }
+

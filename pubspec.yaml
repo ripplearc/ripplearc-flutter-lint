@@ -1,6 +1,6 @@
-name: ripplearc_flutter_lint
+name: ripplearc_lint_rules
 description: A custom lint library following best engineering practice 
-version: 0.2.3
+version: 0.1.0
 repository: https://github.com/ripplearc/ripplearc-flutter-lint
 publisher: ripplearc.com
 
@@ -8,10 +8,10 @@ environment:
   sdk: '>=3.7.2 <4.0.0'
 
 dependencies:
-  custom_lint_builder: 0.7.5
-  analyzer: 7.3.0
-  analyzer_plugin: 0.13.0
-  source_span: 1.10.1
+  custom_lint_builder: ^0.7.5
+  analyzer: ^7.3.0
+  analyzer_plugin: ^0.13.0
+  source_span: ^1.10.1
   path: ^1.9.1
 
 dev_dependencies:

@@ -45,7 +45,6 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
   final AvoidTestTimeoutsAnalyzer analyzer;
   final List<LintIssue> issues = [];
   bool _isInTestBlock = false;
-  bool _isInSetupOrTeardown = false;
 
   _AvoidTestTimeoutsVisitor(this.analyzer);
 
@@ -58,9 +57,7 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
       _isInTestBlock = false;
     } else if (name == 'setUp' || name == 'tearDown') {
       _isInTestBlock = true;
-      _isInSetupOrTeardown = true;
       super.visitMethodInvocation(node);
-      _isInSetupOrTeardown = false;
       _isInTestBlock = false;
     } else {
       if (_isInTestBlock && name == 'timeout') {

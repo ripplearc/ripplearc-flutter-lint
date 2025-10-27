@@ -19,7 +19,7 @@ lib/
     prefer_fake_over_mock_rule.dart
     no_optional_operators_in_tests.dart
     ...more rules
-  ripplearc_flutter_lint.dart  # Main plugin entry point
+  ripplearc_lint_rules.dart  # Main plugin entry point
   custom_lint_package.dart     # Package configuration
 test/
   custom_lint_rules/        # All rule tests go here
@@ -410,7 +410,7 @@ To register a custom lint rule in your package, follow these steps:
    }
    ```
 
-5. **Register the Rule**: In `lib/ripplearc_flutter_lint.dart`, add your rule to the list:
+5. **Register the Rule**: In `lib/ripplearc_lint_rules.dart`, add your rule to the list:
 
    ```dart
    class _RipplearcFlutterLint extends PluginBase {
@@ -484,13 +484,13 @@ To update and publish a new version to pub.dev:
 
 ## Using the Latest Lint Rules in Your Project
 
-To update your project to use the latest version of `ripplearc_flutter_lint` and enable new rules:
+To update your project to use the latest version of `ripplearc_lint_rules` and enable new rules:
 
 1. **Update your pubspec.yaml**
-   - Change the version of `ripplearc_flutter_lint` to the latest version:
+   - Change the version of `ripplearc_lint_rules` to the latest version:
      ```yaml
      dependencies:
-       ripplearc_flutter_lint: ^<latest_version>
+       ripplearc_lint_rules: ^<latest_version>
      ```
    - Run `dart pub get` to fetch the updated package.
 
@@ -517,7 +517,7 @@ To test the integration of this custom lint library in your project, you can poi
 
 ```yaml
 dependencies:
-  ripplearc_flutter_lint: 
+  ripplearc_lint_rules: 
     git:
       url: https://github.com/ripplearc/ripplearc-flutter-lint.git
       ref: chore/no-direct-instantiation-exception

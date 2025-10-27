@@ -33,7 +33,6 @@ class TodoWithStoryLinksAnalyzer extends BaseAnalyzer {
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
     final source = unit.toSource();
-    if (source == null) return [];
     final issues = <LintIssue>[];
     final lines = source.split('\n');
     final todoPattern = RegExp(r'//\s*TODO:');
