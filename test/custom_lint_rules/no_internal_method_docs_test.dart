@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:ripplearc_lint_rules/custom_lint_rules/no_internal_method_docs.dart';
+import 'package:ripplearc_linter/custom_lint_rules/no_internal_method_docs.dart';
 import 'package:test/test.dart';
 import '../utils/custom_lint_resolver.dart';
 import '../utils/test_error_reporter.dart';

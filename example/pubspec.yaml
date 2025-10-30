@@ -1,4 +1,4 @@
-name: ripplearc_flutter_lint_example
+name: ripplearc_linter_example
 description: Example usage of custom_lint_library
 version: 1.0.0
 
@@ -12,5 +12,5 @@ dev_dependencies:
   test: ^1.25.0
   custom_lint: ^0.7.4
   flutter_lints: ^3.0.1
-  ripplearc_lint_rules:
+  ripplearc_linter:
     path: ../ 

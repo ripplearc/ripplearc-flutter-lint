@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test/test.dart';
-import 'package:ripplearc_lint_rules/custom_lint_rules/prefer_fake_over_mock_rule.dart';
+import 'package:ripplearc_linter/custom_lint_rules/prefer_fake_over_mock_rule.dart';
 import '../utils/custom_lint_resolver.dart';
 import '../utils/test_error_reporter.dart';
 
