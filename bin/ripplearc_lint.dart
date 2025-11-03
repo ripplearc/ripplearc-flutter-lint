@@ -264,16 +264,16 @@ class _PathGroups {
 /// **Command Line Usage:**
 /// ```bash
 /// # Check all files in a directory with all rules
-/// dart run standalone_checker.dart lib/
+/// dart run ripplearc_linter:ripplearc_lint lib/
 ///
 /// # Check specific files with all rules
-/// dart run standalone_checker.dart lib/main.dart lib/utils.dart
+/// dart run ripplearc_linter:ripplearc_lint lib/main.dart lib/utils.dart
 ///
 /// # Check with only specific rules enabled
-/// dart run standalone_checker.dart --rules forbid_forced_unwrapping,no_direct_instantiation lib/
+/// dart run ripplearc_linter:ripplearc_lint --rules forbid_forced_unwrapping,no_direct_instantiation lib/
 ///
 /// # Check test files (requires test_file_mutation_coverage rule)
-/// dart run standalone_checker.dart --rules test_file_mutation_coverage test/
+/// dart run ripplearc_linter:ripplearc_lint --rules test_file_mutation_coverage test/
 /// ```
 void main(List<String> args) async {
   final stopwatch = Stopwatch()..start();
@@ -293,7 +293,7 @@ void main(List<String> args) async {
 
   if (files.isEmpty) {
     print(
-      'Usage: dart run standalone_checker.dart [--rules rule1,rule2] <files_or_directories>',
+      'Usage: dart run ripplearc_linter:ripplearc_lint [--rules rule1,rule2] <files_or_directories>',
     );
     print(
       'Available rules: forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage, avoid_test_timeouts',
@@ -325,3 +325,4 @@ void main(List<String> args) async {
     );
   }
 }
+

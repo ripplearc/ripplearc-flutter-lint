@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.2 - Standalone Checker Enhancement
+
+### New Features
+
+- **Standalone Command-Line Checker**: Added `ripplearc_lint` executable for running specific lint rules via command line
+  - **Command**: `dart run ripplearc_linter:ripplearc_lint --rules <rule_name> lib/`
+  - Check single rule: `dart run ripplearc_linter:ripplearc_lint --rules prefer_fake_over_mock lib/`
+  - Check multiple rules: `dart run ripplearc_linter:ripplearc_lint --rules rule1,rule2 lib/`
+  - Check all rules: `dart run ripplearc_linter:ripplearc_lint lib/`
+  - Faster than `custom_lint` for selective rule checking
+  - Perfect for CI/CD pipelines and quick development feedback
+
+### Improvements
+
+- Added barrel export file `lib/core/analyzers.dart` for easier imports
+- Enhanced standalone checker with all 13 lint rules including `avoid_test_timeouts`
+- Comprehensive documentation in README for command-line usage
+- Updated `standalone_checker.dart` to use package imports
+
+### Bug Fixes
+
+- Fixed test file handling in standalone checker to skip tests unless mutation coverage rule is active
+
 ## 0.1.1 - Package Renaming
 
 ### Breaking Changes

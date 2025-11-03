@@ -1,10 +1,13 @@
 name: ripplearc_linter
 description: A custom lint library following best engineering practice 
-version: 0.1.1
+version: 0.1.2
 repository: https://github.com/ripplearc/ripplearc-flutter-lint
 
 environment:
   sdk: '>=3.7.2 <4.0.0'
+
+executables:
+  ripplearc_lint: standalone_checker
 
 dependencies:
   custom_lint_builder: ^0.7.5

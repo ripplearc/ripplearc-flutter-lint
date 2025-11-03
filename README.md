@@ -431,6 +431,65 @@ To register a custom lint rule in your package, follow these steps:
 
 By following these steps, you can successfully register and use custom lint rules in your Dart/Flutter project.
 
+## Running Specific Rules
+
+You can run individual rules or a subset of rules using the standalone checker command:
+
+### Check a Single Rule
+
+```bash
+# Check only prefer_fake_over_mock violations
+dart run ripplearc_linter:ripplearc_lint --rules prefer_fake_over_mock lib/
+
+# Check only forbid_forced_unwrapping violations
+dart run ripplearc_linter:ripplearc_lint --rules forbid_forced_unwrapping lib/
+```
+
+### Check Multiple Rules
+
+```bash
+# Check multiple specific rules (comma-separated, no spaces)
+dart run ripplearc_linter:ripplearc_lint --rules forbid_forced_unwrapping,no_direct_instantiation lib/
+
+# Check test files with mutation coverage rule
+dart run ripplearc_linter:ripplearc_lint --rules test_file_mutation_coverage test/
+```
+
+### Check Specific Files
+
+```bash
+# Check specific files with a rule
+dart run ripplearc_linter:ripplearc_lint --rules prefer_fake_over_mock lib/main.dart lib/services/auth.dart
+
+# Check entire directories
+dart run ripplearc_linter:ripplearc_lint --rules no_direct_instantiation lib/ test/
+```
+
+### Available Rules for Standalone Checker
+
+- `prefer_fake_over_mock` - Prefer using Fake over Mock for test doubles
+- `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
+- `no_optional_operators_in_tests` - Forbid optional operators in test files
+- `no_direct_instantiation` - Enforce dependency injection
+- `document_fake_parameters` - Enforce documentation on Fake classes
+- `document_interface` - Enforce documentation on abstract classes
+- `todo_with_story_links` - Ensure TODO comments include YouTrack story links
+- `no_internal_method_docs` - Forbid documentation on private methods
+- `specific_exception_types` - Enforce specific exception types
+- `private_subject` - Enforce private test subjects
+- `sealed_over_dynamic` - Prefer sealed classes over dynamic types
+- `test_file_mutation_coverage` - Enforce mutation test coverage
+- `avoid_test_timeouts` - Avoid test timeouts
+
+### Run All Rules
+
+```bash
+# Run all rules (no --rules flag)
+dart run ripplearc_linter:ripplearc_lint lib/
+```
+
+> **Note:** The standalone checker is faster than `dart run custom_lint` and allows you to test specific rules without modifying your `custom_lint.yaml` configuration file.
+
 ## Configuration Files
 
 ### analysis_options.yaml
