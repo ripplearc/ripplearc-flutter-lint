@@ -72,6 +72,14 @@ class StandaloneLintChecker {
     // Add other analyzers here as you refactor them
   ];
 
+  static const Set<String> _testOnlyRuleNames = {
+    'avoid_test_timeouts',
+    'no_optional_operators_in_tests',
+    'prefer_fake_over_mock',
+    'document_fake_parameters',
+    'test_file_mutation_coverage',
+  };
+
   /// Analyzes the given files and directories for linting issues.
   ///
   /// This method processes both individual files and directories, using different
@@ -141,7 +149,8 @@ class StandaloneLintChecker {
   }
 
   bool _shouldCheckTestFiles(List<String>? enabledRules) {
-    return enabledRules?.contains('test_file_mutation_coverage') ?? false;
+    if (enabledRules == null) return false;
+    return enabledRules.any(_testOnlyRuleNames.contains);
   }
 
   List<BaseAnalyzer> _getActiveAnalyzers(List<String>? enabledRules) {
