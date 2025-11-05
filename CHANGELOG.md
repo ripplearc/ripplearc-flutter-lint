@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.2 - Standalone Checker Enhancement
+
+### New Features
+
+- Standalone command-line tool: added `standalone_checker` executable to run specific lint rules quickly.
+- Check single rule: `dart run ripplearc_linter:standalone_checker --rules prefer_fake_over_mock lib/`
+- Check multiple rules: `dart run ripplearc_linter:standalone_checker --rules rule1,rule2 lib/`
+- Check all rules: `dart run ripplearc_linter:standalone_checker lib/`
+
+### Notes
+
+- Added convenience: test files are analyzed when the target path is `test/` (or inside it), or when any test-specific rule is enabled (e.g., `avoid_test_timeouts`, `no_optional_operators_in_tests`, `prefer_fake_over_mock`, `document_fake_parameters`).
+
 ## 0.1.1 - Package Renaming
 
 ### Breaking Changes
