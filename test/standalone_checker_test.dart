@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as p;
-import '../standalone_checker.dart';
+import '../bin/standalone_checker.dart';
 import '../lib/core/analyzers/base_analyzer.dart';
 import '../lib/core/analyzers/test_file_mutation_coverage_analyzer.dart';
 
