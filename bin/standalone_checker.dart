@@ -278,9 +278,6 @@ class _PathGroups {
 /// # Locally via package name
 /// dart run ripplearc_linter:standalone_checker lib/
 ///
-/// # Globally (after `dart pub global activate ripplearc_linter`)
-/// standalone_checker lib/
-///
 /// # Check with only specific rules enabled
 /// dart run ripplearc_linter:standalone_checker --rules forbid_forced_unwrapping,no_direct_instantiation lib/
 ///
