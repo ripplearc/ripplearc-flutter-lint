@@ -1,19 +1,19 @@
 import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'lib/core/analyzers/base_analyzer.dart';
-import 'lib/core/analyzers/forced_unwrapping_analyzer.dart';
-import 'lib/core/analyzers/direct_instantiation_analyzer.dart';
-import 'lib/core/analyzers/sealed_over_dynamic_analyzer.dart';
-import 'lib/core/analyzers/private_subject_analyzer.dart';
-import 'lib/core/analyzers/specific_exception_types_analyzer.dart';
-import 'lib/core/analyzers/document_fake_parameters_analyzer.dart';
-import 'lib/core/analyzers/document_interface_analyzer.dart';
-import 'lib/core/analyzers/no_internal_method_docs_analyzer.dart';
-import 'lib/core/analyzers/todo_with_story_links_analyzer.dart';
-import 'lib/core/analyzers/no_optional_operators_in_tests_analyzer.dart';
-import 'lib/core/analyzers/prefer_fake_over_mock_analyzer.dart';
-import 'lib/core/analyzers/test_file_mutation_coverage_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/sealed_over_dynamic_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/private_subject_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/specific_exception_types_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/document_fake_parameters_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/document_interface_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/no_internal_method_docs_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/todo_with_story_links_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/no_optional_operators_in_tests_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/prefer_fake_over_mock_analyzer.dart';
+ import 'package:ripplearc_linter/core/analyzers/test_file_mutation_coverage_analyzer.dart';
 import 'package:path/path.dart' as p;
 import 'package:analyzer/dart/analysis/utilities.dart';
 
@@ -71,6 +71,14 @@ class StandaloneLintChecker {
     TestFileMutationCoverageAnalyzer(),
     // Add other analyzers here as you refactor them
   ];
+
+  static const Set<String> _testOnlyRuleNames = {
+    'avoid_test_timeouts',
+    'no_optional_operators_in_tests',
+    'prefer_fake_over_mock',
+    'document_fake_parameters',
+    'test_file_mutation_coverage',
+  };
 
   /// Analyzes the given files and directories for linting issues.
   ///
@@ -141,7 +149,8 @@ class StandaloneLintChecker {
   }
 
   bool _shouldCheckTestFiles(List<String>? enabledRules) {
-    return enabledRules?.contains('test_file_mutation_coverage') ?? false;
+    if (enabledRules == null) return false;
+    return enabledRules.any(_testOnlyRuleNames.contains);
   }
 
   List<BaseAnalyzer> _getActiveAnalyzers(List<String>? enabledRules) {
@@ -275,17 +284,14 @@ class _PathGroups {
 ///
 /// **Command Line Usage:**
 /// ```bash
-/// # Check all files in a directory with all rules
-/// dart run standalone_checker.dart lib/
-///
-/// # Check specific files with all rules
-/// dart run standalone_checker.dart lib/main.dart lib/utils.dart
+/// # Locally via package name
+/// dart run ripplearc_linter:standalone_checker lib/
 ///
 /// # Check with only specific rules enabled
-/// dart run standalone_checker.dart --rules forbid_forced_unwrapping,no_direct_instantiation lib/
+/// dart run ripplearc_linter:standalone_checker --rules forbid_forced_unwrapping,no_direct_instantiation lib/
 ///
 /// # Check test files (requires test_file_mutation_coverage rule)
-/// dart run standalone_checker.dart --rules test_file_mutation_coverage test/
+/// dart run ripplearc_linter:standalone_checker --rules test_file_mutation_coverage test/
 /// ```
 void main(List<String> args) async {
   final stopwatch = Stopwatch()..start();
@@ -304,9 +310,9 @@ void main(List<String> args) async {
   }
 
   if (files.isEmpty) {
-    print(
-      'Usage: dart run standalone_checker.dart [--rules rule1,rule2] <files_or_directories>',
-    );
+    print('Usage:');
+    print('  dart run ripplearc_linter:standalone_checker [--rules rule1,rule2] <files_or_directories>');
+    print('  standalone_checker [--rules rule1,rule2] <files_or_directories>   (after global activate)');
     print(
       'Available rules: forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage',
     );

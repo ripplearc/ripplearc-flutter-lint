@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.1.2 - Standalone Checker Enhancement
+
+### New Features
+
+- Standalone command-line tool: added `standalone_checker` executable to run specific lint rules quickly.
+- Check single rule: `dart run ripplearc_linter:standalone_checker --rules prefer_fake_over_mock lib/`
+- Check multiple rules: `dart run ripplearc_linter:standalone_checker --rules rule1,rule2 lib/`
+- Check all rules: `dart run ripplearc_linter:standalone_checker lib/`
+
+### Notes
+
+- Added convenience: test files are analyzed when the target path is `test/` (or inside it), or when any test-specific rule is enabled (e.g., `avoid_test_timeouts`, `no_optional_operators_in_tests`, `prefer_fake_over_mock`, `document_fake_parameters`).
+
+## 0.1.1 - Package Renaming
+
+### Breaking Changes
+
+- **Package Renamed**: The package has been renamed from `ripplearc_lint_rules` to `ripplearc_linter` for better naming consistency.
+  - Main library file renamed: `lib/ripplearc_lint_rules.dart` → `lib/ripplearc_linter.dart`
+  - Update your `pubspec.yaml` to use `ripplearc_linter` instead of `ripplearc_lint_rules`
+  - All documentation and examples have been updated to reflect the new package name
+
+### Migration Guide
+
+If you're upgrading from version 0.1.0, update your `pubspec.yaml`:
+
+```yaml
+# Old
+dependencies:
+  ripplearc_lint_rules: ^0.1.0
+
+# New
+dependencies:
+  ripplearc_linter: ^0.1.1
+```
+
+Then run `dart pub get` to fetch the updated package.
+
 ## 0.1.0 - Initial Release
 
 A comprehensive custom lint library for Dart/Flutter projects with 13 carefully crafted lint rules to enforce best practices, improve code quality, and ensure robust testing standards.
