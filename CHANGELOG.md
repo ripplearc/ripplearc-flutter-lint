@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3 - Standalone Checker Rule Filtering Fix
+
+### Bug Fixes
+
+- **Fixed rule filtering**: Fixed `standalone_checker` to properly filter rules based on file type when both test and production rules are specified together. Test-only rules are now correctly applied only to test files, and production rules are only applied to production files, preventing incorrect rule application.
+
+### Technical Details
+
+- When test rules (e.g., `avoid_test_timeouts`, `no_optional_operators_in_tests`, `prefer_fake_over_mock`, `document_fake_parameters`, `test_file_mutation_coverage`) and production rules are specified together, the checker now correctly applies the appropriate rules to the correct file types.
+- This fix ensures that test files are only checked with test-specific rules and production files are only checked with production rules, even when both rule types are enabled in the same command.
+
 ## 0.1.2 - Standalone Checker Enhancement
 
 ### New Features
