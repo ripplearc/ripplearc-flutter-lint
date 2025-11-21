@@ -241,13 +241,23 @@ class StandaloneLintChecker {
     List<BaseAnalyzer> activeAnalyzers,
   ) {
     final issues = <String>[];
+    final isTestFile = BaseAnalyzer.isTestFile(filePath);
 
     for (final analyzer in activeAnalyzers) {
+      // Skip production analyzers on test files
+      if (isTestFile && !_isTestOnlyRule(analyzer.ruleName)) continue;
+      // Skip test-only analyzers on production files
+      if (!isTestFile && _isTestOnlyRule(analyzer.ruleName)) continue;
+
       final analyzerIssues = _runAnalyzer(analyzer, unit, filePath);
       issues.addAll(_formatIssues(analyzerIssues, filePath));
     }
 
     return issues;
+  }
+
+  bool _isTestOnlyRule(String ruleName) {
+    return _testOnlyRuleNames.contains(ruleName);
   }
 
   List<dynamic> _runAnalyzer(
