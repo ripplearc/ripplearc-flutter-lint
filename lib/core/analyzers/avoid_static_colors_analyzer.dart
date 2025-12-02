@@ -42,7 +42,6 @@ import '../models/lint_issue.dart';
 /// backgroundColor: colors.pageBackground,
 /// ```
 class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
-  
   static const _coreColorClasses = [
     'CoreTextColors',
     'CoreBackgroundColors',
@@ -80,12 +79,10 @@ class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
     return visitor.issues;
   }
 
-  
   bool isCoreColorClass(String identifier) {
     return _coreColorClasses.contains(identifier);
   }
 
-  
   bool isFlutterColorClass(String identifier) {
     return _flutterColorClasses.contains(identifier);
   }
