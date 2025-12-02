@@ -42,7 +42,7 @@ import '../models/lint_issue.dart';
 /// backgroundColor: colors.pageBackground,
 /// ```
 class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
-  /// CoreUI color token class prefixes to detect
+  
   static const _coreColorClasses = [
     'CoreTextColors',
     'CoreBackgroundColors',
@@ -57,7 +57,6 @@ class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
     'CoreBrandColors',
   ];
 
-  /// Flutter color classes to detect
   static const _flutterColorClasses = [
     'Colors',
     'CupertinoColors',
@@ -81,12 +80,12 @@ class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
     return visitor.issues;
   }
 
-  /// Checks if the identifier is a CoreUI color class
+  
   bool isCoreColorClass(String identifier) {
     return _coreColorClasses.contains(identifier);
   }
 
-  /// Checks if the identifier is a Flutter color class (Colors, CupertinoColors)
+  
   bool isFlutterColorClass(String identifier) {
     return _flutterColorClasses.contains(identifier);
   }
@@ -102,14 +101,11 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     final prefix = node.prefix.name;
 
-    // Skip if parent is IndexExpression (e.g., Colors.grey[700])
-    // The IndexExpression visitor will handle this case with a more complete message
     if (node.parent is IndexExpression) {
       super.visitPrefixedIdentifier(node);
       return;
     }
 
-    // Check for CoreUI color classes (CoreTextColors.headline, etc.)
     if (analyzer.isCoreColorClass(prefix)) {
       issues.add(analyzer.createIssue(
         node,
@@ -119,7 +115,6 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       ));
     }
 
-    // Check for Flutter Colors/CupertinoColors class (Colors.white, CupertinoColors.systemRed, etc.)
     if (analyzer.isFlutterColorClass(prefix)) {
       issues.add(analyzer.createIssue(
         node,
@@ -134,15 +129,11 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    // Skip if parent is IndexExpression (e.g., m.Colors.grey[700])
-    // The IndexExpression visitor will handle this case with a more complete message
     if (node.parent is IndexExpression) {
       super.visitPropertyAccess(node);
       return;
     }
 
-    // Check for prefixed imports like MaterialUI.Colors.red or MaterialUI.CupertinoColors.systemRed
-    // The AST structure is: PropertyAccess(target: PrefixedIdentifier(MaterialUI.Colors), property: red)
     final target = node.target;
     if (target is PrefixedIdentifier) {
       final colorClass = target.identifier.name;
@@ -161,7 +152,6 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    // Check for Colors.grey[700] or CupertinoColors.systemGrey[700] pattern
     final target = node.target;
     if (target is PrefixedIdentifier && analyzer.isFlutterColorClass(target.prefix.name)) {
       final colorClass = target.prefix.name;
@@ -173,7 +163,6 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       ));
     }
 
-    // Check for prefixed import index access: MaterialUI.Colors.grey[700]
     if (target is PropertyAccess) {
       final propertyTarget = target.target;
       if (propertyTarget is PrefixedIdentifier) {
@@ -197,16 +186,13 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
     final constructorName = node.constructorName;
     final typeName = constructorName.type.name2.lexeme;
 
-    // Check for Color(...) - direct color definition
     if (typeName == 'Color') {
       final constructorNameElement = constructorName.name?.name;
 
       if (constructorNameElement == null) {
-        // Color(...) - unnamed constructor with integer value (hex or decimal)
         final arguments = node.argumentList.arguments;
         if (arguments.isNotEmpty) {
           final firstArg = arguments.first;
-          // Flag any integer literal (hex like 0xFF... or decimal like 4278190080)
           if (firstArg is IntegerLiteral) {
             final argString = firstArg.toSource();
             issues.add(analyzer.createIssue(
@@ -219,7 +205,6 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
         }
       } else if (constructorNameElement == 'fromARGB' ||
           constructorNameElement == 'fromRGBO') {
-        // Color.fromARGB(...) or Color.fromRGBO(...) as named constructor
         issues.add(analyzer.createIssue(
           node,
           customMessage:
@@ -237,13 +222,10 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
     final target = node.target;
     final methodName = node.methodName.name;
 
-    // Check for Color(...) when parsed as MethodInvocation with null target
-    // This happens when using parseString without type resolution
     if (target == null && methodName == 'Color') {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         final firstArg = arguments.first;
-        // Flag any integer literal (hex like 0xFF... or decimal like 4278190080)
         if (firstArg is IntegerLiteral) {
           final argString = firstArg.toSource();
           issues.add(analyzer.createIssue(
@@ -256,13 +238,10 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    // Check for prefixed import: MaterialUI.Color(0xFF...) or MaterialUI.Color(decimal)
-    // AST: MethodInvocation(target: SimpleIdentifier(MaterialUI), methodName: Color)
     if (target is SimpleIdentifier && methodName == 'Color') {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         final firstArg = arguments.first;
-        // Flag any integer literal (hex like 0xFF... or decimal like 4278190080)
         if (firstArg is IntegerLiteral) {
           issues.add(analyzer.createIssue(
             node,
@@ -274,8 +253,6 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    // Check for Color.fromARGB(...) and Color.fromRGBO(...) as static method calls
-    // These may be parsed as MethodInvocation when not resolved
     if (target is SimpleIdentifier && target.name == 'Color') {
       if (methodName == 'fromARGB' || methodName == 'fromRGBO') {
         issues.add(analyzer.createIssue(
@@ -287,8 +264,6 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    // Check for prefixed import: MaterialUI.Color.fromARGB(...) or MaterialUI.Color.fromRGBO(...)
-    // AST: MethodInvocation(target: PrefixedIdentifier(MaterialUI.Color), methodName: fromARGB)
     if (target is PrefixedIdentifier && target.identifier.name == 'Color') {
       if (methodName == 'fromARGB' || methodName == 'fromRGBO') {
         issues.add(analyzer.createIssue(
@@ -300,20 +275,15 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    // Check for Colors/CupertinoColors.black.withOpacity(...) etc.
-    // The target would be a PrefixedIdentifier which is already caught,
-    // but we want to flag the entire chain
-    if (target is PrefixedIdentifier && analyzer.isFlutterColorClass(target.prefix.name)) {
-      // Already flagged by visitPrefixedIdentifier, skip to avoid duplicate
+    if (target is PrefixedIdentifier &&
+        analyzer.isFlutterColorClass(target.prefix.name)) {
       super.visitMethodInvocation(node);
       return;
     }
 
-    // Check for method calls on Color like Color(0xFF...).withOpacity(...)
     if (target is InstanceCreationExpression) {
       final typeName = target.constructorName.type.name2.lexeme;
       if (typeName == 'Color') {
-        // Already flagged by visitInstanceCreationExpression, skip to avoid duplicate
         super.visitMethodInvocation(node);
         return;
       }
@@ -324,15 +294,12 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // Handle Color(...) when parsed as function invocation
     final function = node.function;
-    
-    // Check for Color(...) with simple identifier
+
     if (function is SimpleIdentifier && function.name == 'Color') {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         final firstArg = arguments.first;
-        // Flag any integer literal (hex like 0xFF... or decimal like 4278190080)
         if (firstArg is IntegerLiteral) {
           final argString = firstArg.toSource();
           issues.add(analyzer.createIssue(
@@ -345,13 +312,10 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    // Check for prefixed import: MaterialUI.Color(0xFF...) or MaterialUI.Color(decimal)
-    // AST: FunctionExpressionInvocation(function: PrefixedIdentifier(MaterialUI.Color))
     if (function is PrefixedIdentifier && function.identifier.name == 'Color') {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         final firstArg = arguments.first;
-        // Flag any integer literal (hex like 0xFF... or decimal like 4278190080)
         if (firstArg is IntegerLiteral) {
           issues.add(analyzer.createIssue(
             node,
