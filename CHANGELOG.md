@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.1.4 - Package Rename
+
+### Breaking Changes
+
+- **Package Renamed**: The package has been renamed from `ripplearc_linter` to `ripplearc_linter_test`.
+  - Main library file renamed: `lib/ripplearc_linter.dart` → `lib/ripplearc_linter_test.dart`
+  - Update your `pubspec.yaml` to use `ripplearc_linter_test` instead of `ripplearc_linter`
+  - All import statements, documentation, and examples have been updated to reflect the new package name
+
+### Migration Guide
+
+If you're upgrading from version 0.1.3, update your `pubspec.yaml`:
+
+```yaml
+# Old
+dependencies:
+  ripplearc_linter: ^0.1.3
+
+# New
+dependencies:
+  ripplearc_linter_test: ^0.1.4
+```
+
+Then run `dart pub get` to fetch the updated package.
+
 ## 0.1.3 - Standalone Checker Rule Filtering Fix
 
 ### Bug Fixes
@@ -16,9 +41,9 @@
 ### New Features
 
 - Standalone command-line tool: added `standalone_checker` executable to run specific lint rules quickly.
-- Check single rule: `dart run ripplearc_linter:standalone_checker --rules prefer_fake_over_mock lib/`
-- Check multiple rules: `dart run ripplearc_linter:standalone_checker --rules rule1,rule2 lib/`
-- Check all rules: `dart run ripplearc_linter:standalone_checker lib/`
+- Check single rule: `dart run ripplearc_linter_test:standalone_checker --rules prefer_fake_over_mock lib/`
+- Check multiple rules: `dart run ripplearc_linter_test:standalone_checker --rules rule1,rule2 lib/`
+- Check all rules: `dart run ripplearc_linter_test:standalone_checker lib/`
 
 ### Notes
 

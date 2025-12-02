@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:ripplearc_linter/custom_lint_rules/avoid_test_timeouts.dart';
+import 'package:ripplearc_linter_test/custom_lint_rules/avoid_test_timeouts.dart';
 import 'package:test/test.dart';
 import '../utils/custom_lint_resolver.dart';
 import '../utils/test_error_reporter.dart';

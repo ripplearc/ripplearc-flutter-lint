@@ -12,5 +12,5 @@ dev_dependencies:
   test: ^1.25.0
   custom_lint: ^0.7.4
   flutter_lints: ^3.0.1
-  ripplearc_linter:
+  ripplearc_linter_test:
     path: ../ 

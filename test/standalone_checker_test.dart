@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as p;
 import '../bin/standalone_checker.dart';
-import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
-import 'package:ripplearc_linter/core/analyzers/test_file_mutation_coverage_analyzer.dart';
+import 'package:ripplearc_linter_test/core/analyzers/base_analyzer.dart';
+import 'package:ripplearc_linter_test/core/analyzers/test_file_mutation_coverage_analyzer.dart';
 
 void main() {
   group('StandaloneLintChecker - Bridge between custom_dart_lint and user commands', () {

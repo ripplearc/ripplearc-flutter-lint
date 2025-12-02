@@ -1,20 +1,20 @@
 import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:ripplearc_linter/core/analyzers/avoid_static_colors_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/sealed_over_dynamic_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/private_subject_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/specific_exception_types_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/document_fake_parameters_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/document_interface_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/no_internal_method_docs_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/todo_with_story_links_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/no_optional_operators_in_tests_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/prefer_fake_over_mock_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/test_file_mutation_coverage_analyzer.dart';
+import 'package:ripplearc_linter_test/core/analyzers/avoid_static_colors_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/base_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/forced_unwrapping_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/direct_instantiation_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/sealed_over_dynamic_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/private_subject_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/specific_exception_types_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/document_fake_parameters_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/document_interface_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/no_internal_method_docs_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/todo_with_story_links_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/no_optional_operators_in_tests_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/prefer_fake_over_mock_analyzer.dart';
+ import 'package:ripplearc_linter_test/core/analyzers/test_file_mutation_coverage_analyzer.dart';
 import 'package:path/path.dart' as p;
 import 'package:analyzer/dart/analysis/utilities.dart';
 
@@ -297,13 +297,13 @@ class _PathGroups {
 /// **Command Line Usage:**
 /// ```bash
 /// # Locally via package name
-/// dart run ripplearc_linter:standalone_checker lib/
+/// dart run ripplearc_linter_test:standalone_checker lib/
 ///
 /// # Check with only specific rules enabled
-/// dart run ripplearc_linter:standalone_checker --rules forbid_forced_unwrapping,no_direct_instantiation lib/
+/// dart run ripplearc_linter_test:standalone_checker --rules forbid_forced_unwrapping,no_direct_instantiation lib/
 ///
 /// # Check test files (requires test_file_mutation_coverage rule)
-/// dart run ripplearc_linter:standalone_checker --rules test_file_mutation_coverage test/
+/// dart run ripplearc_linter_test:standalone_checker --rules test_file_mutation_coverage test/
 /// ```
 void main(List<String> args) async {
   final stopwatch = Stopwatch()..start();
@@ -323,7 +323,9 @@ void main(List<String> args) async {
 
   if (files.isEmpty) {
     print('Usage:');
-    print('  dart run ripplearc_linter:standalone_checker [--rules rule1,rule2] <files_or_directories>');
+    print(
+      '  dart run ripplearc_linter_test:standalone_checker [--rules rule1,rule2] <files_or_directories>',
+    );
     print('  standalone_checker [--rules rule1,rule2] <files_or_directories>   (after global activate)');
     print(
       'Available rules: avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage',

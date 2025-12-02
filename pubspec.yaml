@@ -1,6 +1,6 @@
-name: ripplearc_linter
+name: ripplearc_linter_test
 description: A custom lint library following best engineering practice 
-version: 0.1.3
+version: 0.1.4
 repository: https://github.com/ripplearc/ripplearc-flutter-lint
 
 environment:
