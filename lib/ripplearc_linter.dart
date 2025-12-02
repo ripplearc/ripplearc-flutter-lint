@@ -1,4 +1,5 @@
 import 'package:custom_lint_builder/custom_lint_builder.dart';
+import 'custom_lint_rules/avoid_static_colors.dart';
 import 'custom_lint_rules/avoid_test_timeouts.dart';
 import 'custom_lint_rules/no_direct_instantiation.dart';
 import 'custom_lint_rules/document_fake_parameters.dart';
@@ -18,6 +19,7 @@ PluginBase createPlugin() => _RipplearcLintRules();
 class _RipplearcLintRules extends PluginBase {
   @override
   List<LintRule> getLintRules(CustomLintConfigs configs) => [
+    AvoidStaticColors(),
     ForbidForcedUnwrapping(),
     NoOptionalOperatorsInTests(),
     PreferFakeOverMockRule(),
