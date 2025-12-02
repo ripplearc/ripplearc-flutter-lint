@@ -102,6 +102,13 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     final prefix = node.prefix.name;
 
+    // Skip if parent is IndexExpression (e.g., Colors.grey[700])
+    // The IndexExpression visitor will handle this case with a more complete message
+    if (node.parent is IndexExpression) {
+      super.visitPrefixedIdentifier(node);
+      return;
+    }
+
     // Check for CoreUI color classes (CoreTextColors.headline, etc.)
     if (analyzer.isCoreColorClass(prefix)) {
       issues.add(analyzer.createIssue(
@@ -127,6 +134,13 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
+    // Skip if parent is IndexExpression (e.g., m.Colors.grey[700])
+    // The IndexExpression visitor will handle this case with a more complete message
+    if (node.parent is IndexExpression) {
+      super.visitPropertyAccess(node);
+      return;
+    }
+
     // Check for prefixed imports like MaterialUI.Colors.red or MaterialUI.CupertinoColors.systemRed
     // The AST structure is: PropertyAccess(target: PrefixedIdentifier(MaterialUI.Colors), property: red)
     final target = node.target;
