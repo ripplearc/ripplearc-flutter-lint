@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:ripplearc_linter/core/analyzers/avoid_static_colors_analyzer.dart';
  import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
  import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
  import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
@@ -57,6 +58,7 @@ class _SimpleResolver {
 /// ```
 class StandaloneLintChecker {
   final List<BaseAnalyzer> analyzers = [
+    AvoidStaticColorsAnalyzer(),
     ForcedUnwrappingAnalyzer(),
     DirectInstantiationAnalyzer(),
     SealedOverDynamicAnalyzer(),
@@ -324,7 +326,7 @@ void main(List<String> args) async {
     print('  dart run ripplearc_linter:standalone_checker [--rules rule1,rule2] <files_or_directories>');
     print('  standalone_checker [--rules rule1,rule2] <files_or_directories>   (after global activate)');
     print(
-      'Available rules: forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage',
+      'Available rules: avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage',
     );
     exit(1);
   }
