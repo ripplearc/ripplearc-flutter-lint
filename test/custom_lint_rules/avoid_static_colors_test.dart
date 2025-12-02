@@ -300,8 +300,7 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/my_widget.dart');
-        // Should flag both the PrefixedIdentifier (Colors.grey) and IndexExpression
-        expect(reporter.errors, hasLength(2));
+        expect(reporter.errors, hasLength(1));
       });
 
       test('should flag Colors.red usage', () async {
@@ -331,6 +330,146 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+    });
+
+    group('CupertinoColors class', () {
+      test('should flag CupertinoColors.systemRed usage', () async {
+        const source = '''
+        import 'package:flutter/cupertino.dart';
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: CupertinoColors.systemRed);
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag CupertinoColors.white usage', () async {
+        const source = '''
+        import 'package:flutter/cupertino.dart';
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: CupertinoColors.white);
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag CupertinoColors.activeBlue usage', () async {
+        const source = '''
+        import 'package:flutter/cupertino.dart';
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: CupertinoColors.activeBlue);
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag CupertinoColors.systemGrey usage', () async {
+        const source = '''
+        import 'package:flutter/cupertino.dart';
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: CupertinoColors.systemGrey);
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+    });
+
+    group('Prefixed imports', () {
+      test('should flag prefixed Colors usage (material.Colors.red)', () async {
+        const source = '''
+        import 'package:flutter/material.dart' as material;
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: material.Colors.red);
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag prefixed CupertinoColors usage', () async {
+        const source = '''
+        import 'package:flutter/cupertino.dart' as cupertino;
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: cupertino.CupertinoColors.systemBlue);
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag prefixed Color constructor', () async {
+        const source = '''
+        import 'package:flutter/material.dart' as m;
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: m.Color(0xFF015B7C));
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag prefixed Color.fromARGB usage', () async {
+        const source = '''
+        import 'package:flutter/material.dart' as m;
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: m.Color.fromARGB(255, 100, 100, 100));
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag prefixed Colors index access', () async {
+        const source = '''
+        import 'package:flutter/material.dart' as m;
+        
+        class MyWidget extends StatelessWidget {
+          @override
+          Widget build(BuildContext context) {
+            return Container(color: m.Colors.grey[500]);
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_widget.dart');
+        // Should flag only the IndexExpression (no duplicate)
         expect(reporter.errors, hasLength(1));
       });
     });
