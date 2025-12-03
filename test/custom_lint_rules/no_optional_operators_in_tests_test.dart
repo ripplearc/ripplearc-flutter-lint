@@ -94,5 +94,154 @@ void main() {
       await analyzeCode(source);
       expect(reporter.errors, isEmpty);
     });
+
+    group('Nested group/test state management', () {
+      test(
+        'should flag optional operators after nested test in group',
+        () async {
+          const source = '''
+void main() {
+  group('outer', () {
+    test('test1', () {
+      final x = obj?.prop;
+    });
+    final y = anotherObj?.prop;
+  });
+}
+''';
+          await analyzeCode(source);
+          expect(reporter.errors.length, equals(2));
+        },
+      );
+
+      test('should flag optional operators after nested group', () async {
+        const source = '''
+void main() {
+  group('outer', () {
+    group('inner', () {
+      final x = obj?.prop;
+    });
+    final y = anotherObj?.prop;
+  });
+}
+''';
+        await analyzeCode(source);
+        expect(reporter.errors.length, equals(2));
+      });
+
+      test(
+        'should flag optional operators in deeply nested structure',
+        () async {
+          const source = '''
+void main() {
+  group('level1', () {
+    final a = obj?.prop;
+    group('level2', () {
+      final b = obj?.prop;
+      test('test', () {
+        final c = obj?.prop;
+      });
+      final d = obj?.prop;
+    });
+    final e = obj?.prop;
+  });
+}
+''';
+          await analyzeCode(source);
+          expect(reporter.errors.length, equals(5));
+        },
+      );
+    });
+
+    group('setUpAll/tearDownAll exclusion', () {
+      test('should not flag setUpAll blocks', () async {
+        const source = '''
+void main() {
+  setUpAll(() {
+    final result = someObject?.someProperty;
+    final value = someValue ?? defaultValue;
+  });
+
+  test('example', () {});
+}
+''';
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should not flag tearDownAll blocks', () async {
+        const source = '''
+void main() {
+  tearDownAll(() {
+    final result = someObject?.someProperty;
+    final value = someValue ?? defaultValue;
+  });
+
+  test('example', () {});
+}
+''';
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should not flag setUpAll inside group', () async {
+        const source = '''
+void main() {
+  group('tests', () {
+    setUpAll(() {
+      final result = someObject?.someProperty;
+    });
+
+    test('example', () {
+      final x = obj?.prop;
+    });
+  });
+}
+''';
+        await analyzeCode(source);
+        expect(reporter.errors.length, equals(1));
+      });
+    });
+
+    test('should flag null-aware assignment operator (??=)', () async {
+      const source = '''
+void main() {
+  test('example', () {
+    String? value;
+    value ??= 'default';
+  });
+}
+''';
+      await analyzeCode(source);
+      expect(reporter.errors, isNotEmpty);
+    });
+
+    test('should flag null-aware index operator (?[])', () async {
+      const source = '''
+void main() {
+  test('example', () {
+    final list = <int>[];
+    final item = list?[0];
+  });
+}
+''';
+      await analyzeCode(source);
+      expect(reporter.errors, isNotEmpty);
+    });
+
+    group('testWidgets support', () {
+      test('should flag optional operators in testWidgets', () async {
+        const source = '''
+void main() {
+  testWidgets('widget test', (tester) async {
+    final result = someObject?.someProperty;
+    final value = someValue ?? defaultValue;
+  });
+}
+''';
+        await analyzeCode(source);
+        expect(reporter.errors, isNotEmpty);
+      });
+    });
   });
 }
