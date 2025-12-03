@@ -4,7 +4,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that forbids using optional operators (?., ??) in test files.
+/// Analyzer that forbids using optional operators (?., ??, ??=, ?[]) in test files.
 ///
 /// This rule flags optional operators in test blocks to ensure tests fail explicitly
 /// at the point of failure rather than silently handling nulls.
@@ -14,6 +14,8 @@ import '../models/lint_issue.dart';
 /// test('example', () {
 ///   final result = someObject?.someProperty;  // LINT
 ///   final value = someValue ?? defaultValue;  // LINT
+///   someValue ??= defaultValue;  // LINT
+///   final item = someList?[0];  // LINT
 /// });
 /// ```
 ///
@@ -32,7 +34,7 @@ class NoOptionalOperatorsInTestsAnalyzer extends BaseAnalyzer {
   String get ruleName => 'no_optional_operators_in_tests';
   @override
   String get problemMessage =>
-      'Optional operators (?., ??) are not allowed in test blocks. Tests should fail explicitly at the point of failure.';
+      'Optional operators (?., ??, ??=, ?[]) are not allowed in test blocks. Tests should fail explicitly at the point of failure.';
   @override
   String get correctionMessage =>
       'Remove the optional operator and add an explicit null check if needed.';
@@ -48,21 +50,28 @@ class NoOptionalOperatorsInTestsAnalyzer extends BaseAnalyzer {
 class _OptionalOperatorVisitor extends RecursiveAstVisitor<void> {
   final NoOptionalOperatorsInTestsAnalyzer analyzer;
   final List<LintIssue> issues = [];
-  bool _isInTestBlock = false;
-  bool _isInSetupOrTeardown = false;
+  int _testBlockDepth = 0;
+  int _setupTeardownDepth = 0;
+
+  bool get _isInTestBlock => _testBlockDepth > 0;
+  bool get _isInSetupOrTeardown => _setupTeardownDepth > 0;
+
   _OptionalOperatorVisitor(this.analyzer);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     final name = node.methodName.name;
-    if (name == 'test' || name == 'group') {
-      _isInTestBlock = true;
+    if (name == 'test' || name == 'group' || name == 'testWidgets') {
+      _testBlockDepth++;
       super.visitMethodInvocation(node);
-      _isInTestBlock = false;
-    } else if (name == 'setUp' || name == 'tearDown') {
-      _isInSetupOrTeardown = true;
+      _testBlockDepth--;
+    } else if (name == 'setUp' ||
+        name == 'tearDown' ||
+        name == 'setUpAll' ||
+        name == 'tearDownAll') {
+      _setupTeardownDepth++;
       super.visitMethodInvocation(node);
-      _isInSetupOrTeardown = false;
+      _setupTeardownDepth--;
     } else {
       if (_isInTestBlock &&
           !_isInSetupOrTeardown &&
@@ -91,5 +100,23 @@ class _OptionalOperatorVisitor extends RecursiveAstVisitor<void> {
       issues.add(analyzer.createIssue(node));
     }
     super.visitBinaryExpression(node);
+  }
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    if (_isInTestBlock &&
+        !_isInSetupOrTeardown &&
+        node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
+      issues.add(analyzer.createIssue(node));
+    }
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    if (_isInTestBlock && !_isInSetupOrTeardown && node.question != null) {
+      issues.add(analyzer.createIssue(node));
+    }
+    super.visitIndexExpression(node);
   }
 }
