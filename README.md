@@ -72,13 +72,15 @@ print('User: $name');
 
 ### no_optional_operators_in_tests
 
-Forbids the use of optional operators (`?.`, `??`) in test files. Tests should fail explicitly at the point of failure rather than silently handling null values. This rule is enforced as an error to ensure test reliability.
+Forbids the use of optional operators (`?.`, `??`, `??=`, `?[]`) in test files. Tests should fail explicitly at the point of failure rather than silently handling null values. This rule is enforced as an error to ensure test reliability.
 
 #### Bad ❌
 ```dart
 test('example', () {
-  final result = someObject?.someProperty;  // ERROR: Optional operators not allowed in tests
-  expect(result, equals(expected));
+  final result = someObject?.someProperty;  // ERROR
+  final value = someValue ?? defaultValue;  // ERROR
+  someValue ??= defaultValue;  // ERROR
+  final item = someList?[0];  // ERROR
 });
 ```
 
