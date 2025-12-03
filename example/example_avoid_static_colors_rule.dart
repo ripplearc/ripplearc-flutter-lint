@@ -1,6 +1,7 @@
 // ignore_for_file: unused_local_variable, prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 // Mock classes to simulate CoreUI color tokens
 class CoreTextColors {
@@ -101,6 +102,30 @@ class ViolationExamples extends StatelessWidget {
 
         // ❌ VIOLATION: Flutter Colors with index access
         Container(color: Colors.grey[700]), // LINT
+
+        // ❌ VIOLATION: CupertinoColors - iOS system colors
+        Container(color: CupertinoColors.systemRed), // LINT
+
+        // ❌ VIOLATION: CupertinoColors - active colors
+        Container(color: CupertinoColors.activeBlue), // LINT
+
+        // ❌ VIOLATION: CupertinoColors - background colors
+        Container(color: CupertinoColors.systemBackground), // LINT
+
+        // ❌ VIOLATION: CupertinoColors - label colors
+        Container(
+          child: Text(
+            'Label',
+            style: TextStyle(color: CupertinoColors.label), // LINT
+          ),
+        ),
+
+        // ❌ VIOLATION: CupertinoColors - destructive action
+        CupertinoButton(
+          color: CupertinoColors.destructiveRed, // LINT
+          onPressed: () {},
+          child: Text('Delete'),
+        ),
 
         // ❌ VIOLATION: Direct hex color
         Container(color: Color(0xFF015B7C)), // LINT
