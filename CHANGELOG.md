@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.4 - NoOptionalOperatorsInTests Analyzer Improvements
+
+### Bug Fixes
+
+- **Fixed nested test/group state tracking**: The analyzer now correctly tracks nested `test`, `group`, and `testWidgets` blocks using depth counters instead of boolean flags. Previously, optional operators after nested blocks were not detected.
+
+### New Features
+
+- **Added `??=` operator detection**: The null-aware assignment operator is now flagged in test blocks.
+- **Added `?[]` operator detection**: The null-aware index operator is now flagged in test blocks.
+- **Added `testWidgets` support**: Flutter widget tests using `testWidgets` are now recognized as test blocks.
+- **Added `setUpAll`/`tearDownAll` exclusion**: These lifecycle methods are now excluded from linting, matching the existing `setUp`/`tearDown` behavior.
+
 ## 0.1.3 - Standalone Checker Rule Filtering Fix
 
 ### Bug Fixes
@@ -59,7 +72,7 @@ A comprehensive custom lint library for Dart/Flutter projects with 13 carefully 
 
 - **`forbid_forced_unwrapping`**: Forbids forced unwrapping (`!`) in production code. Exceptions: test files, `/testing/` fakes, and generated files (`.freezed.dart`, `.g.dart`).
 
-- **`no_optional_operators_in_tests`**: Forbids optional operators (`?.`, `??`) in test files to ensure explicit test failures.
+- **`no_optional_operators_in_tests`**: Forbids optional operators (`?.`, `??`, `??=`, `?[]`) in test files to ensure explicit test failures.
 
 - **`no_direct_instantiation`**: Enforces dependency injection by forbidding direct class instantiation. Exceptions: Module and Factory classes.
 
