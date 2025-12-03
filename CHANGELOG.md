@@ -1,17 +1,14 @@
 # Changelog
 
-## 0.1.4 - NoOptionalOperatorsInTests Analyzer Improvements
+## 0.1.4 - NoOptionalOperatorsInTests Analyzer Bug Fixes
 
 ### Bug Fixes
 
 - **Fixed nested test/group state tracking**: The analyzer now correctly tracks nested `test`, `group`, and `testWidgets` blocks using depth counters instead of boolean flags. Previously, optional operators after nested blocks were not detected.
-
-### New Features
-
-- **Added `??=` operator detection**: The null-aware assignment operator is now flagged in test blocks.
-- **Added `?[]` operator detection**: The null-aware index operator is now flagged in test blocks.
-- **Added `testWidgets` support**: Flutter widget tests using `testWidgets` are now recognized as test blocks.
-- **Added `setUpAll`/`tearDownAll` exclusion**: These lifecycle methods are now excluded from linting, matching the existing `setUp`/`tearDown` behavior.
+- **Fixed missing `??=` operator detection**: The null-aware assignment operator is now correctly flagged in test blocks.
+- **Fixed missing `?[]` operator detection**: The null-aware index operator is now correctly flagged in test blocks.
+- **Fixed missing `testWidgets` support**: Flutter widget tests using `testWidgets` are now correctly recognized as test blocks.
+- **Fixed missing `setUpAll`/`tearDownAll` exclusion**: These lifecycle methods are now correctly excluded from linting, matching the existing `setUp`/`tearDown` behavior.
 
 ## 0.1.3 - Standalone Checker Rule Filtering Fix
 
