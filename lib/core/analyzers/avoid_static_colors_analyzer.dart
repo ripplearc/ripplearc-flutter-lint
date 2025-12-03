@@ -42,13 +42,15 @@ import '../models/lint_issue.dart';
 /// backgroundColor: colors.pageBackground,
 /// ```
 class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
-  
   static final _coreColorPattern = RegExp(r'^Core\w+Colors$');
 
   static const _flutterColorClasses = [
     'Colors',
     'CupertinoColors',
   ];
+
+  static const _colorFactoryMethods = ['fromARGB', 'fromRGBO'];
+  static const _colorClassName = 'Color';
 
   @override
   String get ruleName => 'avoid_static_colors';
@@ -172,7 +174,7 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
     final constructorName = node.constructorName;
     final typeName = constructorName.type.name2.lexeme;
 
-    if (typeName == 'Color') {
+    if (typeName == AvoidStaticColorsAnalyzer._colorClassName) {
       final constructorNameElement = constructorName.name?.name;
 
       if (constructorNameElement == null) {
@@ -208,7 +210,8 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
     final target = node.target;
     final methodName = node.methodName.name;
 
-    if (target == null && methodName == 'Color') {
+    if (target == null &&
+        methodName == AvoidStaticColorsAnalyzer._colorClassName) {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         final firstArg = arguments.first;
@@ -224,7 +227,8 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (target is SimpleIdentifier && methodName == 'Color') {
+    if (target is SimpleIdentifier &&
+        methodName == AvoidStaticColorsAnalyzer._colorClassName) {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         final firstArg = arguments.first;
@@ -239,8 +243,9 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (target is SimpleIdentifier && target.name == 'Color') {
-      if (methodName == 'fromARGB' || methodName == 'fromRGBO') {
+    if (target is SimpleIdentifier &&
+        target.name == AvoidStaticColorsAnalyzer._colorClassName) {
+      if (AvoidStaticColorsAnalyzer._colorFactoryMethods.contains(methodName)) {
         issues.add(analyzer.createIssue(
           node,
           customMessage:
@@ -250,8 +255,9 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (target is PrefixedIdentifier && target.identifier.name == 'Color') {
-      if (methodName == 'fromARGB' || methodName == 'fromRGBO') {
+    if (target is PrefixedIdentifier &&
+        target.identifier.name == AvoidStaticColorsAnalyzer._colorClassName) {
+      if (AvoidStaticColorsAnalyzer._colorFactoryMethods.contains(methodName)) {
         issues.add(analyzer.createIssue(
           node,
           customMessage:
@@ -269,7 +275,7 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
 
     if (target is InstanceCreationExpression) {
       final typeName = target.constructorName.type.name2.lexeme;
-      if (typeName == 'Color') {
+      if (typeName == AvoidStaticColorsAnalyzer._colorClassName) {
         super.visitMethodInvocation(node);
         return;
       }
@@ -282,7 +288,8 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     final function = node.function;
 
-    if (function is SimpleIdentifier && function.name == 'Color') {
+    if (function is SimpleIdentifier &&
+        function.name == AvoidStaticColorsAnalyzer._colorClassName) {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         final firstArg = arguments.first;
@@ -298,7 +305,8 @@ class _StaticColorVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (function is PrefixedIdentifier && function.identifier.name == 'Color') {
+    if (function is PrefixedIdentifier &&
+        function.identifier.name == AvoidStaticColorsAnalyzer._colorClassName) {
       final arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
         final firstArg = arguments.first;
