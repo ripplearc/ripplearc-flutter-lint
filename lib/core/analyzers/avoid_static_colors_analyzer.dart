@@ -42,19 +42,8 @@ import '../models/lint_issue.dart';
 /// backgroundColor: colors.pageBackground,
 /// ```
 class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
-  static const _coreColorClasses = [
-    'CoreTextColors',
-    'CoreBackgroundColors',
-    'CoreBorderColors',
-    'CoreIconColors',
-    'CoreButtonColors',
-    'CoreStatusColors',
-    'CoreChipColors',
-    'CoreAlertColors',
-    'CoreKeyboardColors',
-    'CoreShadowColors',
-    'CoreBrandColors',
-  ];
+  
+  static final _coreColorPattern = RegExp(r'^Core\w+Colors$');
 
   static const _flutterColorClasses = [
     'Colors',
@@ -80,7 +69,7 @@ class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
   }
 
   bool isCoreColorClass(String identifier) {
-    return _coreColorClasses.contains(identifier);
+    return _coreColorPattern.hasMatch(identifier);
   }
 
   bool isFlutterColorClass(String identifier) {
