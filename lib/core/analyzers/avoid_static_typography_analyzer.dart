@@ -9,7 +9,6 @@ import '../models/lint_issue.dart';
 /// - `CoreTypography.*()` static method calls
 /// - Raw `TextStyle(...)` constructor usage
 /// - `GoogleFonts.*()` method calls
-/// - `CoreTypography.semiBold` and similar static font weight constants
 ///
 /// Typography should be accessed through `Theme.of(context).extension<TypographyExtension>()`
 /// to ensure consistency and proper light/dark mode support.
@@ -66,30 +65,31 @@ class _StaticTypographyVisitor extends RecursiveAstVisitor<void> {
   final AvoidStaticTypographyAnalyzer analyzer;
   final List<LintIssue> issues = [];
 
-  static const _typographyUsageMessageSuffix =
-      ' static members bypass the theme system. '
+  static const _coreTypographyClassName = 'CoreTypography';
+  static const _googleFontsClassName = 'GoogleFonts';
+  static const _textStyleTypeName = 'TextStyle';
+
+  static const _coreTypographyMessage =
+      'CoreTypography static members bypass the theme system. '
       'Use Theme.of(context).extension<TypographyExtension>() instead.';
-  static const _fontPackageMessageSuffix =
-      ' bypasses the centralized theme definition. '
+
+  static const _googleFontsMessage =
+      'GoogleFonts bypasses the centralized theme definition. '
       'Font families should be defined in app_theme.dart.';
+
+  static const _textStyleMessage =
+      'Raw TextStyle constructor bypasses the design system tokens. '
+      'Use Theme.of(context).extension<TypographyExtension>().';
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _handleStaticMemberUsage(
-      node: node,
-      target: node.target,
-      memberName: node.methodName.name,
-    );
+    final classMessage = _buildBannedClassMessage(node.target);
+    if (classMessage != null) {
+      issues.add(analyzer.createIssue(node, customMessage: classMessage));
+    }
 
-    if (_isTextStyleInvocation(node)) {
-      issues.add(
-        analyzer.createIssue(
-          node,
-          customMessage:
-              'Raw TextStyle constructor bypasses the design system tokens. '
-              'Use Theme.of(context).extension<TypographyExtension>() and .copyWith() for modifications.',
-        ),
-      );
+    if (node.methodName.name == _textStyleTypeName) {
+      issues.add(analyzer.createIssue(node, customMessage: _textStyleMessage));
     }
 
     super.visitMethodInvocation(node);
@@ -98,85 +98,50 @@ class _StaticTypographyVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     final typeName = node.constructorName.type.name2.lexeme;
-    if (typeName == 'TextStyle') {
-      issues.add(
-        analyzer.createIssue(
-          node,
-          customMessage:
-              'Raw TextStyle constructor bypasses the design system tokens. '
-              'Use Theme.of(context).extension<TypographyExtension>() and .copyWith() for modifications.',
-        ),
-      );
+    if (typeName == _textStyleTypeName) {
+      issues.add(analyzer.createIssue(node, customMessage: _textStyleMessage));
     }
     super.visitInstanceCreationExpression(node);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (_isPartOfLargerAccess(node)) {
+    if (_isChainedAccess(node)) {
       super.visitPropertyAccess(node);
       return;
     }
 
-    _handleStaticMemberUsage(
-      node: node,
-      target: node.target,
-      memberName: node.propertyName.name,
-    );
+    final message = _buildBannedClassMessage(node.target);
+    if (message != null) {
+      issues.add(analyzer.createIssue(node, customMessage: message));
+    }
 
     super.visitPropertyAccess(node);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (_isPartOfLargerAccess(node)) {
+    if (_isChainedAccess(node)) {
       super.visitPrefixedIdentifier(node);
       return;
     }
 
-    _handleStaticMemberUsage(
-      node: node,
-      target: node.prefix,
-      memberName: node.identifier.name,
-    );
+    final message = _buildBannedClassMessage(node);
+    if (message != null) {
+      issues.add(analyzer.createIssue(node, customMessage: message));
+    }
 
     super.visitPrefixedIdentifier(node);
   }
 
-  void _handleStaticMemberUsage({
-    required AstNode node,
-    required Expression? target,
-    required String memberName,
-  }) {
-    final classIdentifier = _extractIdentifier(target);
-    if (classIdentifier == null) return;
-
-    if (_isTypographyClassName(classIdentifier)) {
-      issues.add(
-        analyzer.createIssue(
-          node,
-          customMessage: _typographyMessage(classIdentifier),
-        ),
-      );
-    }
-
-    if (_isGoogleFontsClassName(classIdentifier)) {
-      issues.add(
-        analyzer.createIssue(
-          node,
-          customMessage: _fontPackageMessage(classIdentifier),
-        ),
-      );
-    }
+  String? _buildBannedClassMessage(Expression? expression) {
+    final className = _bannedClassNameIn(expression);
+    if (className == _coreTypographyClassName) return _coreTypographyMessage;
+    if (className == _googleFontsClassName) return _googleFontsMessage;
+    return null;
   }
 
-  bool _isTextStyleInvocation(MethodInvocation node) {
-    if (node.methodName.name != 'TextStyle') return false;
-    // If the analyzer does not resolve constructors, TextStyle(...) appears as a method call.
-    return true;
-  }
-
-  bool _isPartOfLargerAccess(AstNode node) {
+  bool _isChainedAccess(AstNode node) {
     final parent = node.parent;
     if (parent is MethodInvocation && identical(parent.target, node)) {
       return true;
@@ -190,33 +155,23 @@ class _StaticTypographyVisitor extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  String? _extractIdentifier(Expression? expression) {
+  String? _bannedClassNameIn(Expression? expression) {
     if (expression == null) return null;
-    if (expression is SimpleIdentifier) return expression.name;
-    if (expression is PrefixedIdentifier) return expression.identifier.name;
-    if (expression is PropertyAccess) return expression.propertyName.name;
+    if (expression is SimpleIdentifier) {
+      return expression.name;
+    } else if (expression is PrefixedIdentifier) {
+      if (expression.identifier.name == _coreTypographyClassName ||
+          expression.identifier.name == _googleFontsClassName) {
+        return expression.identifier.name;
+      }
+      return _bannedClassNameIn(expression.prefix);
+    } else if (expression is PropertyAccess) {
+      if (expression.propertyName.name == _coreTypographyClassName ||
+          expression.propertyName.name == _googleFontsClassName) {
+        return expression.propertyName.name;
+      }
+      return _bannedClassNameIn(expression.target);
+    }
     return null;
   }
-
-  bool _isTypographyClassName(String? identifier) {
-    if (identifier == null) return false;
-    return identifier == 'CoreTypography';
-  }
-
-  bool _isGoogleFontsClassName(String? identifier) {
-    if (identifier == null || !_startsWithUpperCase(identifier)) return false;
-    return identifier == 'GoogleFonts' || identifier.endsWith('Fonts');
-  }
-
-  bool _startsWithUpperCase(String value) {
-    if (value.isEmpty) return false;
-    final code = value.codeUnitAt(0);
-    return code >= 0x41 && code <= 0x5A;
-  }
-
-  String _typographyMessage(String classIdentifier) =>
-      '$classIdentifier$_typographyUsageMessageSuffix';
-
-  String _fontPackageMessage(String classIdentifier) =>
-      '$classIdentifier$_fontPackageMessageSuffix';
 }
