@@ -45,11 +45,11 @@ class AvoidStaticTypographyAnalyzer extends BaseAnalyzer {
 
   @override
   String get problemMessage =>
-      'Static typography usage detected. Use Theme.of(context).extension<TypographyExtension>()! so text participates in theming and light/dark mode.';
+      'Static typography usage detected. Use Theme.of(context).extension<TypographyExtension>() so text participates in theming and light/dark mode.';
 
   @override
   String get correctionMessage =>
-      'Access typography via Theme.of(context).extension<TypographyExtension>()! instead of CoreTypography, GoogleFonts, or raw TextStyle.';
+      'Access typography via Theme.of(context).extension<TypographyExtension>() instead of CoreTypography, GoogleFonts, or raw TextStyle.';
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
@@ -79,7 +79,7 @@ class _StaticTypographyVisitor extends RecursiveAstVisitor<void> {
 
   static const _textStyleMessage =
       'Raw TextStyle constructor bypasses the design tokens defined in TypographyExtension. '
-      'Use Theme.of(context).extension<TypographyExtension>()!.';
+      'Use Theme.of(context).extension<TypographyExtension>().';
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

@@ -105,16 +105,16 @@ Text(
 
 #### Good ✅
 ```dart
-final typography = Theme.of(context).extension<TypographyExtension>()!;
+final typography = Theme.of(context).extension<TypographyExtension>();
 
 Text(
   'Hello',
-  style: typography.bodyLargeRegular,
+  style: typography?.bodyLargeRegular,
 );
 
 Text(
   'Hello',
-  style: typography.bodyLargeMedium.copyWith(
+  style: typography?.bodyLargeMedium?.copyWith(
     color: colors.textHeadline,
   ),
 );
