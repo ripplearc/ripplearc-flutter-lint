@@ -80,7 +80,7 @@ Container(color: colors.lineLight);
 
 ### avoid_static_typography
 
-Disallows static typography definitions (`CoreTypography.*`), raw `TextStyle` constructors, and direct `GoogleFonts.*` usage in production code. Typography must be accessed through `Theme.of(context).extension<TypographyExtension>()` so it participates in theming and dark mode.
+Disallows static typography definitions (`CoreTypography.*` including static font-weight constants like `CoreTypography.semiBold`), raw `TextStyle` constructors, and direct `GoogleFonts.*` usage in production code. Typography must be accessed through `Theme.of(context).extension<TypographyExtension>()` so it participates in theming and dark mode.
 
 #### Bad ❌
 ```dart
