@@ -78,6 +78,49 @@ Container(color: colors.lineLight);
 - **Prefixed imports**: `material.Colors.red`, `m.Color(0xFF...)`
 
 
+### avoid_static_typography
+
+Disallows static typography definitions (`CoreTypography.*`), raw `TextStyle` constructors, and direct `GoogleFonts.*` usage in production code. Typography must be accessed through `Theme.of(context).extension<TypographyExtension>()` so it participates in theming and dark mode.
+
+#### Bad ❌
+```dart
+// Static CoreTypography
+Text(
+  'Hello',
+  style: CoreTypography.bodyLargeRegular(),
+);
+
+// Raw TextStyle
+Text(
+  'Welcome back',
+  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+);
+
+// GoogleFonts
+Text(
+  'Hello',
+  style: GoogleFonts.roboto(fontSize: 16),
+);
+```
+
+#### Good ✅
+```dart
+final typography = Theme.of(context).extension<TypographyExtension>()!;
+
+Text(
+  'Hello',
+  style: typography.bodyLargeRegular,
+);
+
+Text(
+  'Hello',
+  style: typography.bodyLargeMedium.copyWith(
+    color: colors.textHeadline,
+  ),
+);
+```
+
+
 ### prefer_fake_over_mock
 
 Recommends using `Fake` instead of `Mock` for test doubles. Fakes provide more realistic behavior and are easier to maintain than mocks.
@@ -488,6 +531,7 @@ analyzer:
 ### custom_lint.yaml
 This configuration file includes all our custom lint rules:
 - `avoid_static_colors` - Enforce theme-based colors instead of static color usage
+- `avoid_static_typography` - Enforce theme-based typography instead of static typography or raw TextStyle/GoogleFonts usage
 - `prefer_fake_over_mock` - Prefer using Fake over Mock for test doubles
 - `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
 - `no_optional_operators_in_tests` - Forbid optional operators in test files
