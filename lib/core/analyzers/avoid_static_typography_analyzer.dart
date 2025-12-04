@@ -45,11 +45,11 @@ class AvoidStaticTypographyAnalyzer extends BaseAnalyzer {
 
   @override
   String get problemMessage =>
-      'Static typography bypasses the theme system and will not adapt to light/dark mode changes.';
+      'Static typography usage detected. Use Theme.of(context).extension<TypographyExtension>()! so text participates in theming and light/dark mode.';
 
   @override
   String get correctionMessage =>
-      'Use Theme.of(context).extension<TypographyExtension>() to access typography.';
+      'Access typography via Theme.of(context).extension<TypographyExtension>()! instead of CoreTypography, GoogleFonts, or raw TextStyle.';
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
@@ -78,8 +78,8 @@ class _StaticTypographyVisitor extends RecursiveAstVisitor<void> {
       'Font families should be defined in app_theme.dart.';
 
   static const _textStyleMessage =
-      'Raw TextStyle constructor bypasses the design system tokens. '
-      'Use Theme.of(context).extension<TypographyExtension>().';
+      'Raw TextStyle constructor bypasses the design tokens defined in TypographyExtension. '
+      'Use Theme.of(context).extension<TypographyExtension>()!.';
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
