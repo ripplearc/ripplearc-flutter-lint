@@ -28,7 +28,7 @@ class TypographyExtension extends ThemeExtension<TypographyExtension> {
   });
 
   @override
-  ThemeExtension<TypographyExtension> copyWith({
+  TypographyExtension copyWith({
     TextStyle? bodyLargeRegular,
     TextStyle? bodyLargeMedium,
     TextStyle? headlineLargeSemiBold,
@@ -42,10 +42,7 @@ class TypographyExtension extends ThemeExtension<TypographyExtension> {
   }
 
   @override
-  ThemeExtension<TypographyExtension> lerp(
-    covariant ThemeExtension<TypographyExtension>? other,
-    double t,
-  ) {
+  TypographyExtension lerp(TypographyExtension? other, double t) {
     return this;
   }
 }
@@ -57,7 +54,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   const AppColorsExtension({this.textDark, this.textHeadline});
 
   @override
-  ThemeExtension<AppColorsExtension> copyWith({
+  AppColorsExtension copyWith({
     Color? textDark,
     Color? textHeadline,
   }) {
@@ -68,10 +65,7 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   }
 
   @override
-  ThemeExtension<AppColorsExtension> lerp(
-    covariant ThemeExtension<AppColorsExtension>? other,
-    double t,
-  ) {
+  AppColorsExtension lerp(AppColorsExtension? other, double t) {
     return this;
   }
 }
