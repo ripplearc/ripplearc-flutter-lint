@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0 - Static Colors & Typography Rules
+
+### New Features
+
+- **`avoid_static_colors`**: New production rule that forbids using static color definitions (e.g., `CoreTextColors`, `Colors.white`, `Color(0xFF...)`) in UI code and enforces theme-extension based colors for proper light/dark support.
+- **`avoid_static_typography`**: New production rule that forbids using static typography definitions (`CoreTypography.*`), raw `TextStyle(...)` constructors, and `GoogleFonts.*` in UI code, enforcing typography access via `Theme.of(context).extension<TypographyExtension>()`.
+
+### Improvements
+
+- **Standalone checker**: `standalone_checker` has been updated to include the new rules so they can be run via the CLI (`--rules avoid_static_colors,avoid_static_typography`).
+
 ## 0.1.4 - NoOptionalOperatorsInTests Analyzer Bug Fixes
 
 ### Bug Fixes
