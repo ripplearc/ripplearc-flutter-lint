@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.1 - Theme exclusion fix and rule coverage (patch)
+
+### Bug Fixes
+
+- Corrected theme exclusion paths: `avoid_static_colors` and `avoid_static_typography` now skip files under `lib/src/theme` and `test/theme` (previously missed). Applies to both production and test targets.
+- Path handling is normalized so the exclusions work on Windows and Unix.
+
+### Improvements
+
+- The two rules(avoid_static_colors and avoid_static_typography) now run on both production and test files, while still excluding theme files in both locations. This keeps color and typography enforcement consistent across the codebase.
+
 ## 0.2.0 - Static Colors & Typography Rules
 
 ### New Features
