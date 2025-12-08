@@ -80,9 +80,9 @@ class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
   }
 
   bool _shouldSkipFile(String path) {
+    const skipSegments = ['/lib/src/theme/', '/test/theme/'];
     final normalized = path.replaceAll('\\', '/');
-    return normalized.contains('/src/theme') ||
-        normalized.contains('/test/theme');
+    return skipSegments.any(normalized.contains);
   }
 
   bool isCoreColorClass(String identifier) {
