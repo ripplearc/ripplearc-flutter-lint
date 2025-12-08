@@ -70,6 +70,21 @@ class AvoidStaticColorsAnalyzer extends BaseAnalyzer {
     return visitor.issues;
   }
 
+  @override
+  List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
+    final path = resolver.path ?? '';
+    if (_shouldSkipFile(path)) {
+      return [];
+    }
+    return analyze(unit);
+  }
+
+  bool _shouldSkipFile(String path) {
+    final normalized = path.replaceAll('\\', '/');
+    return normalized.contains('/lib/theme') ||
+        normalized.contains('/test/theme');
+  }
+
   bool isCoreColorClass(String identifier) {
     return _coreColorPattern.hasMatch(identifier);
   }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:ripplearc_linter/core/analyzers/avoid_static_typography_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/avoid_static_colors_analyzer.dart';
  import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
  import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
@@ -58,6 +59,7 @@ class _SimpleResolver {
 /// ```
 class StandaloneLintChecker {
   final List<BaseAnalyzer> analyzers = [
+    AvoidStaticTypographyAnalyzer(),
     AvoidStaticColorsAnalyzer(),
     ForcedUnwrappingAnalyzer(),
     DirectInstantiationAnalyzer(),
@@ -80,6 +82,11 @@ class StandaloneLintChecker {
     'prefer_fake_over_mock',
     'document_fake_parameters',
     'test_file_mutation_coverage',
+  };
+
+  static const Set<String> _bothFilesRuleNames = {
+    'avoid_static_colors',
+    'avoid_static_typography',
   };
 
   /// Analyzes the given files and directories for linting issues.
@@ -152,7 +159,10 @@ class StandaloneLintChecker {
 
   bool _shouldCheckTestFiles(List<String>? enabledRules) {
     if (enabledRules == null) return false;
-    return enabledRules.any(_testOnlyRuleNames.contains);
+    return enabledRules.any(
+      (rule) =>
+          _testOnlyRuleNames.contains(rule) || _bothFilesRuleNames.contains(rule),
+    );
   }
 
   List<BaseAnalyzer> _getActiveAnalyzers(List<String>? enabledRules) {
@@ -246,6 +256,12 @@ class StandaloneLintChecker {
     final isTestFile = BaseAnalyzer.isTestFile(filePath);
 
     for (final analyzer in activeAnalyzers) {
+      if (_isBothFilesRule(analyzer.ruleName)) {
+        final analyzerIssues = _runAnalyzer(analyzer, unit, filePath);
+        issues.addAll(_formatIssues(analyzerIssues, filePath));
+        continue;
+      }
+
       // Skip production analyzers on test files
       if (isTestFile && !_isTestOnlyRule(analyzer.ruleName)) continue;
       // Skip test-only analyzers on production files
@@ -262,17 +278,17 @@ class StandaloneLintChecker {
     return _testOnlyRuleNames.contains(ruleName);
   }
 
+  bool _isBothFilesRule(String ruleName) {
+    return _bothFilesRuleNames.contains(ruleName);
+  }
+
   List<dynamic> _runAnalyzer(
     BaseAnalyzer analyzer,
     dynamic unit,
     String filePath,
   ) {
-    if (analyzer is TestFileMutationCoverageAnalyzer) {
-      final resolver = _SimpleResolver(filePath);
-      return analyzer.analyzeWithResolver(unit, resolver);
-    } else {
-      return analyzer.analyze(unit);
-    }
+    final resolver = _SimpleResolver(filePath);
+    return analyzer.analyzeWithResolver(unit, resolver);
   }
 
   List<String> _formatIssues(List<dynamic> issues, String filePath) {
@@ -326,7 +342,7 @@ void main(List<String> args) async {
     print('  dart run ripplearc_linter:standalone_checker [--rules rule1,rule2] <files_or_directories>');
     print('  standalone_checker [--rules rule1,rule2] <files_or_directories>   (after global activate)');
     print(
-      'Available rules: avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage',
+      'Available rules: avoid_static_typography, avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage',
     );
     exit(1);
   }

@@ -21,9 +21,12 @@ abstract class BaseAnalyzer {
 
   /// Utility to check if a file is a test file (by path).
   ///
-  /// Returns true if the file path contains '_test.dart' or is under a '/test/' directory.
+  /// Returns true if the file path contains '_test.dart' or is under a 'test/' directory.
+  /// Normalizes path separators to work on both Windows and Unix.
   static bool isTestFile(String path) {
-    return path.contains('_test.dart') || path.contains('/test/');
+    final normalizedPath = path.replaceAll('\\', '/');
+    return normalizedPath.contains('_test.dart') ||
+        normalizedPath.contains('/test/');
   }
 
   /// Analyze the given [CompilationUnit] and return a list of [LintIssue]s.
