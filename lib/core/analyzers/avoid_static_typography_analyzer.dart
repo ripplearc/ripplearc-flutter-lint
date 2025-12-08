@@ -57,6 +57,23 @@ class AvoidStaticTypographyAnalyzer extends BaseAnalyzer {
     unit.accept(visitor);
     return visitor.issues;
   }
+
+  @override
+  List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
+    
+    final path = resolver.path ?? '';
+    if (_shouldSkipFile(path)) {
+      return [];
+    }
+    return analyze(unit);
+  }
+
+  bool _shouldSkipFile(String path) {
+    
+    final normalized = path.replaceAll('\\', '/');
+    return normalized.contains('/lib/theme') ||
+        normalized.contains('/test/theme');
+  }
 }
 
 class _StaticTypographyVisitor extends RecursiveAstVisitor<void> {
