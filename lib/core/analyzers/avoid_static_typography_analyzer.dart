@@ -71,7 +71,7 @@ class AvoidStaticTypographyAnalyzer extends BaseAnalyzer {
   bool _shouldSkipFile(String path) {
     
     final normalized = path.replaceAll('\\', '/');
-    return normalized.contains('/lib/theme') ||
+    return normalized.contains('/src/theme') ||
         normalized.contains('/test/theme');
   }
 }
