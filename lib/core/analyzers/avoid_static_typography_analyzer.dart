@@ -69,10 +69,9 @@ class AvoidStaticTypographyAnalyzer extends BaseAnalyzer {
   }
 
   bool _shouldSkipFile(String path) {
-    
+    const skipSegments = ['/lib/src/theme/', '/test/theme/'];
     final normalized = path.replaceAll('\\', '/');
-    return normalized.contains('/lib/theme') ||
-        normalized.contains('/test/theme');
+    return skipSegments.any(normalized.contains);
   }
 }
 
