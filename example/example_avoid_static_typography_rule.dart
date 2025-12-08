@@ -47,29 +47,6 @@ class TypographyExtension extends ThemeExtension<TypographyExtension> {
   }
 }
 
-class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
-  final Color? textDark;
-  final Color? textHeadline;
-
-  const AppColorsExtension({this.textDark, this.textHeadline});
-
-  @override
-  AppColorsExtension copyWith({
-    Color? textDark,
-    Color? textHeadline,
-  }) {
-    return AppColorsExtension(
-      textDark: textDark ?? this.textDark,
-      textHeadline: textHeadline ?? this.textHeadline,
-    );
-  }
-
-  @override
-  AppColorsExtension lerp(AppColorsExtension? other, double t) {
-    return this;
-  }
-}
-
 // ============================================================================
 // BAD EXAMPLES - These trigger the avoid_static_typography rule
 // ============================================================================
