@@ -536,8 +536,8 @@ void main() {
       });
     });
 
-    group('Test file exclusion', () {
-      test('should not flag violations in test files', () async {
+    group('Test files', () {
+      test('should flag violations in test files', () async {
         const source = '''
         import 'package:flutter/material.dart';
         
@@ -556,7 +556,7 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'test/my_widget_test.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, hasLength(2));
       });
     });
 

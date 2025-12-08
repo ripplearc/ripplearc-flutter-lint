@@ -213,8 +213,8 @@ void main() {
       });
     });
 
-    group('Test file exclusion', () {
-      test('should NOT flag CoreTypography in test files', () async {
+    group('Test files', () {
+      test('should flag CoreTypography in test files', () async {
         const source = '''
         class CoreTypography {
           static TextStyle headlineLargeSemiBold() => TextStyle();
@@ -228,10 +228,10 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'test/widgets/example_test.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, hasLength(2));
       });
 
-      test('should NOT flag TextStyle in test files', () async {
+      test('should flag TextStyle in test files', () async {
         const source = '''
         void main() {
           test('text style test', () {
@@ -241,10 +241,10 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'test/example_test.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, hasLength(1));
       });
 
-      test('should NOT flag GoogleFonts in test files', () async {
+      test('should flag GoogleFonts in test files', () async {
         const source = '''
         class GoogleFonts {
           static TextStyle roboto({double? fontSize}) => TextStyle();
@@ -258,7 +258,7 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'test/fonts_test.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, hasLength(2));
       });
     });
 
