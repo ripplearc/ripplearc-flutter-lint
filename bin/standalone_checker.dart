@@ -84,6 +84,11 @@ class StandaloneLintChecker {
     'test_file_mutation_coverage',
   };
 
+  static const Set<String> _bothFilesRuleNames = {
+    'avoid_static_colors',
+    'avoid_static_typography',
+  };
+
   /// Analyzes the given files and directories for linting issues.
   ///
   /// This method processes both individual files and directories, using different
@@ -154,7 +159,10 @@ class StandaloneLintChecker {
 
   bool _shouldCheckTestFiles(List<String>? enabledRules) {
     if (enabledRules == null) return false;
-    return enabledRules.any(_testOnlyRuleNames.contains);
+    return enabledRules.any(
+      (rule) =>
+          _testOnlyRuleNames.contains(rule) || _bothFilesRuleNames.contains(rule),
+    );
   }
 
   List<BaseAnalyzer> _getActiveAnalyzers(List<String>? enabledRules) {
@@ -248,6 +256,12 @@ class StandaloneLintChecker {
     final isTestFile = BaseAnalyzer.isTestFile(filePath);
 
     for (final analyzer in activeAnalyzers) {
+      if (_isBothFilesRule(analyzer.ruleName)) {
+        final analyzerIssues = _runAnalyzer(analyzer, unit, filePath);
+        issues.addAll(_formatIssues(analyzerIssues, filePath));
+        continue;
+      }
+
       // Skip production analyzers on test files
       if (isTestFile && !_isTestOnlyRule(analyzer.ruleName)) continue;
       // Skip test-only analyzers on production files
@@ -264,17 +278,17 @@ class StandaloneLintChecker {
     return _testOnlyRuleNames.contains(ruleName);
   }
 
+  bool _isBothFilesRule(String ruleName) {
+    return _bothFilesRuleNames.contains(ruleName);
+  }
+
   List<dynamic> _runAnalyzer(
     BaseAnalyzer analyzer,
     dynamic unit,
     String filePath,
   ) {
-    if (analyzer is TestFileMutationCoverageAnalyzer) {
-      final resolver = _SimpleResolver(filePath);
-      return analyzer.analyzeWithResolver(unit, resolver);
-    } else {
-      return analyzer.analyze(unit);
-    }
+    final resolver = _SimpleResolver(filePath);
+    return analyzer.analyzeWithResolver(unit, resolver);
   }
 
   List<String> _formatIssues(List<dynamic> issues, String filePath) {
