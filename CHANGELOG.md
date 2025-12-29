@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.2 - AvoidTestTimeouts Analyzer Bug Fixes (patch)
+
+### Bug Fixes
+
+- **Fixed nested test/group block detection**: The `avoid_test_timeouts` analyzer now correctly tracks nested `test`, `group`, and `testWidgets` blocks using a depth counter instead of a boolean flag. Previously, timeout violations in code between nested blocks were not detected.
+- **Added `testWidgets` support**: Flutter widget tests using `testWidgets` are now correctly recognized and analyzed for timeout violations.
+- **Added `setUpAll` and `tearDownAll` support**: These test lifecycle methods are now correctly analyzed for timeout violations, matching the existing `setUp` and `tearDown` behavior.
+
+### Technical Details
+
+- Changed `_isInTestBlock` from `bool` to `int _testBlockDepth` with depth tracking to properly handle nested test blocks
+- Added `testWidgets`, `setUpAll`, and `tearDownAll` to the set of recognized test block methods
+- Consolidated duplicate conditional logic for cleaner, more maintainable code
+- All 16 tests passing with comprehensive coverage for nested blocks and lifecycle methods
+
 ## 0.2.1 - Theme exclusion fix and rule coverage (patch)
 
 ### Bug Fixes
