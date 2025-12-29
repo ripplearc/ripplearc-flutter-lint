@@ -162,5 +162,132 @@ void main() {
       await analyzeCode(source, path: 'test/example_test.dart');
       expect(reporter.errors, isNotEmpty);
     });
+
+    test('should flag .timeout() in testWidgets block', () async {
+      const source = '''
+import 'dart:async';
+final userCompleter = Completer<User>();
+class User {}
+void main() {
+  testWidgets('example', (tester) async {
+    await userCompleter.future.timeout(Duration(seconds: 1));
+  });
+}
+''';
+      await analyzeCode(source, path: 'test/example_test.dart');
+      expect(reporter.errors, isNotEmpty);
+      expect(
+        reporter.errors.first.errorCode.name,
+        equals('avoid_test_timeouts'),
+      );
+    });
+
+    test('should flag Future.delayed() in testWidgets block', () async {
+      const source = '''
+import 'dart:async';
+void main() {
+  testWidgets('example', (tester) async {
+    await Future.delayed(Duration(milliseconds: 10));
+  });
+}
+''';
+      await analyzeCode(source, path: 'test/example_test.dart');
+      expect(reporter.errors, isNotEmpty);
+      expect(
+        reporter.errors.first.errorCode.name,
+        equals('avoid_test_timeouts'),
+      );
+    });
+
+    test('should flag timeout in setUpAll block', () async {
+      const source = '''
+import 'dart:async';
+final userCompleter = Completer<User>();
+class User {}
+void main() {
+  setUpAll(() async {
+    await userCompleter.future.timeout(Duration(seconds: 1));
+  });
+}
+''';
+      await analyzeCode(source, path: 'test/example_test.dart');
+      expect(reporter.errors, isNotEmpty);
+    });
+
+    test('should flag timeout in tearDownAll block', () async {
+      const source = '''
+import 'dart:async';
+final userCompleter = Completer<User>();
+class User {}
+void main() {
+  tearDownAll(() async {
+    await userCompleter.future.timeout(Duration(seconds: 1));
+  });
+}
+''';
+      await analyzeCode(source, path: 'test/example_test.dart');
+      expect(reporter.errors, isNotEmpty);
+    });
+
+    test('should flag timeout in nested test inside group', () async {
+      const source = '''
+import 'dart:async';
+final completer1 = Completer<void>();
+final completer2 = Completer<void>();
+final completer3 = Completer<void>();
+void main() {
+  group('outer', () async {
+    await completer1.future.timeout(Duration(seconds: 1)); // Should flag
+    test('inner', () async {
+      await completer2.future.timeout(Duration(seconds: 1)); // Should flag
+    });
+    await completer3.future.timeout(Duration(seconds: 1)); // Should flag
+  });
+}
+''';
+      await analyzeCode(source, path: 'test/example_test.dart');
+      expect(reporter.errors.length, equals(3));
+    });
+
+    test('should flag timeout in deeply nested groups', () async {
+      const source = '''
+import 'dart:async';
+final c1 = Completer<void>();
+final c2 = Completer<void>();
+final c3 = Completer<void>();
+final c4 = Completer<void>();
+void main() {
+  group('level1', () async {
+    await c1.future.timeout(Duration(seconds: 1)); // Should flag
+    group('level2', () async {
+      await c2.future.timeout(Duration(seconds: 1)); // Should flag
+      test('test', () async {
+        await c3.future.timeout(Duration(seconds: 1)); // Should flag
+      });
+      await c4.future.timeout(Duration(seconds: 1)); // Should flag
+    });
+  });
+}
+''';
+      await analyzeCode(source, path: 'test/example_test.dart');
+      expect(reporter.errors.length, equals(4));
+    });
+
+    test('should flag Future.delayed in nested blocks', () async {
+      const source = '''
+import 'dart:async';
+void main() {
+  group('outer', () async {
+    await Future.delayed(Duration(milliseconds: 1)); // Should flag
+    testWidgets('widget test', (tester) async {
+      await Future.delayed(Duration(milliseconds: 2)); // Should flag
+    });
+    await Future.delayed(Duration(milliseconds: 3)); // Should flag
+  });
+}
+''';
+      await analyzeCode(source, path: 'test/example_test.dart');
+      expect(reporter.errors.length, equals(3));
+    });
   });
 }
