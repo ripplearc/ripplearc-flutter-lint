@@ -42,23 +42,31 @@ class AvoidTestTimeoutsAnalyzer extends BaseAnalyzer {
 }
 
 class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
+  static const _testBlockMethods = {
+    'test',
+    'group',
+    'testWidgets',
+    'setUp',
+    'tearDown',
+    'setUpAll',
+    'tearDownAll',
+  };
+
   final AvoidTestTimeoutsAnalyzer analyzer;
   final List<LintIssue> issues = [];
-  bool _isInTestBlock = false;
+  int _testBlockDepth = 0;
+
+  bool get _isInTestBlock => _testBlockDepth > 0;
 
   _AvoidTestTimeoutsVisitor(this.analyzer);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     final name = node.methodName.name;
-    if (name == 'test' || name == 'group') {
-      _isInTestBlock = true;
+    if (_testBlockMethods.contains(name)) {
+      _testBlockDepth++;
       super.visitMethodInvocation(node);
-      _isInTestBlock = false;
-    } else if (name == 'setUp' || name == 'tearDown') {
-      _isInTestBlock = true;
-      super.visitMethodInvocation(node);
-      _isInTestBlock = false;
+      _testBlockDepth--;
     } else {
       if (_isInTestBlock && name == 'timeout') {
         issues.add(analyzer.createIssue(node));
@@ -80,9 +88,9 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
     final parent = node.parent;
     if (parent is ClassDeclaration &&
         parent.extendsClause?.superclass.toString() == 'Module') {
-      _isInTestBlock = true;
+      _testBlockDepth++;
       super.visitMethodDeclaration(node);
-      _isInTestBlock = false;
+      _testBlockDepth--;
     } else {
       super.visitMethodDeclaration(node);
     }
