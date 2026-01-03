@@ -429,6 +429,80 @@ abstract class SecureRepository {
 }
 ```
 
+### prevent_feature_module_dependencies
+
+Enforces feature module independence by preventing feature modules from depending on other feature modules. This rule ensures that each feature can be developed, tested, and deployed in isolation, reducing coupling and improving modularity.
+
+#### Bad ❌
+```dart
+// lib/features/checkout/presentation/pages/checkout_page.dart
+import 'package:project/features/product/data/models/product.dart'; // LINT: Feature importing another feature
+import 'package:project/features/payment/domain/entities/payment.dart'; // LINT: Feature importing another feature
+
+class CheckoutPage {
+  void displayProduct(Product product) {
+    print('Product: ${product.name}');
+  }
+
+  void processPayment(Payment payment) {
+    print('Payment: ${payment.amount}');
+  }
+}
+```
+
+#### Good ✅
+```dart
+// lib/features/checkout/presentation/pages/checkout_page.dart
+
+// Good: Imports from the same feature
+import 'package:project/features/checkout/domain/entities/order.dart';
+import 'package:project/features/checkout/data/models/checkout_model.dart';
+import '../presentation/widgets/payment_form.dart'; // Relative imports are OK
+
+// Good: Imports from core/shared layers (available to all features)
+import 'package:project/core/constants/app_constants.dart';
+import 'package:project/shared/widgets/app_button.dart';
+
+// Good: External packages
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class CheckoutPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Checkout')),
+      body: Column(
+        children: [
+          AppButton(label: 'Continue', onPressed: () {}),
+          const PaymentForm(),
+        ],
+      ),
+    );
+  }
+}
+```
+
+#### Allowed Patterns
+- **Same feature imports**: Features can import from their own feature (`package:project/features/{same_feature}/...`)
+- **Relative imports**: Features can use relative imports within the same feature
+- **Core/Shared layers**: All features can import from core, shared, and utility layers
+- **External packages**: All features can import from Flutter, Dart SDK, and pub.dev packages
+- **Non-feature files**: Files outside the features directory (like `main.dart`, `app.dart`) can import features for initialization
+
+#### Feature Structure
+```
+lib/
+├── features/
+│   ├── auth/              # Independent feature
+│   ├── product/           # Independent feature
+│   ├── checkout/          # Independent feature
+│   └── payment/           # Independent feature
+├── core/                  # Shared by all features ✅
+├── shared/                # Shared by all features ✅
+└── utils/                 # Shared by all features ✅
+```
+
 
 ## Registering a Custom Lint Rule
 
@@ -567,6 +641,7 @@ This configuration file includes all our custom lint rules:
 - `todo_with_story_links` - Ensure TODO comments include YouTrack story links
 - `no_internal_method_docs` - Forbid documentation on private methods to reduce noise
 - `document_interface` - Enforce documentation on abstract classes and their public methods
+- `prevent_feature_module_dependencies` - Enforce feature module independence by preventing features from depending on other features
 
 #### Rule Configuration
 - Each rule is listed under the `rules` section

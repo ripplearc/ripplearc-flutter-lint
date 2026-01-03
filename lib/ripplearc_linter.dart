@@ -14,6 +14,7 @@ import 'custom_lint_rules/document_interface.dart';
 import 'custom_lint_rules/private_subject.dart';
 import 'custom_lint_rules/specific_exception_types.dart';
 import 'custom_lint_rules/test_file_mutation_coverage.dart';
+import 'custom_lint_rules/prevent_feature_module_dependencies.dart';
 
 PluginBase createPlugin() => _RipplearcLintRules();
 
@@ -35,6 +36,6 @@ class _RipplearcLintRules extends PluginBase {
     SealedOverDynamic(),
     SpecificExceptionTypes(),
     TestFileMutationCoverage(),
+    PreventFeatureModuleDependencies(),
   ];
 }
-
