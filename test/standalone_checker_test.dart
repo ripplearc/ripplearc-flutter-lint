@@ -22,10 +22,10 @@ void main() {
     });
 
     group('Bridge Initialization and Configuration', () {
-      test('should initialize with all 14 custom lint analyzers', () {
+      test('should initialize with all 15 custom lint analyzers', () {
         final checker = StandaloneLintChecker();
 
-        expect(checker.analyzers.length, equals(14));
+        expect(checker.analyzers.length, equals(15));
 
         final ruleNames = checker.analyzers.map((a) => a.ruleName).toSet();
         final expectedRules = {
@@ -43,6 +43,7 @@ void main() {
           'no_optional_operators_in_tests',
           'prefer_fake_over_mock',
           'test_file_mutation_coverage',
+          'prevent_feature_module_dependencies',
         };
 
         expect(ruleNames, equals(expectedRules));

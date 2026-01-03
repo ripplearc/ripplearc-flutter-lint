@@ -697,6 +697,7 @@ To update your project to use the latest version of `ripplearc_linter` and enabl
        - document_interface
        - todo_with_story_links
        - no_internal_method_docs
+       - prevent_feature_module_dependencies
      ```
    - Only include the rules you want to enforce in your project.
 

@@ -3,19 +3,20 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:ripplearc_linter/core/analyzers/avoid_static_typography_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/avoid_static_colors_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/sealed_over_dynamic_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/private_subject_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/specific_exception_types_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/document_fake_parameters_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/document_interface_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/no_internal_method_docs_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/todo_with_story_links_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/no_optional_operators_in_tests_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/prefer_fake_over_mock_analyzer.dart';
- import 'package:ripplearc_linter/core/analyzers/test_file_mutation_coverage_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/prevent_feature_module_dependencies_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/sealed_over_dynamic_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/private_subject_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/specific_exception_types_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/document_fake_parameters_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/document_interface_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/no_internal_method_docs_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/todo_with_story_links_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/no_optional_operators_in_tests_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/prefer_fake_over_mock_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/test_file_mutation_coverage_analyzer.dart';
 import 'package:path/path.dart' as p;
 import 'package:analyzer/dart/analysis/utilities.dart';
 
@@ -73,6 +74,7 @@ class StandaloneLintChecker {
     NoOptionalOperatorsInTestsAnalyzer(),
     PreferFakeOverMockAnalyzer(),
     TestFileMutationCoverageAnalyzer(),
+    PreventFeatureModuleDependenciesAnalyzer(),
     // Add other analyzers here as you refactor them
   ];
 
@@ -161,7 +163,8 @@ class StandaloneLintChecker {
     if (enabledRules == null) return false;
     return enabledRules.any(
       (rule) =>
-          _testOnlyRuleNames.contains(rule) || _bothFilesRuleNames.contains(rule),
+          _testOnlyRuleNames.contains(rule) ||
+          _bothFilesRuleNames.contains(rule),
     );
   }
 
@@ -339,10 +342,14 @@ void main(List<String> args) async {
 
   if (files.isEmpty) {
     print('Usage:');
-    print('  dart run ripplearc_linter:standalone_checker [--rules rule1,rule2] <files_or_directories>');
-    print('  standalone_checker [--rules rule1,rule2] <files_or_directories>   (after global activate)');
     print(
-      'Available rules: avoid_static_typography, avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage',
+      '  dart run ripplearc_linter:standalone_checker [--rules rule1,rule2] <files_or_directories>',
+    );
+    print(
+      '  standalone_checker [--rules rule1,rule2] <files_or_directories>   (after global activate)',
+    );
+    print(
+      'Available rules: avoid_static_typography, avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage , prevent_feature_module_dependencies',
     );
     exit(1);
   }

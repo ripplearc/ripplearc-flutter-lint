@@ -37,13 +37,13 @@ class BadCheckoutFeature {
 
 class CorrectCheckoutFeature {
   // ✅ GOOD: Imports from the same feature
-  void loadCheckoutData() {
+  void loadEstimationData() {
     // These imports are allowed (same feature):
     // import 'package:project/features/checkout/domain/entities/order.dart';
     // import 'package:project/features/checkout/data/models/checkout_model.dart';
     // import '../domain/repositories/checkout_repository.dart'; // relative import
 
-    print('Loading checkout data from same feature');
+    print('Loading estimation data from same feature');
   }
 
   // ✅ GOOD: Imports from core layer (available to all features)
@@ -85,12 +85,12 @@ class CorrectCheckoutFeature {
 // DEPENDENCY RULES:
 //
 // ❌ FORBIDDEN: Feature → Feature dependencies
-//    auth CANNOT import from product, checkout, payment, etc.
-//    product CANNOT import from auth, checkout, payment, etc.
+//    auth CANNOT import from dashboard, checkout, payment, etc.
+//    dashboard CANNOT import from auth, checkout, payment, etc.
 //
 // ✅ ALLOWED: Feature → Same Feature dependencies
 //    auth CAN import from auth/
-//    product CAN import from product/
+//    dashboard CAN import from dashboard/
 //    (Absolute: package:project/features/auth/...)
 //    (Relative: ../domain/..., ../data/...)
 //
@@ -111,10 +111,4 @@ class CorrectCheckoutFeature {
 //    lib/app/app.dart CAN import features (DI setup)
 //    This is allowed because these are bootstrap files, not feature modules.
 //
-// BENEFITS:
-// • Features can be developed independently
-// • Reduced coupling between features
-// • Easier to add/remove features from the project
-// • Better testability (no circular dependencies)
-// • Cleaner architecture and separation of concerns
 // ============================================================================

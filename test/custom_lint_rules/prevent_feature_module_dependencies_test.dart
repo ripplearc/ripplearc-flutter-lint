@@ -28,10 +28,10 @@ void main() {
 
     group('feature module violations', () {
       test(
-        'should flag when auth feature imports from product feature',
+        'should flag when auth feature imports from dashboard feature',
         () async {
           const source = '''
-        import 'package:project/features/product/data/models/product.dart';
+        import 'package:project/features/dashboard/data/models/dashboard.dart';
         
         void main() {
           print('Hello');
@@ -50,7 +50,7 @@ void main() {
       );
 
       test(
-        'should flag when product feature imports from auth feature',
+        'should flag when dashboard feature imports from auth feature',
         () async {
           const source = '''
         import 'package:project/features/auth/data/models/user.dart';
