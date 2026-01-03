@@ -44,7 +44,9 @@ void main() {
           expect(reporter.errors, hasLength(1));
           expect(
             reporter.errors.first.message.toString(),
-            equals('Feature modules cannot depend on other feature modules.'),
+            equals(
+              'Avoid importing from other feature modules; extract shared code to core/shared layers or a common package.',
+            ),
           );
         },
       );
@@ -423,7 +425,9 @@ void main() {
         final message = reporter.errors.first.message.toString();
         expect(
           message,
-          equals('Feature modules cannot depend on other feature modules.'),
+          equals(
+            'Avoid importing from other feature modules; extract shared code to core/shared layers or a common package.',
+          ),
         );
       });
     });

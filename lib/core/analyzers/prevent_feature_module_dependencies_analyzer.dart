@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
+import '../utils/feature_path_utils.dart';
 
 /// Analyzer that enforces feature module independence.
 ///
@@ -36,7 +37,7 @@ class PreventFeatureModuleDependenciesAnalyzer extends BaseAnalyzer {
 
   @override
   String get problemMessage =>
-      'Feature modules cannot depend on other feature modules.';
+      'Avoid importing from other feature modules; extract shared code to core/shared layers or a common package.';
 
   @override
   String get correctionMessage =>
@@ -53,12 +54,12 @@ class PreventFeatureModuleDependenciesAnalyzer extends BaseAnalyzer {
     final path = resolver.path ?? '';
 
     // Only check files that are in the features directory
-    if (!_isFeatureModuleFile(path)) {
+    if (!isFeatureModuleFile(path)) {
       return [];
     }
 
     // Extract the current feature name from the file path
-    final currentFeature = _extractFeatureNameFromPath(path);
+    final currentFeature = extractFeatureNameFromPath(path);
     if (currentFeature == null) {
       return [];
     }
@@ -68,44 +69,8 @@ class PreventFeatureModuleDependenciesAnalyzer extends BaseAnalyzer {
     return visitor.issues;
   }
 
-  /// Checks if a file is part of a feature module.
-  /// A file is considered part of a feature module if its path contains
-  /// 'lib/features/{feature_name}' directory structure.
-  bool _isFeatureModuleFile(String path) {
-    final normalized = path.replaceAll('\\', '/');
-    return normalized.contains('/lib/features/');
-  }
-
-  /// Extracts the feature name from a file path.
-  /// For example: '/project/lib/features/auth/presentation/screens/login.dart' -> 'auth'
-  String? _extractFeatureNameFromPath(String path) {
-    final normalized = path.replaceAll('\\', '/');
-
-    // Look for the pattern: /lib/features/{feature_name}/
-    final match = RegExp(r'/lib/features/([^/]+)/').firstMatch(normalized);
-
-    if (match != null && match.groupCount >= 1) {
-      return match.group(1);
-    }
-
-    return null;
-  }
-
-  /// Checks if an import is from a feature module.
-  /// Returns the feature name if it is (e.g., 'product'), or null if it's not.
-  String? _extractFeatureNameFromImport(String importUri) {
-    // We're looking for patterns like:
-    // 'package:project/features/product/data/models/product.dart'
-    // The package name could be any project name, so we just look for /features/{feature_name}/
-
-    final match = RegExp(r'/features/([^/]+)/').firstMatch(importUri);
-
-    if (match != null && match.groupCount >= 1) {
-      return match.group(1);
-    }
-
-    return null;
-  }
+  // Helper methods moved to `lib/core/utils/feature_path_utils.dart` to
+  // centralize logic and caching for feature path extraction and normalization.
 }
 
 class _FeatureDependencyVisitor extends RecursiveAstVisitor<void> {
@@ -136,7 +101,7 @@ class _FeatureDependencyVisitor extends RecursiveAstVisitor<void> {
     }
 
     // Check if this import is from another feature module
-    final importedFeature = analyzer._extractFeatureNameFromImport(uri);
+    final importedFeature = extractFeatureNameFromImport(uri);
 
     if (importedFeature != null && importedFeature != currentFeature) {
       // This is an import from a different feature module - violation!
