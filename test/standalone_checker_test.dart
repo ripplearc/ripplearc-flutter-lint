@@ -43,7 +43,7 @@ void main() {
           'no_optional_operators_in_tests',
           'prefer_fake_over_mock',
           'test_file_mutation_coverage',
-          'prevent_feature_module_dependencies',
+          'feature_module_isolation',
         };
 
         expect(ruleNames, equals(expectedRules));
