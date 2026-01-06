@@ -8,8 +8,8 @@
 // ❌ BAD EXAMPLES: Feature modules depending on other feature modules
 // ============================================================================
 
-class BadCheckoutFeature {
-  // Bad: Features in /lib/features/checkout/ importing from /lib/features/dashboard/
+class BadEstimationFeature {
+  // Bad: Features in /lib/features/estimation/ importing from /lib/features/dashboard/
   // LINT: Feature modules cannot depend on other feature modules.
   void displayDashboard() {
     // Imagine this imports from: package:project/features/dashboard/...
@@ -37,21 +37,11 @@ class CorrectCheckoutFeature {
   // ✅ GOOD: Imports from the same feature
   void loadEstimationData() {
     // These imports are allowed (same feature):
-    // import 'package:project/features/checkout/domain/entities/order.dart';
-    // import 'package:project/features/checkout/data/models/checkout_model.dart';
-    // import '../domain/repositories/checkout_repository.dart'; // relative import
+    // import 'package:project/features/estimation/domain/entities/order.dart';
+    // import 'package:project/features/estimation/data/models/estimation_model.dart';
+    // import '../domain/repositories/estimation_repository.dart'; // relative import
 
     print('Loading estimation data from same feature');
-  }
-
-  // ✅ GOOD: Imports from core layer (available to all features)
-  void logActivity() {
-    // These imports are allowed (core/shared layers):
-    // import 'package:project/core/constants/app_constants.dart';
-    // import 'package:project/core/services/logger_service.dart';
-    // import 'package:project/shared/widgets/common_button.dart';
-
-    print('Logging activity using core services');
   }
 
   // ✅ GOOD: Imports from external packages

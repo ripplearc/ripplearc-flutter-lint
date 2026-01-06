@@ -44,9 +44,7 @@ void main() {
           expect(reporter.errors, hasLength(1));
           expect(
             reporter.errors.first.message.toString(),
-            equals(
-              'Avoid importing from other feature modules; extract shared code to core/shared layers or a common package.',
-            ),
+            equals('Feature modules must not import other feature modules.'),
           );
         },
       );
@@ -345,9 +343,7 @@ void main() {
         final message = reporter.errors.first.message.toString();
         expect(
           message,
-          equals(
-            'Avoid importing from other feature modules; extract shared code to core/shared layers or a common package.',
-          ),
+          equals('Feature modules must not import other feature modules.'),
         );
       });
     });
