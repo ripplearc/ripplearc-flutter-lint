@@ -435,33 +435,30 @@ Enforces feature module independence by preventing feature modules from dependin
 
 #### Bad ❌
 ```dart
-// lib/features/checkout/presentation/pages/checkout_page.dart
-import 'package:project/features/product/data/models/product.dart'; // LINT: Feature importing another feature
-import 'package:project/features/payment/domain/entities/payment.dart'; // LINT: Feature importing another feature
+// lib/features/estimation/presentation/pages/estimation_page.dart
+import 'package:project/features/estimation/data/models/estimation.dart'; // LINT: Feature importing another feature
+import 'package:project/features/estimation/domain/entities/estimation.dart'; // LINT: Feature importing another feature
 
-class CheckoutPage {
-  void displayProduct(Product product) {
-    print('Product: ${product.name}');
+class DashboardPage {
+  void displayDate(Dashboard dashboard) {
+    print('Date: ${dashboard.date}');
   }
 
-  void processPayment(Payment payment) {
-    print('Payment: ${payment.amount}');
+  void display(ResentAction recentAction) {
+    print('Recent Action: ${recentAction.last}');
   }
 }
 ```
 
 #### Good ✅
 ```dart
-// lib/features/checkout/presentation/pages/checkout_page.dart
+// lib/features/dashboard/presentation/pages/dashboard_page.dart
 
 // Good: Imports from the same feature
-import 'package:project/features/checkout/domain/entities/order.dart';
-import 'package:project/features/checkout/data/models/checkout_model.dart';
-import '../presentation/widgets/payment_form.dart'; // Relative imports are OK
+import 'package:project/features/dashboard/domain/entities/order.dart';
+import 'package:project/features/dashboard/data/models/dashboard_model.dart';
+import '../presentation/widgets/dashboard_form.dart'; // Relative imports are OK
 
-// Good: Imports from core/shared layers (available to all features)
-import 'package:project/core/constants/app_constants.dart';
-import 'package:project/shared/widgets/app_button.dart';
 
 // Good: External packages
 import 'package:flutter/material.dart';
@@ -471,11 +468,11 @@ class CheckoutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(title: const Text('Dashboard')),
       body: Column(
         children: [
           AppButton(label: 'Continue', onPressed: () {}),
-          const PaymentForm(),
+          const DashboardForm(),
         ],
       ),
     );
@@ -486,7 +483,6 @@ class CheckoutPage extends StatelessWidget {
 #### Allowed Patterns
 - **Same feature imports**: Features can import from their own feature (`package:project/features/{same_feature}/...`)
 - **Relative imports**: Features can use relative imports within the same feature
-- **Core/Shared layers**: All features can import from core, shared, and utility layers
 - **External packages**: All features can import from Flutter, Dart SDK, and pub.dev packages
 - **Non-feature files**: Files outside the features directory (like `main.dart`, `app.dart`) can import features for initialization
 
@@ -495,12 +491,11 @@ class CheckoutPage extends StatelessWidget {
 lib/
 ├── features/
 │   ├── auth/              # Independent feature
-│   ├── product/           # Independent feature
-│   ├── checkout/          # Independent feature
-│   └── payment/           # Independent feature
-├── core/                  # Shared by all features ✅
-├── shared/                # Shared by all features ✅
-└── utils/                 # Shared by all features ✅
+│   ├── dashboard/         # Independent feature
+│   ├── estimation/        # Independent feature
+│   └── project/           # Independent feature
+├── libraries/                  
+
 ```
 
 

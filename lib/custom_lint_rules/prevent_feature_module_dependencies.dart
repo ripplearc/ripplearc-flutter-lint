@@ -11,7 +11,7 @@ class PreventFeatureModuleDependencies extends BaseLintRule {
   PreventFeatureModuleDependencies()
     : super(BaseLintRule.createLintCode(_analyzer), bothFiles: true);
 
-  static final _analyzer = PreventFeatureModuleDependenciesAnalyzer();
+  static final _analyzer = FeatureModuleIsolationAnalyzer();
 
   @override
   BaseAnalyzer get analyzer => _analyzer;

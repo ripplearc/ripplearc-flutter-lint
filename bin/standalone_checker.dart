@@ -74,7 +74,7 @@ class StandaloneLintChecker {
     NoOptionalOperatorsInTestsAnalyzer(),
     PreferFakeOverMockAnalyzer(),
     TestFileMutationCoverageAnalyzer(),
-    PreventFeatureModuleDependenciesAnalyzer(),
+    FeatureModuleIsolationAnalyzer(),
     // Add other analyzers here as you refactor them
   ];
 
@@ -343,10 +343,10 @@ void main(List<String> args) async {
   if (files.isEmpty) {
     print('Usage:');
     print(
-      '  dart run ripplearc_linter:standalone_checker [--rules rule1,rule2] <files_or_directories>',
+      'dart run ripplearc_linter:standalone_checker [--rules rule1,rule2] <files_or_directories>',
     );
     print(
-      '  standalone_checker [--rules rule1,rule2] <files_or_directories>   (after global activate)',
+      'standalone_checker [--rules rule1,rule2] <files_or_directories> (after global activate)',
     );
     print(
       'Available rules: avoid_static_typography, avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage , prevent_feature_module_dependencies',

@@ -9,25 +9,23 @@
 // ============================================================================
 
 class BadCheckoutFeature {
-  // Bad: Features in /lib/features/checkout/ importing from /lib/features/product/
+  // Bad: Features in /lib/features/checkout/ importing from /lib/features/dashboard/
   // LINT: Feature modules cannot depend on other feature modules.
-  void displayProduct() {
-    // Imagine this imports from: package:project/features/product/...
-    print('Displaying product'); // ❌ LINT
+  void displayDashboard() {
+    // Imagine this imports from: package:project/features/dashboard/...
+    print('Displaying Dahsboard'); // ❌ LINT
   }
 
   // Bad: Importing from another feature
   // LINT: Feature modules cannot depend on other feature modules.
   void checkUserPermission() {
-    // Imagine this imports from: package:project/features/auth/...
     print('Checking permission'); // ❌ LINT
   }
 
   // Bad: Cross-feature export
   // LINT: Feature modules cannot depend on other feature modules.
-  void processPayment() {
-    // Imagine this exports from: package:project/features/payment/...
-    print('Processing payment'); // ❌ LINT
+  void processProject() {
+    print('Processing project'); // ❌ LINT
   }
 }
 
@@ -75,18 +73,16 @@ class CorrectCheckoutFeature {
 //   lib/
 //   ├── features/
 //   │   ├── auth/               # Feature module (independent)
-//   │   ├── product/            # Feature module (independent)
-//   │   ├── checkout/           # Feature module (independent)
-//   │   └── payment/            # Feature module (independent)
-//   ├── core/                   # Shared utilities (all features depend on this)
-//   ├── shared/                 # Shared widgets (all features depend on this)
-//   └── utils/                  # Helper utilities (all features depend on this)
+//   │   ├── dashboard/          # Feature module (independent)
+//   │   ├── estimation/         # Feature module (independent)
+//   │   └── project/            # Feature module (independent)
+//   ├── libraries/
 //
 // DEPENDENCY RULES:
 //
 // ❌ FORBIDDEN: Feature → Feature dependencies
-//    auth CANNOT import from dashboard, checkout, payment, etc.
-//    dashboard CANNOT import from auth, checkout, payment, etc.
+//    auth CANNOT import from dashboard, estimation, project, etc.
+//    dashboard CANNOT import from auth, estimation, project, etc.
 //
 // ✅ ALLOWED: Feature → Same Feature dependencies
 //    auth CAN import from auth/
@@ -94,21 +90,11 @@ class CorrectCheckoutFeature {
 //    (Absolute: package:project/features/auth/...)
 //    (Relative: ../domain/..., ../data/...)
 //
-// ✅ ALLOWED: Feature → Core/Shared/Utils dependencies
-//    Any feature CAN import from core/, shared/, utils/
-//    (package:project/core/...)
-//    (package:project/shared/...)
-//    (package:project/utils/...)
-//
 // ✅ ALLOWED: Feature → External Package dependencies
 //    Any feature CAN import from external packages
 //    (package:flutter/...)
 //    (package:provider/...)
 //    (Any pub.dev package)
 //
-// ✅ ALLOWED: Non-Feature → Feature dependencies
-//    lib/main.dart CAN import features (initialization context)
-//    lib/app/app.dart CAN import features (DI setup)
-//    This is allowed because these are bootstrap files, not feature modules.
 //
 // ============================================================================

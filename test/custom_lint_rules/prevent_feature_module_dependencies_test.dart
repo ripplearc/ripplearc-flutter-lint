@@ -134,55 +134,6 @@ void main() {
       });
     });
 
-    group('allowed imports - core and shared layers', () {
-      test('should not flag imports from core layer', () async {
-        const source = '''
-        import 'package:project/core/constants/app_constants.dart';
-        import 'package:project/core/utils/validators.dart';
-        
-        void main() {
-          print('Hello');
-        }
-        ''';
-        await analyzeCode(
-          source,
-          path: '/project/lib/features/auth/presentation/screens/login.dart',
-        );
-        expect(reporter.errors, isEmpty);
-      });
-
-      test('should not flag imports from shared layer', () async {
-        const source = '''
-        import 'package:project/shared/widgets/app_button.dart';
-        import 'package:project/shared/themes/app_theme.dart';
-        
-        void main() {
-          print('Hello');
-        }
-        ''';
-        await analyzeCode(
-          source,
-          path: '/project/lib/features/auth/presentation/screens/login.dart',
-        );
-        expect(reporter.errors, isEmpty);
-      });
-
-      test('should not flag imports from utilities layer', () async {
-        const source = '''
-        import 'package:project/utils/helpers/string_helper.dart';
-        
-        void main() {
-          print('Hello');
-        }
-        ''';
-        await analyzeCode(
-          source,
-          path: '/project/lib/features/auth/presentation/screens/login.dart',
-        );
-        expect(reporter.errors, isEmpty);
-      });
-    });
-
     group('allowed imports - external packages', () {
       test('should not flag Flutter SDK imports', () async {
         const source = '''
@@ -262,37 +213,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: '/project/lib/app/app.dart');
-        expect(reporter.errors, isEmpty);
-      });
-
-      test('should not apply rule to core layer files', () async {
-        const source = '''
-        import 'package:project/features/auth/data/models/user.dart';
-        
-        void main() {
-          print('Hello');
-        }
-        ''';
-        await analyzeCode(
-          source,
-          path: '/project/lib/core/di/service_locator.dart',
-        );
-        expect(reporter.errors, isEmpty);
-      });
-
-      test('should not apply rule to shared layer files', () async {
-        const source = '''
-        import 'package:project/features/auth/data/models/user.dart';
-        import 'package:project/features/product/domain/entities/product.dart';
-        
-        void main() {
-          print('Hello');
-        }
-        ''';
-        await analyzeCode(
-          source,
-          path: '/project/lib/shared/widgets/app_button.dart',
-        );
         expect(reporter.errors, isEmpty);
       });
     });
