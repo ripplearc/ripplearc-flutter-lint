@@ -1,14 +1,28 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
+/// Provides context-based exclusion checks for direct instantiation analysis.
+///
+/// This class checks if an instantiation should be excluded based on its surrounding
+/// context in the code, such as:
+/// - Const constructors and const contexts
+/// - Factory constructors
+/// - Module class contexts
+/// - Module binds/exportedBinds methods
 class ContextChecker {
+  static bool _extendsModule(ExtendsClause? extendsClause) {
+    return extendsClause != null &&
+        extendsClause.superclass.name2.lexeme == 'Module';
+  }
+
   static bool isExcludedByContext(InstanceCreationExpression node) {
     if (node.keyword?.lexeme == 'const') return true;
 
     AstNode? current = node.parent;
     while (current != null) {
       if (current is ListLiteral && current.constKeyword != null) return true;
-      if (current is SetOrMapLiteral && current.constKeyword != null) return true;
+      if (current is SetOrMapLiteral && current.constKeyword != null)
+        return true;
       if (current is ArgumentList) {
         final parent = current.parent;
         if (parent is InstanceCreationExpression &&
@@ -16,23 +30,24 @@ class ContextChecker {
           return true;
         }
       }
-      
+
       if (current is ConstructorDeclaration) {
         if (current.factoryKeyword != null) return true;
         break;
       }
-      
+
       if (current is SuperConstructorInvocation ||
           current is ConstructorInitializer) {
         return true;
       }
-      
-      if (current is MethodDeclaration) break;
+
+      if (current is MethodDeclaration || current is FunctionDeclaration) break;
       current = current.parent;
     }
 
     final constructorElement = node.constructorName.staticElement;
-    if (constructorElement is ConstructorElement && constructorElement.isConst) {
+    if (constructorElement is ConstructorElement &&
+        constructorElement.isConst) {
       return true;
     }
 
@@ -47,19 +62,24 @@ class ContextChecker {
     CompilationUnit? compilationUnit;
 
     while (current != null) {
-      if (current is MethodDeclaration && methodDecl == null) methodDecl = current;
-      if (current is FunctionDeclaration && functionDecl == null) functionDecl = current;
+      if (current is MethodDeclaration && methodDecl == null)
+        methodDecl = current;
+      if (current is FunctionDeclaration && functionDecl == null)
+        functionDecl = current;
       if (current is ClassDeclaration && classDecl == null) classDecl = current;
-      if (current is CompilationUnit && compilationUnit == null) compilationUnit = current;
-      if (methodDecl != null && classDecl != null && compilationUnit != null) break;
+      if (current is CompilationUnit && compilationUnit == null)
+        compilationUnit = current;
+      if (methodDecl != null && classDecl != null && compilationUnit != null)
+        break;
       current = current.parent;
     }
 
     if (methodDecl != null && classDecl != null) {
       final methodName = methodDecl.name.lexeme;
-      if (methodName == 'binds' || methodName == 'exportedBinds' || methodName.startsWith('_')) {
-        final extendsClause = classDecl.extendsClause;
-        if (extendsClause != null && extendsClause.superclass.name2.lexeme == 'Module') {
+      if (methodName == 'binds' ||
+          methodName == 'exportedBinds' ||
+          methodName.startsWith('_')) {
+        if (_extendsModule(classDecl.extendsClause)) {
           return true;
         }
       }
@@ -70,8 +90,7 @@ class ContextChecker {
       if (functionName.startsWith('_')) {
         for (final decl in compilationUnit.declarations) {
           if (decl is ClassDeclaration) {
-            final extendsClause = decl.extendsClause;
-            if (extendsClause != null && extendsClause.superclass.name2.lexeme == 'Module') {
+            if (_extendsModule(decl.extendsClause)) {
               return true;
             }
           }
@@ -86,8 +105,7 @@ class ContextChecker {
     AstNode? current = node.parent;
     while (current != null) {
       if (current is ClassDeclaration) {
-        final extendsClause = current.extendsClause;
-        if (extendsClause != null && extendsClause.superclass.name2.lexeme == 'Module') {
+        if (_extendsModule(current.extendsClause)) {
           return true;
         }
         break;
@@ -97,15 +115,12 @@ class ContextChecker {
     return false;
   }
 
-  static bool isExcludedClass(String className, InstanceCreationExpression node) {
+  static bool isExcludedClass(String className, AstNode node) {
     if (className.endsWith('Factory')) return true;
 
     final classDecl = findClassDeclaration(className, node);
-    if (classDecl != null) {
-      final extendsClause = classDecl.extendsClause;
-      if (extendsClause != null && extendsClause.superclass.name2.lexeme == 'Module') {
-        return true;
-      }
+    if (classDecl != null && _extendsModule(classDecl.extendsClause)) {
+      return true;
     }
     return false;
   }
