@@ -4,6 +4,13 @@ import 'models.dart';
 import 'patterns.dart';
 import 'context_checker.dart';
 
+/// Provides type-based exclusion checks for direct instantiation analysis.
+///
+/// This class checks if a class instantiation should be excluded based on:
+/// - Class hierarchy (subtypes of Widget, State, Exception, etc.)
+/// - Library/package imports (Flutter, BLoC, etc.)
+/// - Domain entity patterns
+/// - Sealed class patterns
 class TypeChecker {
   static bool isExcludedBySubtype(InstanceCreationExpression node) {
     try {
@@ -76,7 +83,11 @@ class TypeChecker {
       if (DirectInstantiationPatterns.isExcludedByPackage(libraryUri)) return true;
 
       return false;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      assert(() {
+        print('TypeChecker.isExcludedBySubtype error: $e\n$stackTrace');
+        return true;
+      }());
       return false;
     }
   }
@@ -100,9 +111,12 @@ class TypeChecker {
       }
 
       return false;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      assert(() {
+        print('TypeChecker.isSealedClass error: $e\n$stackTrace');
+        return true;
+      }());
       return false;
     }
   }
 }
-
