@@ -4,31 +4,28 @@
 
 ### Critical Bug Fixes
 
-- **Fixed rule not detecting violations**: The `no_direct_instantiation` rule was not flagging direct class instantiations that should have been caught. The rule now correctly identifies and reports violations in production code.
+- **Fixed rule not detecting violations**: Rule now correctly flags direct instantiations in production code.
 
-- **Fixed false positives in Module classes**: The rule was incorrectly flagging legitimate instantiations inside Module `binds()` and `exportedBinds()` methods. These are now correctly excluded as they are part of dependency injection setup.
+- **Fixed false positives in Module classes**: Instantiations in Module `binds()` and `exportedBinds()` methods are now correctly excluded.
 
-- **Fixed missing exclusions for const and factory constructors**: The rule was flagging `const` constructors and factory constructors, which should be allowed. These are now correctly excluded.
+- **Fixed missing exclusions for const and factory constructors**: `const` and factory constructors are now correctly excluded.
 
-- **Fixed missing exclusions for Flutter widgets and BLoC patterns**: The rule was incorrectly flagging legitimate instantiations of Flutter widgets, BLoC states, and events. These are now correctly excluded.
+- **Fixed missing exclusions for Flutter widgets and BLoC patterns**: Flutter widgets, BLoC states, and events are now correctly excluded.
 
-- **Fixed missing exclusions for DTOs, entities, and models**: The rule was flagging data transfer objects, domain entities, and model classes that should be allowed. These are now correctly excluded based on class name patterns, file paths, and import sources.
+- **Fixed missing exclusions for DTOs, entities, and models**: DTOs, entities, and models are now correctly excluded based on class name patterns, file paths, and import sources.
 
-- **Fixed missing exclusions for test files**: The rule was flagging instantiations in test files, which should be allowed. Test files are now correctly excluded.
+- **Fixed missing exclusions for test files**: Test files are now correctly excluded.
 
-- **Fixed missing exclusions for whitelisted packages**: The rule was flagging instantiations from Flutter, BLoC, Supabase, and other whitelisted packages. These are now correctly excluded.
+- **Fixed missing exclusions for whitelisted packages**: Instantiations from Flutter, BLoC, Supabase, and other whitelisted packages are now correctly excluded.
 
-### Improvements
-
-- **Enhanced exclusion patterns**: The rule now correctly handles 14 categories of legitimate instantiation patterns, including Factory classes, Module classes, const/factory constructors, Flutter widgets, BLoC states/events, DTOs/entities/models, test files, private constructors, sealed classes, and whitelisted packages.
 
 ## 0.2.2 - AvoidTestTimeouts Analyzer Bug Fixes (patch)
 
 ### Bug Fixes
 
-- **Fixed nested test/group block detection**: The `avoid_test_timeouts` analyzer now correctly tracks nested `test`, `group`, and `testWidgets` blocks using a depth counter instead of a boolean flag. Previously, timeout violations in code between nested blocks were not detected.
-- **Added `testWidgets` support**: Flutter widget tests using `testWidgets` are now correctly recognized and analyzed for timeout violations.
-- **Added `setUpAll` and `tearDownAll` support**: These test lifecycle methods are now correctly analyzed for timeout violations, matching the existing `setUp` and `tearDown` behavior.
+- **Fixed nested test/group block detection**: Analyzer now correctly tracks nested `test`, `group`, and `testWidgets` blocks using a depth counter.
+- **Added `testWidgets` support**: Flutter widget tests using `testWidgets` are now correctly recognized.
+- **Added `setUpAll` and `tearDownAll` support**: These test lifecycle methods are now correctly analyzed for timeout violations.
 
 ### Technical Details
 
@@ -41,19 +38,19 @@
 
 ### Bug Fixes
 
-- Corrected theme exclusion paths: `avoid_static_colors` and `avoid_static_typography` now skip files under `lib/src/theme` and `test/theme` (previously missed). Applies to both production and test targets.
-- Path handling is normalized so the exclusions work on Windows and Unix.
+- Corrected theme exclusion paths: `avoid_static_colors` and `avoid_static_typography` now skip files under `lib/src/theme` and `test/theme`.
+- Path handling normalized for Windows and Unix compatibility.
 
 ### Improvements
 
-- The two rules(avoid_static_colors and avoid_static_typography) now run on both production and test files, while still excluding theme files in both locations. This keeps color and typography enforcement consistent across the codebase.
+- Rules now run on both production and test files while excluding theme files in both locations.
 
 ## 0.2.0 - Static Colors & Typography Rules
 
 ### New Features
 
-- **`avoid_static_colors`**: New production rule that forbids using static color definitions (e.g., `CoreTextColors`, `Colors.white`, `Color(0xFF...)`) in UI code and enforces theme-extension based colors for proper light/dark support.
-- **`avoid_static_typography`**: New production rule that forbids using static typography definitions (`CoreTypography.*`), raw `TextStyle(...)` constructors, and `GoogleFonts.*` in UI code, enforcing typography access via `Theme.of(context).extension<TypographyExtension>()`.
+- **`avoid_static_colors`**: Forbids static color definitions and enforces theme-extension based colors.
+- **`avoid_static_typography`**: Forbids static typography definitions and enforces typography access via theme extensions.
 
 ### Improvements
 
@@ -63,22 +60,21 @@
 
 ### Bug Fixes
 
-- **Fixed nested test/group state tracking**: The analyzer now correctly tracks nested `test`, `group`, and `testWidgets` blocks using depth counters instead of boolean flags. Previously, optional operators after nested blocks were not detected.
-- **Fixed missing `??=` operator detection**: The null-aware assignment operator is now correctly flagged in test blocks.
-- **Fixed missing `?[]` operator detection**: The null-aware index operator is now correctly flagged in test blocks.
-- **Fixed missing `testWidgets` support**: Flutter widget tests using `testWidgets` are now correctly recognized as test blocks.
-- **Fixed missing `setUpAll`/`tearDownAll` exclusion**: These lifecycle methods are now correctly excluded from linting, matching the existing `setUp`/`tearDown` behavior.
+- **Fixed nested test/group state tracking**: Analyzer now correctly tracks nested blocks using depth counters.
+- **Fixed missing `??=` operator detection**: Null-aware assignment operator is now correctly flagged.
+- **Fixed missing `?[]` operator detection**: Null-aware index operator is now correctly flagged.
+- **Fixed missing `testWidgets` support**: Flutter widget tests using `testWidgets` are now correctly recognized.
+- **Fixed missing `setUpAll`/`tearDownAll` exclusion**: These lifecycle methods are now correctly excluded.
 
 ## 0.1.3 - Standalone Checker Rule Filtering Fix
 
 ### Bug Fixes
 
-- **Fixed rule filtering**: Fixed `standalone_checker` to properly filter rules based on file type when both test and production rules are specified together. Test-only rules are now correctly applied only to test files, and production rules are only applied to production files, preventing incorrect rule application.
+- **Fixed rule filtering**: `standalone_checker` now properly filters rules based on file type when both test and production rules are specified.
 
 ### Technical Details
 
-- When test rules (e.g., `avoid_test_timeouts`, `no_optional_operators_in_tests`, `prefer_fake_over_mock`, `document_fake_parameters`, `test_file_mutation_coverage`) and production rules are specified together, the checker now correctly applies the appropriate rules to the correct file types.
-- This fix ensures that test files are only checked with test-specific rules and production files are only checked with production rules, even when both rule types are enabled in the same command.
+- Checker now correctly applies test rules to test files and production rules to production files when both are specified.
 
 ## 0.1.2 - Standalone Checker Enhancement
 
