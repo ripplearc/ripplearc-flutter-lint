@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.3 - No Direct Instantiation Rule Critical Bug Fixes (patch)
+
+### Critical Bug Fixes
+
+- **Fixed rule not detecting violations**: The `no_direct_instantiation` rule was not flagging direct class instantiations that should have been caught. The rule now correctly identifies and reports violations in production code.
+
+- **Fixed false positives in Module classes**: The rule was incorrectly flagging legitimate instantiations inside Module `binds()` and `exportedBinds()` methods. These are now correctly excluded as they are part of dependency injection setup.
+
+- **Fixed missing exclusions for const and factory constructors**: The rule was flagging `const` constructors and factory constructors, which should be allowed. These are now correctly excluded.
+
+- **Fixed missing exclusions for Flutter widgets and BLoC patterns**: The rule was incorrectly flagging legitimate instantiations of Flutter widgets, BLoC states, and events. These are now correctly excluded.
+
+- **Fixed missing exclusions for DTOs, entities, and models**: The rule was flagging data transfer objects, domain entities, and model classes that should be allowed. These are now correctly excluded based on class name patterns, file paths, and import sources.
+
+- **Fixed missing exclusions for test files**: The rule was flagging instantiations in test files, which should be allowed. Test files are now correctly excluded.
+
+- **Fixed missing exclusions for whitelisted packages**: The rule was flagging instantiations from Flutter, BLoC, Supabase, and other whitelisted packages. These are now correctly excluded.
+
+### Improvements
+
+- **Enhanced exclusion patterns**: The rule now correctly handles 14 categories of legitimate instantiation patterns, including Factory classes, Module classes, const/factory constructors, Flutter widgets, BLoC states/events, DTOs/entities/models, test files, private constructors, sealed classes, and whitelisted packages.
+
 ## 0.2.2 - AvoidTestTimeouts Analyzer Bug Fixes (patch)
 
 ### Bug Fixes
