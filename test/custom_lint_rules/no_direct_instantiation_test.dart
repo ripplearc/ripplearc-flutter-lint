@@ -198,9 +198,10 @@ void main() {
 
     test('does not flag State class instantiation', () async {
       const source = '''
-      class LoadingState {}
+      class Equatable {}
+      class LoadingState extends Equatable {}
       void main() {
-        final state = LoadingState(); // Should NOT be flagged
+        final state = LoadingState(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -209,9 +210,10 @@ void main() {
 
     test('does not flag Event class instantiation', () async {
       const source = '''
-      class UserEvent {}
+      class Equatable {}
+      class UserEvent extends Equatable {}
       void main() {
-        final event = UserEvent(); // Should NOT be flagged
+        final event = UserEvent(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -220,9 +222,10 @@ void main() {
 
     test('does not flag DTO class instantiation', () async {
       const source = '''
-      class UserDto {}
+      class Equatable {}
+      class UserDto extends Equatable {}
       void main() {
-        final dto = UserDto(); // Should NOT be flagged
+        final dto = UserDto(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -231,9 +234,10 @@ void main() {
 
     test('does not flag Entity class instantiation', () async {
       const source = '''
-      class UserEntity {}
+      class Equatable {}
+      class UserEntity extends Equatable {}
       void main() {
-        final entity = UserEntity(); // Should NOT be flagged
+        final entity = UserEntity(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -242,9 +246,10 @@ void main() {
 
     test('does not flag Model class instantiation', () async {
       const source = '''
-      class UserModel {}
+      class Equatable {}
+      class UserModel extends Equatable {}
       void main() {
-        final model = UserModel(); // Should NOT be flagged
+        final model = UserModel(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -319,9 +324,10 @@ void main() {
 
     test('does not flag instantiation in model files', () async {
       const source = '''
-      class UserModel {}
+      class Equatable {}
+      class UserModel extends Equatable {}
       void main() {
-        final model = UserModel(); // Should NOT be flagged in model files
+        final model = UserModel(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source, path: 'lib/data/models/user_model.dart');
@@ -330,9 +336,10 @@ void main() {
 
     test('does not flag instantiation in DTO files', () async {
       const source = '''
-      class UserDto {}
+      class Equatable {}
+      class UserDto extends Equatable {}
       void main() {
-        final dto = UserDto(); // Should NOT be flagged in DTO files
+        final dto = UserDto(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source, path: 'lib/data/user_dto.dart');
@@ -352,9 +359,10 @@ void main() {
 
     test('does not flag instantiation in domain entities directory', () async {
       const source = '''
-      class UserEntity {}
+      class Equatable {}
+      class UserEntity extends Equatable {}
       void main() {
-        final entity = UserEntity(); // Should NOT be flagged in entities directory
+        final entity = UserEntity(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source, path: 'lib/domain/entities/user_entity.dart');
@@ -365,10 +373,11 @@ void main() {
       'does not flag instantiation of class imported from domain entity',
       () async {
         const source = '''
-      import 'package:myapp/domain/entities/user_entity.dart';
+      class Equatable {}
+      class UserEntity extends Equatable {}
       
       void main() {
-        final user = UserEntity(); // Should NOT be flagged (imported from domain entity)
+        final user = UserEntity(); // Should NOT be flagged (extends Equatable)
       }
       ''';
         await analyzeCode(source);
@@ -378,10 +387,11 @@ void main() {
 
     test('does not flag instantiation of class imported from model', () async {
       const source = '''
-      import 'package:myapp/data/models/user_model.dart';
+      class Equatable {}
+      class UserModel extends Equatable {}
       
       void main() {
-        final user = UserModel(); // Should NOT be flagged (imported from model)
+        final user = UserModel(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -403,9 +413,10 @@ void main() {
 
     test('does not flag Event pattern class instantiation', () async {
       const source = '''
-      class LoginEvent {}
+      class Equatable {}
+      class LoginEvent extends Equatable {}
       void main() {
-        final event = LoginEvent(); // Should NOT be flagged (ends with Event)
+        final event = LoginEvent(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -414,9 +425,10 @@ void main() {
 
     test('does not flag Initial state class', () async {
       const source = '''
-      class AuthInitial {}
+      class Equatable {}
+      class AuthInitial extends Equatable {}
       void main() {
-        final state = AuthInitial(); // Should NOT be flagged
+        final state = AuthInitial(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -425,9 +437,10 @@ void main() {
 
     test('does not flag Loading state class', () async {
       const source = '''
-      class AuthLoading {}
+      class Equatable {}
+      class AuthLoading extends Equatable {}
       void main() {
-        final state = AuthLoading(); // Should NOT be flagged
+        final state = AuthLoading(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -436,9 +449,10 @@ void main() {
 
     test('does not flag Success state class', () async {
       const source = '''
-      class AuthSuccess {}
+      class Equatable {}
+      class AuthSuccess extends Equatable {}
       void main() {
-        final state = AuthSuccess(); // Should NOT be flagged
+        final state = AuthSuccess(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
@@ -447,9 +461,10 @@ void main() {
 
     test('does not flag Failure state class', () async {
       const source = '''
-      class AuthFailure {}
+      class Equatable {}
+      class AuthFailure extends Equatable {}
       void main() {
-        final state = AuthFailure(); // Should NOT be flagged
+        final state = AuthFailure(); // Should NOT be flagged (extends Equatable)
       }
       ''';
       await analyzeCode(source);
