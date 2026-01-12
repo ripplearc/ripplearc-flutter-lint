@@ -83,6 +83,10 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
+    if (ContextChecker.extendsEquatable(className, node)) {
+      return;
+    }
+
     if (node is MethodInvocation) {
       issues.add(createIssue(node));
     }
@@ -129,6 +133,14 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
+    if (constructorName.name != null) {
+      final constructorNameStr = constructorName.name!.name;
+      if (constructorNameStr.startsWith('_')) {
+        super.visitInstanceCreationExpression(node);
+        return;
+      }
+    }
+
     final isExcludedByContext = ContextChecker.isExcludedByContext(node);
     if (isExcludedByContext) {
       super.visitInstanceCreationExpression(node);
@@ -143,20 +155,6 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     if (DirectInstantiationPatterns.isWhitelistedClassName(className)) {
       super.visitInstanceCreationExpression(node);
       return;
-    }
-
-    if (constructorName.name != null) {
-      bool shouldExclude = false;
-
-      if (constructorName.name!.name.startsWith('_')) shouldExclude = true;
-      if (!shouldExclude &&
-          ImportChecker.isImportedFromModelClass(className, node))
-        shouldExclude = true;
-
-      if (shouldExclude) {
-        super.visitInstanceCreationExpression(node);
-        return;
-      }
     }
 
     if (ContextChecker.isInsideModuleBindsMethod(node)) {
@@ -174,18 +172,22 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (ImportChecker.isImportedFromDomainEntity(className, node)) {
-      super.visitInstanceCreationExpression(node);
-      return;
-    }
     if (ImportChecker.isImportedFromExcludedPackage(className, node)) {
       super.visitInstanceCreationExpression(node);
       return;
     }
 
-    if (resolver != null && TypeChecker.isExcludedBySubtype(node)) {
-      super.visitInstanceCreationExpression(node);
-      return;
+    if (resolver != null) {
+      if (TypeChecker.isExcludedBySubtype(node)) {
+        super.visitInstanceCreationExpression(node);
+        return;
+      }
+    } else {
+
+      if (ContextChecker.extendsEquatable(className, node)) {
+        super.visitInstanceCreationExpression(node);
+        return;
+      }
     }
 
     if (TypeChecker.isSealedClass(node)) {

@@ -125,7 +125,10 @@ class ContextChecker {
     return false;
   }
 
-  static ClassDeclaration? findClassDeclaration(String className, AstNode node) {
+  static ClassDeclaration? findClassDeclaration(
+    String className,
+    AstNode node,
+  ) {
     AstNode? current = node;
     while (current != null) {
       if (current is CompilationUnit) {
@@ -140,5 +143,56 @@ class ContextChecker {
     }
     return null;
   }
-}
 
+  static bool extendsEquatable(String className, AstNode node) {
+    try {
+      final classDecl = findClassDeclaration(className, node);
+      if (classDecl == null) return false;
+      return _extendsEquatableRecursive(classDecl, node, <String>{});
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static bool _extendsEquatableRecursive(
+    ClassDeclaration classDecl,
+    AstNode node,
+    Set<String> visited,
+  ) {
+    // Prevent infinite recursion in case of circular inheritance
+    if (visited.contains(classDecl.name.lexeme)) return false;
+    visited.add(classDecl.name.lexeme);
+
+    // Check if this class directly extends Equatable
+    final extendsClause = classDecl.extendsClause;
+    if (extendsClause != null) {
+      final superclassName = extendsClause.superclass.name2.lexeme;
+      if (superclassName == 'Equatable') {
+        return true;
+      }
+      final superclassDecl = findClassDeclaration(superclassName, node);
+      if (superclassDecl != null &&
+          _extendsEquatableRecursive(superclassDecl, node, visited)) {
+        return true;
+      }
+    }
+
+    final implementsClause = classDecl.implementsClause;
+    if (implementsClause != null) {
+      for (final interface in implementsClause.interfaces) {
+        final interfaceName = interface.name2.lexeme;
+        if (interfaceName == 'Equatable') {
+          return true;
+        }
+
+        final interfaceDecl = findClassDeclaration(interfaceName, node);
+        if (interfaceDecl != null &&
+            _extendsEquatableRecursive(interfaceDecl, node, visited)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+}

@@ -2,21 +2,8 @@ class DirectInstantiationPatterns {
   static final List<RegExp> classNamePatterns = [
     RegExp(r'^Left$'),
     RegExp(r'^Right$'),
-    RegExp(r'.*State$'),
-    RegExp(r'.*Event$'),
-    RegExp(r'.*Initial$'),
-    RegExp(r'.*Loading$'),
-    RegExp(r'.*Success$'),
-    RegExp(r'.*Failure$'),
-    RegExp(r'.*Validated$'),
-    RegExp(r'.*InProgress$'),
-    RegExp(r'.*Exception$'),
     RegExp(r'.*Error$'),
     RegExp(r'.*Widget$'),
-    RegExp(r'.*Dto$'),
-    RegExp(r'.*DTO$'),
-    RegExp(r'.*Entity$'),
-    RegExp(r'.*Model$'),
     RegExp(r'.*Value$'),
     RegExp(r'.*Params$'),
     RegExp(r'.*Attributes$'),
@@ -29,24 +16,17 @@ class DirectInstantiationPatterns {
   ];
 
   static final List<RegExp> filePathPatterns = [
-    RegExp(r'.*_dto\.dart$', caseSensitive: false),
-    RegExp(r'.*_model\.dart$', caseSensitive: false),
     RegExp(r'.*testing/.*', caseSensitive: false),
     RegExp(r'.*test/.*', caseSensitive: false),
     RegExp(r'.*main\.dart$', caseSensitive: false),
-    RegExp(r'.*data/models/.*', caseSensitive: false),
     RegExp(r'.*params/.*', caseSensitive: false),
     RegExp(r'.*usecases/params/.*', caseSensitive: false),
-    RegExp(r'.*domain/entities/.*', caseSensitive: false),
   ];
 
   static bool isExcludedByFilePath(String path) {
     if (path.isEmpty) return false;
     final normalizedPath = path.replaceAll('\\', '/');
     if (filePathPatterns.any((pattern) => pattern.hasMatch(normalizedPath))) {
-      return true;
-    }
-    if (normalizedPath.contains('/data/models/')) {
       return true;
     }
     return false;
@@ -69,17 +49,15 @@ class DirectInstantiationPatterns {
   static bool matchesPackage(String libraryUri, String package) {
     if (package == 'dart:core') return libraryUri == 'dart:core';
     if (package == 'dart:async') return libraryUri == 'dart:async';
+    // For package: URLs, check if it starts with the package name
+    // e.g., package:equatable/equatable.dart matches package:equatable/src/equatable.dart
+    if (package.startsWith('package:')) {
+      final packageName = package.split('/')[0]; // e.g., "package:equatable"
+      return libraryUri.startsWith(packageName + '/');
+    }
     return libraryUri.contains(package) || libraryUri.endsWith(package);
   }
 
-  static bool isDomainEntity(String libraryUri) {
-    if (libraryUri.contains('domain/entities/') ||
-        libraryUri.contains('/entities/')) return true;
-    if (libraryUri.endsWith('_entity.dart')) return true;
-    if (libraryUri.contains('project_entity.dart') ||
-        libraryUri.contains('project/domain/entities/')) return true;
-    return false;
-  }
 
   static bool isExcludedByPackage(String libraryUri) {
     if (libraryUri.startsWith('package:flutter/')) return true;

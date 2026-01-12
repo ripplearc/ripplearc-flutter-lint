@@ -46,7 +46,6 @@ class TypeChecker {
         if (supertypeElement.name == 'Object') continue;
 
         if (supertypeElement.name == 'Either') return true;
-        if (supertypeElement.name.endsWith('State')) return true;
 
         final libraryUri = supertypeElement.library.source.uri.toString();
 
@@ -71,7 +70,6 @@ class TypeChecker {
 
       final libraryUri = classElement.library.source.uri.toString();
       if (classElement.name == 'Either') return true;
-      if (DirectInstantiationPatterns.isDomainEntity(libraryUri)) return true;
 
       for (final excludedType in excludedTypes) {
         if (classElement.name == excludedType.name &&
