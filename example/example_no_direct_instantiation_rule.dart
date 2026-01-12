@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 // ============================================================================
 // ❌ BAD: Direct instantiation of classes (VIOLATIONS)
 // ============================================================================
@@ -121,8 +123,6 @@ void example() {
 // ============================================================================
 
 // Good: Widget classes are allowed
-class BuildContext {} // Mock for examples
-
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -139,34 +139,44 @@ class CustomButton extends StatelessWidget {
 }
 
 // ============================================================================
-// ✅ ALLOWED: State classes (BLoC states, Flutter State, etc.)
+// ✅ ALLOWED: State classes (BLoC states that extend Equatable)
 // ============================================================================
 
-// Good: State classes ending with "State" pattern are allowed
-class AuthState {} // ✅ Allowed: Ends with State
-class AuthInitial extends AuthState {} // ✅ Allowed: Initial state
-class AuthLoading extends AuthState {} // ✅ Allowed: Loading state
-class AuthSuccess extends AuthState {} // ✅ Allowed: Success state
-class AuthFailure extends AuthState {} // ✅ Allowed: Failure state
-class AuthInProgress extends AuthState {} // ✅ Allowed: InProgress state
-class AuthValidated extends AuthState {} // ✅ Allowed: Validated state
+// Good: State classes that extend Equatable (or inherit from classes that extend Equatable) are allowed
+// This includes BLoC states which typically extend Equatable for value equality
+class Equatable {} // Mock Equatable class for examples
+
+class State extends Equatable {} // ✅ Allowed: Base State class extending Equatable
+
+class AuthState extends State {} // ✅ Allowed: Extends State (which extends Equatable)
+
+class AuthInitial extends AuthState {} // ✅ Allowed: Inherits from class that extends Equatable
+
+class AuthLoading extends AuthState {} // ✅ Allowed: Inherits from class that extends Equatable
 
 void stateExample() {
   final state = AuthInitial(); // ✅ Allowed: State class
   final loading = AuthLoading(); // ✅ Allowed: State class
+  final baseState = State(); // ✅ Allowed: State class
 }
 
 // ============================================================================
-// ✅ ALLOWED: Event classes (BLoC events)
+// ✅ ALLOWED: Event classes (BLoC events that extend Equatable)
 // ============================================================================
 
-// Good: Event classes ending with "Event" are allowed
-class AuthEvent {} // ✅ Allowed: Ends with Event
-class LoginEvent extends AuthEvent {} // ✅ Allowed: Event class
-class LogoutEvent extends AuthEvent {} // ✅ Allowed: Event class
+// Good: Event classes that extend Equatable (or inherit from classes that extend Equatable) are allowed
+// This includes BLoC events which typically extend Equatable for value equality
+class Event extends Equatable {} // ✅ Allowed: Base Event class extending Equatable
+
+class AuthEvent extends Event {} // ✅ Allowed: Extends Event (which extends Equatable)
+
+class LoginEvent extends AuthEvent {} // ✅ Allowed: Inherits from class that extends Equatable
+
+class LogoutEvent extends AuthEvent {} // ✅ Allowed: Inherits from class that extends Equatable
 
 void eventExample() {
   final event = LoginEvent(); // ✅ Allowed: Event class
+  final baseEvent = Event(); // ✅ Allowed: Event class
 }
 
 // ============================================================================
@@ -333,9 +343,3 @@ class Binder {
   void factory<T>(T Function() factory) {}
 }
 
-// Flutter imports (mock)
-class StatelessWidget {}
-class Widget {}
-class Container extends Widget {}
-class ElevatedButton extends Widget {}
-class Text extends Widget {}
