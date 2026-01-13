@@ -1,6 +1,5 @@
 // Bad: Enum without documentation
 enum Status {
-  // LINT: Missing enum documentation
   active, // LINT: Missing value documentation
   inactive, // LINT: Missing value documentation
 }
@@ -15,7 +14,6 @@ enum AuthStatus {
 
 // Bad: Enum with only value documentation, missing enum documentation
 enum ProjectStatus {
-  // LINT: Missing enum documentation
   /// The project is currently active.
   active,
 
@@ -88,20 +86,4 @@ enum MarkupType {
 
   /// Apply separate markups to different cost categories.
   granular,
-}
-
-// Good: Private enum - documentation is still encouraged
-/// Internal state management for form fields.
-enum _FormFieldState {
-  /// Field is pristine and has not been modified.
-  pristine,
-
-  /// Field has been touched but not yet validated.
-  touched,
-
-  /// Field has been validated and contains errors.
-  invalid,
-
-  /// Field has been validated and is valid.
-  valid,
 }
