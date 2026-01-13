@@ -5,6 +5,7 @@ import 'package:ripplearc_linter/core/analyzers/avoid_static_typography_analyzer
 import 'package:ripplearc_linter/core/analyzers/avoid_static_colors_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/forbid_helper_util_naming_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/prevent_feature_module_dependencies_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/prevent_library_module_dependencies_analyzer.dart';
@@ -64,6 +65,7 @@ class StandaloneLintChecker {
     AvoidStaticTypographyAnalyzer(),
     AvoidStaticColorsAnalyzer(),
     ForcedUnwrappingAnalyzer(),
+    ForbidHelperUtilNamingAnalyzer(),
     DirectInstantiationAnalyzer(),
     SealedOverDynamicAnalyzer(),
     PrivateSubjectAnalyzer(),
@@ -90,6 +92,7 @@ class StandaloneLintChecker {
   static const Set<String> _bothFilesRuleNames = {
     'avoid_static_colors',
     'avoid_static_typography',
+    'forbid_helper_util_naming',
   };
 
   /// Analyzes the given files and directories for linting issues.
