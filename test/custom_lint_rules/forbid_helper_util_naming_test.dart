@@ -162,9 +162,9 @@ void main() {
 
       test('should be case-sensitive (no false positives)', () async {
         const source = '''
-        class helper {}  // lowercase - should not flag
-        class util {}    // lowercase - should not flag
-        class HELPER {}  // uppercase - should not flag (not standard pattern)
+        class helper {}  // lowercase - not flagged (non-standard class name)
+        class util {}    // lowercase - not flagged (non-standard class name)
+        class HELPER {}  // uppercase - not flagged (non-standard class name)
         ''';
         await analyzeCode(source, path: 'lib/test/case_test.dart');
         expect(reporter.errors, isEmpty);

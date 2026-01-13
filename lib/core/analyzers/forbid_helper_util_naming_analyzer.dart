@@ -25,7 +25,7 @@ import '../models/lint_issue.dart';
 /// class HttpClient {}
 /// ```
 class ForbidHelperUtilNamingAnalyzer extends BaseAnalyzer {
-  static const _forbiddenPatterns = ['Helper', 'Util'];
+  static const _forbiddenSubstrings = ['Helper', 'Util'];
 
   @override
   String get ruleName => 'forbid_helper_util_naming';
@@ -46,7 +46,7 @@ class ForbidHelperUtilNamingAnalyzer extends BaseAnalyzer {
   }
 
   bool containsForbiddenPattern(String className) {
-    return _forbiddenPatterns.any((pattern) => className.contains(pattern));
+    return _forbiddenSubstrings.any((pattern) => className.contains(pattern));
   }
 }
 
@@ -60,7 +60,6 @@ class _HelperUtilNamingVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     final className = node.name.lexeme;
     if (analyzer.containsForbiddenPattern(className)) {
-      // Use the whole class declaration node to report the issue
       issues.add(analyzer.createIssue(node));
     }
     super.visitClassDeclaration(node);
