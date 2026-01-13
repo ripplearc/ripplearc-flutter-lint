@@ -75,7 +75,6 @@ class StandaloneLintChecker {
     PreferFakeOverMockAnalyzer(),
     TestFileMutationCoverageAnalyzer(),
     FeatureModuleIsolationAnalyzer(),
-    // Add other analyzers here as you refactor them
   ];
 
   static const Set<String> _testOnlyRuleNames = {
