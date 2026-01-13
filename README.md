@@ -498,6 +498,65 @@ lib/
 
 ```
 
+### prevent_library_module_dependencies
+
+Enforces library module independence by preventing library modules from importing feature modules. This rule ensures that libraries remain reusable and do not have feature-specific dependencies, enabling better code reuse and maintainability.
+
+#### Bad ❌
+```dart
+// lib/libraries/auth/auth_library_module.dart
+import 'package:project/features/auth/presentation/pages/login_page.dart'; // LINT: Library importing a feature
+import 'package:project/features/dashboard/domain/entities/dashboard.dart'; // LINT: Library importing a feature
+
+class AuthLibraryModule {
+  void initialize() {
+    // Library code should not depend on feature implementations
+  }
+}
+```
+
+#### Good ✅
+```dart
+// lib/libraries/auth/auth_library_module.dart
+
+// Good: Imports from other libraries
+import 'package:project/libraries/time/interfaces/clock.dart';
+import 'package:project/libraries/supabase/interfaces/supabase_wrapper.dart';
+
+// Good: External packages
+import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
+
+class AuthLibraryModule {
+  void initialize() {
+    // Library code with proper dependencies
+  }
+}
+```
+
+#### Allowed Patterns
+- **Library-to-library imports**: Libraries can import from other libraries (`package:project/libraries/...`)
+- **External packages**: All libraries can import from Flutter, Dart SDK, and pub.dev packages
+- **Dart SDK**: All libraries can import Dart core libraries (`dart:async`, `dart:convert`, etc.)
+
+#### Library Structure
+```
+lib/
+├── features/              # Feature modules (can import from libraries)
+│   ├── auth/
+│   ├── dashboard/
+│   └── project/
+└── libraries/             # Library modules (cannot import from features)
+    ├── auth/              # Shared auth utilities
+    ├── config/            # Configuration
+    ├── either/            # Either pattern
+    ├── project/           # Shared project utilities
+    ├── router/            # Navigation
+    ├── storage/           # Storage services
+    ├── supabase/          # Supabase integration
+    └── time/              # Time utilities
+```
+
 
 ## Registering a Custom Lint Rule
 
@@ -637,6 +696,7 @@ This configuration file includes all our custom lint rules:
 - `no_internal_method_docs` - Forbid documentation on private methods to reduce noise
 - `document_interface` - Enforce documentation on abstract classes and their public methods
 - `prevent_feature_module_dependencies` - Enforce feature module independence by preventing features from depending on other features
+- `prevent_library_module_dependencies` - Enforce library module independence by preventing libraries from depending on features
 
 #### Rule Configuration
 - Each rule is listed under the `rules` section
@@ -693,6 +753,7 @@ To update your project to use the latest version of `ripplearc_linter` and enabl
        - todo_with_story_links
        - no_internal_method_docs
        - prevent_feature_module_dependencies
+       - prevent_library_module_dependencies
      ```
    - Only include the rules you want to enforce in your project.
 
