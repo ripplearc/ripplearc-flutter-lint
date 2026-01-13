@@ -7,6 +7,7 @@ import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/prevent_feature_module_dependencies_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/prevent_library_module_dependencies_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/sealed_over_dynamic_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/private_subject_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/specific_exception_types_analyzer.dart';
@@ -75,6 +76,7 @@ class StandaloneLintChecker {
     PreferFakeOverMockAnalyzer(),
     TestFileMutationCoverageAnalyzer(),
     FeatureModuleIsolationAnalyzer(),
+    LibraryModuleDependenciesAnalyzer(),
   ];
 
   static const Set<String> _testOnlyRuleNames = {
