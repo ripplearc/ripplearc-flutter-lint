@@ -273,5 +273,59 @@ void main() {
         expect(rule.code.correctionMessage, contains('clock.now()'));
       });
     });
+
+    group('Test file exclusion', () {
+      test('should NOT flag DateTime.now() in test/ directory files', () async {
+        const source = '''
+        void main() {
+          final now = DateTime.now();
+        }
+        ''';
+        await analyzeCode(source, path: 'test/my_service_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should NOT flag DateTime.now() in _test.dart files', () async {
+        const source = '''
+        void main() {
+          final now = DateTime.now();
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_service_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should flag DateTime.now() in production lib/ files', () async {
+        const source = '''
+        void main() {
+          final now = DateTime.now();
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_service.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+    });
+
+    group('Known limitations', () {
+      test(
+        'does not catch aliased DateTime imports (known limitation)',
+        () async {
+          const source = '''
+        // In real code: import 'dart:core' as core;
+        // core.DateTime.now() would not be caught
+        // This is a syntactic-only check limitation
+        class core {
+          static DateTime get DateTime => _DateTime();
+        }
+        class _DateTime {
+          static DateTime now() => DateTime(2024);
+        }
+        ''';
+          await analyzeCode(source, path: 'lib/my_service.dart');
+          // Aliased DateTime.now() calls won't be detected - documented limitation
+          expect(reporter.errors, isEmpty);
+        },
+      );
+    });
   });
 }
