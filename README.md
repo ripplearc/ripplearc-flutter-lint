@@ -154,6 +154,41 @@ final name = user.name ?? 'Unknown';  // Safe with default value
 print('User: $name');
 ```
 
+### forbid_datetime_now
+
+Forbids the use of `DateTime.now()` in production code. This rule enforces the use of the `clock` package (`package:clock/clock.dart`) instead, enabling deterministic testing and time mocking in widget and unit tests.
+
+#### Bad ❌
+```dart
+class TimeService {
+  DateTime getCurrentTime() {
+    return DateTime.now();  // LINT
+  }
+
+  bool isExpired(DateTime expirationDate) {
+    return DateTime.now().isAfter(expirationDate);  // LINT
+  }
+}
+```
+
+#### Good ✅
+```dart
+import 'package:clock/clock.dart';
+
+class TimeService {
+  final Clock clock;
+  TimeService({required this.clock});
+
+  DateTime getCurrentTime() {
+    return clock.now();  // OK - testable
+  }
+
+  bool isExpired(DateTime expirationDate) {
+    return clock.now().isAfter(expirationDate);  // OK - testable
+  }
+}
+```
+
 ### forbid_helper_util_naming
 
 Forbids class names that include generic substrings like `Helper` or `Util`.
