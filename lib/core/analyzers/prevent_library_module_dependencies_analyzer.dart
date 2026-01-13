@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
+import '../utils/feature_path_utils.dart';
 
 /// Analyzer that enforces library module independence from feature modules.
 ///
@@ -29,7 +30,7 @@ import '../models/lint_issue.dart';
 /// ```
 class LibraryModuleDependenciesAnalyzer extends BaseAnalyzer {
   @override
-  String get ruleName => 'library_module_no_feature_dependencies';
+  String get ruleName => 'prevent_library_module_dependencies';
 
   @override
   String get problemMessage =>
@@ -48,16 +49,11 @@ class LibraryModuleDependenciesAnalyzer extends BaseAnalyzer {
   List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
     final filePath = resolver.path ?? '';
 
-    if (!_isLibraryModuleFile(filePath)) return [];
+    if (!isLibraryModuleFile(filePath)) return [];
 
     final visitor = _LibraryModuleImportVisitor(this);
     unit.accept(visitor);
     return visitor.issues;
-  }
-
-  bool _isLibraryModuleFile(String path) {
-    final normalized = path.replaceAll('\\', '/');
-    return normalized.contains('/libraries/');
   }
 }
 
@@ -83,7 +79,7 @@ class _LibraryModuleImportVisitor extends RecursiveAstVisitor<void> {
     final uri = node.uri.stringValue;
     if (uri == null) return;
 
-    if (_containsFeatureImport(uri)) {
+    if (containsFeatureImport(uri)) {
       issues.add(
         analyzer.createIssue(
           node,
@@ -94,9 +90,5 @@ class _LibraryModuleImportVisitor extends RecursiveAstVisitor<void> {
         ),
       );
     }
-  }
-
-  bool _containsFeatureImport(String uri) {
-    return uri.contains('/features/');
   }
 }

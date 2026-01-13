@@ -346,6 +346,39 @@ void main() {
       });
     });
 
+    group('case sensitivity', () {
+      test(
+        'should not flag uppercase Features in path (case-sensitive)',
+        () async {
+          const source = '''
+        import 'package:project/Features/auth/data/models/user.dart';
+        
+        void main() {}
+        ''';
+          await analyzeCode(
+            source,
+            path: '/project/lib/libraries/config/config_impl.dart',
+          );
+          expect(reporter.errors, isEmpty);
+        },
+      );
+    });
+
+    group('part directives', () {
+      test('should not flag part directive', () async {
+        const source = '''
+        part 'config_impl.g.dart';
+        
+        void main() {}
+        ''';
+        await analyzeCode(
+          source,
+          path: '/project/lib/libraries/config/config_impl.dart',
+        );
+        expect(reporter.errors, isEmpty);
+      });
+    });
+
     group('construculator-app specific scenarios', () {
       test('should flag auth library importing from auth feature', () async {
         const source = '''
