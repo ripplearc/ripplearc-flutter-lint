@@ -52,11 +52,10 @@ class ImageCompressor {}
 class TokenRefresher {}
 
 void main() {
-  // Demonstration of instantiation
   final loader = AssetLoader();
   final parser = StringParser();
   final formatter = DateTimeFormatter();
   final client = HttpClient();
-  
+
   print('Using descriptive class names: $loader, $parser, $formatter, $client');
 }

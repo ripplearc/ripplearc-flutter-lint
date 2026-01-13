@@ -148,14 +148,17 @@ void main() {
         expect(reporter.errors, hasLength(1));
       });
 
-      test('should handle class extending another with forbidden name', () async {
-        const source = '''
+      test(
+        'should handle class extending another with forbidden name',
+        () async {
+          const source = '''
         class ParentHelper {}
         class ChildHelper extends ParentHelper {}
         ''';
-        await analyzeCode(source, path: 'lib/helpers/child_helper.dart');
-        expect(reporter.errors, hasLength(2));
-      });
+          await analyzeCode(source, path: 'lib/helpers/child_helper.dart');
+          expect(reporter.errors, hasLength(2));
+        },
+      );
 
       test('should be case-sensitive (no false positives)', () async {
         const source = '''
