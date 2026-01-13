@@ -1,0 +1,144 @@
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'base_analyzer.dart';
+import '../models/lint_issue.dart';
+
+class RestrictCoreIconDataAnalyzer extends BaseAnalyzer {
+  static const _restrictedClasses = ['CoreIconData', 'CoreMaterialIcons'];
+
+  static const _restrictedConstructors = ['svg', 'material'];
+
+  @override
+  String get ruleName => 'restrict_core_icon_data';
+
+  @override
+  String get problemMessage =>
+      'CoreIconData and CoreMaterialIcons usage is restricted to coreui package only.';
+
+  @override
+  String get correctionMessage =>
+      'Use CoreIcons constants instead of directly referencing CoreIconData or CoreMaterialIcons.';
+
+  @override
+  List<LintIssue> analyze(CompilationUnit unit) {
+    return [];
+  }
+
+  @override
+  List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
+    final path = resolver.path ?? '';
+    if (_shouldSkipFile(path)) {
+      return [];
+    }
+    final visitor = _RestrictCoreIconDataVisitor(this, path);
+    unit.accept(visitor);
+    return visitor.issues;
+  }
+
+  bool _shouldSkipFile(String path) {
+    final normalized = path.replaceAll('\\', '/');
+    return _isInCoreuiIconsDirectory(normalized);
+  }
+
+  bool _isInCoreuiIconsDirectory(String path) {
+    return path.contains('/lib/src/theme/icons/');
+  }
+
+  bool isRestrictedClass(String identifier) {
+    return _restrictedClasses.contains(identifier);
+  }
+
+  bool isRestrictedConstructor(String identifier) {
+    return _restrictedConstructors.contains(identifier);
+  }
+}
+
+class _RestrictCoreIconDataVisitor extends RecursiveAstVisitor<void> {
+  final RestrictCoreIconDataAnalyzer analyzer;
+  final List<LintIssue> issues = [];
+  final String filePath;
+
+  _RestrictCoreIconDataVisitor(this.analyzer, this.filePath);
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    final constructorName = node.constructorName;
+    final typeName = constructorName.type.name2.lexeme;
+
+    if (analyzer.isRestrictedClass(typeName)) {
+      final constructor = constructorName.name?.name;
+      if (constructor != null &&
+          analyzer.isRestrictedConstructor(constructor)) {
+        issues.add(
+          analyzer.createIssue(
+            node,
+            customMessage:
+                '$typeName.$constructor() usage is restricted. '
+                'Use CoreIcons constants instead.',
+          ),
+        );
+      }
+    }
+
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    final target = node.target;
+    if (target is SimpleIdentifier) {
+      final targetName = target.name;
+      final methodName = node.methodName.name;
+
+      if (analyzer.isRestrictedClass(targetName) &&
+          analyzer.isRestrictedConstructor(methodName)) {
+        issues.add(
+          analyzer.createIssue(
+            node,
+            customMessage:
+                '$targetName.$methodName() usage is restricted. '
+                'Use CoreIcons constants instead.',
+          ),
+        );
+      }
+    }
+
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    final prefix = node.prefix.name;
+
+    if (analyzer.isRestrictedClass(prefix)) {
+      issues.add(
+        analyzer.createIssue(
+          node,
+          customMessage:
+              '$prefix usage is restricted outside coreui icons directory. '
+              'Use CoreIcons constants instead.',
+        ),
+      );
+    }
+
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    final typeName = node.name2.lexeme;
+
+    if (analyzer.isRestrictedClass(typeName)) {
+      issues.add(
+        analyzer.createIssue(
+          node,
+          customMessage:
+              '$typeName type usage is restricted outside coreui icons directory. '
+              'Use CoreIcons constants instead.',
+        ),
+      );
+    }
+
+    super.visitNamedType(node);
+  }
+}

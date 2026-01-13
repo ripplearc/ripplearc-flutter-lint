@@ -17,6 +17,7 @@ import 'custom_lint_rules/specific_exception_types.dart';
 import 'custom_lint_rules/test_file_mutation_coverage.dart';
 import 'custom_lint_rules/prevent_feature_module_dependencies.dart';
 import 'custom_lint_rules/prevent_library_module_dependencies.dart';
+import 'custom_lint_rules/restrict_core_icon_data.dart';
 
 PluginBase createPlugin() => _RipplearcLintRules();
 
@@ -41,5 +42,6 @@ class _RipplearcLintRules extends PluginBase {
     TestFileMutationCoverage(),
     PreventFeatureModuleDependencies(),
     PreventLibraryModuleDependencies(),
+    RestrictCoreIconData(),
   ];
 }
