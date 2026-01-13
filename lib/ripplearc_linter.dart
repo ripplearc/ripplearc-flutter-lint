@@ -4,6 +4,7 @@ import 'custom_lint_rules/avoid_static_typography.dart';
 import 'custom_lint_rules/avoid_test_timeouts.dart';
 import 'custom_lint_rules/no_direct_instantiation.dart';
 import 'custom_lint_rules/document_fake_parameters.dart';
+import 'custom_lint_rules/document_enum.dart';
 import 'custom_lint_rules/sealed_over_dynamic.dart';
 import 'custom_lint_rules/todo_with_story_links.dart';
 import 'custom_lint_rules/no_internal_method_docs.dart';
@@ -32,6 +33,7 @@ class _RipplearcLintRules extends PluginBase {
     PreferFakeOverMockRule(),
     NoDirectInstantiation(),
     DocumentFakeParameters(),
+    DocumentEnum(),
     TodoWithStoryLinks(),
     NoInternalMethodDocs(),
     DocumentInterface(),
