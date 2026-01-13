@@ -14,6 +14,7 @@ enum AuthStatus {
 
 // Bad: Enum with only value documentation, missing enum documentation
 enum ProjectStatus {
+  // LINT: Missing enum documentation
   /// The project is currently active.
   active,
 

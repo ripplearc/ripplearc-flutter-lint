@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
+import '../utils/documentation_utils.dart';
 
 /// Analyzer that ensures enums and their values have documentation.
 ///
@@ -52,7 +53,9 @@ class _EnumDocumentationVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     // Check if enum has documentation
-    final hasEnumDocumentation = _hasDocumentation(node.documentationComment);
+    final hasEnumDocumentation = DocumentationUtils.hasDocumentation(
+      node.documentationComment,
+    );
 
     // Report error if enum lacks documentation
     if (!hasEnumDocumentation) {
@@ -61,28 +64,11 @@ class _EnumDocumentationVisitor extends RecursiveAstVisitor<void> {
 
     // Check each enum constant for documentation
     for (final constant in node.constants) {
-      if (!_hasDocumentation(constant.documentationComment)) {
+      if (!DocumentationUtils.hasDocumentation(constant.documentationComment)) {
         issues.add(analyzer.createIssue(constant));
       }
     }
 
     super.visitEnumDeclaration(node);
-  }
-
-  bool _hasDocumentation(Comment? comment) {
-    if (comment == null) return false;
-
-    // Check for /// documentation (not /** */ or //)
-    for (final token in comment.tokens) {
-      if (token.lexeme.startsWith('///')) {
-        // Check if there's actual content (not just ///)
-        final content = token.lexeme.substring(3).trim();
-        if (content.isNotEmpty) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 }

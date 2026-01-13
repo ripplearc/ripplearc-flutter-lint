@@ -35,7 +35,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 1 for enum + 2 for values
         expect(reporter.errors, hasLength(3));
       });
 
@@ -48,7 +47,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 2 for undocumented values
         expect(reporter.errors, hasLength(2));
       });
 
@@ -62,7 +60,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 1 for undocumented enum
         expect(reporter.errors, hasLength(1));
       });
 
@@ -110,7 +107,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 1 for undocumented value
         expect(reporter.errors, hasLength(1));
       });
 
@@ -124,7 +120,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 3 for undocumented values
         expect(reporter.errors, hasLength(3));
       });
     });
@@ -139,7 +134,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 1 for empty enum documentation
         expect(reporter.errors, hasLength(1));
       });
 
@@ -152,7 +146,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 1 for empty value documentation
         expect(reporter.errors, hasLength(1));
       });
     });
@@ -169,7 +162,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 1 for enum + 2 for values
         expect(reporter.errors, hasLength(3));
       });
 
@@ -203,7 +195,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 1 for enum + 2 for values
         expect(reporter.errors, hasLength(3));
       });
 
@@ -236,7 +227,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 2 enums + 4 values = 6 errors
         expect(reporter.errors, hasLength(6));
       });
 
@@ -256,7 +246,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/enums.dart');
-        // 1 enum + 2 values = 3 errors
         expect(reporter.errors, hasLength(3));
       });
     });
@@ -271,7 +260,6 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/auth_types.dart');
-        // 1 for enum + 3 for values
         expect(reporter.errors, hasLength(4));
       });
 
@@ -300,7 +288,6 @@ void main() {
         enum ToastType { error, warning, info, success }
         ''';
         await analyzeCode(source, path: 'lib/toast.dart');
-        // 1 for enum + 4 for values
         expect(reporter.errors, hasLength(5));
       });
 
@@ -334,6 +321,103 @@ void main() {
         await analyzeCode(source, path: 'test/my_test.dart');
         // 1 for enum + 2 for values
         expect(reporter.errors, hasLength(3));
+      });
+    });
+
+    group('Block comment documentation', () {
+      test('should flag enum with block comment documentation', () async {
+        const source = '''
+        /** This is a block comment */
+        enum Status {
+          /** Active state */
+          active,
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/enums.dart');
+        expect(reporter.errors, hasLength(2));
+      });
+
+      test('should flag enum with JavaDoc style block comment', () async {
+        const source = '''
+        /**
+         * This is a JavaDoc style comment.
+         */
+        enum Status {
+          /**
+           * Active state.
+           */
+          active,
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/enums.dart');
+        expect(reporter.errors, hasLength(2));
+      });
+    });
+
+    group('Whitespace-only documentation', () {
+      test('should flag enum with whitespace-only documentation', () async {
+        const source = '''
+        ///     
+        enum Status {
+          ///     
+          active,
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/enums.dart');
+        expect(reporter.errors, hasLength(2));
+      });
+
+      test('should flag enum with multiple empty doc lines', () async {
+        const source = '''
+        ///
+        ///
+        ///
+        enum Status {
+          ///
+          active,
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/enums.dart');
+        expect(reporter.errors, hasLength(2));
+      });
+    });
+
+    group('Mixed documented/undocumented values', () {
+      test(
+        'should correctly count errors for partially documented values',
+        () async {
+          const source = '''
+        /// Status enum.
+        enum Status {
+          /// Documented.
+          active,
+          inactive,
+          /// Documented.
+          pending,
+          archived,
+        }
+        ''';
+          await analyzeCode(source, path: 'lib/enums.dart');
+          expect(reporter.errors, hasLength(2));
+        },
+      );
+
+      test('should flag alternating documented/undocumented values', () async {
+        const source = '''
+        /// Status enum.
+        enum Status {
+          /// First value.
+          first,
+          second,
+          /// Third value.
+          third,
+          fourth,
+          /// Fifth value.
+          fifth,
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/enums.dart');
+        expect(reporter.errors, hasLength(2));
       });
     });
   });
