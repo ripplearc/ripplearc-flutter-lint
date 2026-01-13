@@ -11,21 +11,11 @@
 class BadEstimationFeature {
   // Bad: Features in /lib/features/estimation/ importing from /lib/features/dashboard/
   // LINT: Feature modules cannot depend on other feature modules.
-  void displayDashboard() {
-    // Imagine this imports from: package:project/features/dashboard/...
-    print('Displaying Dahsboard'); // ❌ LINT
-  }
-
-  // Bad: Importing from another feature
-  // LINT: Feature modules cannot depend on other feature modules.
-  void checkUserPermission() {
-    print('Checking permission'); // ❌ LINT
-  }
-
-  // Bad: Cross-feature export
-  // LINT: Feature modules cannot depend on other feature modules.
-  void processProject() {
-    print('Processing project'); // ❌ LINT
+  void loadDashboardData() {
+    // These imports are NOT allowed (cross-feature dependencies):
+    // import 'package:project/features/dashboard/domain/entities/dashboard.dart';
+    // import 'package:project/features/dashboard/data/models/dashboard_model.dart';
+    // import '../domain/repositories/dashboard_repository.dart'; // relative import
   }
 }
 
@@ -33,15 +23,13 @@ class BadEstimationFeature {
 // ✅ CORRECT EXAMPLES: Feature modules with proper dependencies
 // ============================================================================
 
-class CorrectCheckoutFeature {
+class CorrectEstimationFeature {
   // ✅ GOOD: Imports from the same feature
   void loadEstimationData() {
     // These imports are allowed (same feature):
     // import 'package:project/features/estimation/domain/entities/order.dart';
     // import 'package:project/features/estimation/data/models/estimation_model.dart';
     // import '../domain/repositories/estimation_repository.dart'; // relative import
-
-    print('Loading estimation data from same feature');
   }
 
   // ✅ GOOD: Imports from external packages
@@ -50,8 +38,6 @@ class CorrectCheckoutFeature {
     // import 'package:flutter/material.dart';
     // import 'package:provider/provider.dart';
     // import 'package:get_it/get_it.dart';
-
-    print('Building UI with external packages');
   }
 }
 
@@ -85,6 +71,3 @@ class CorrectCheckoutFeature {
 //    (package:flutter/...)
 //    (package:provider/...)
 //    (Any pub.dev package)
-//
-//
-// ============================================================================

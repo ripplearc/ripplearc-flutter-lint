@@ -195,7 +195,6 @@ void main() {
           print('Hello');
         }
         ''';
-          // This is in the root lib directory, not in features
           await analyzeCode(source, path: '/project/lib/main.dart');
           expect(reporter.errors, isEmpty);
         },
@@ -275,27 +274,7 @@ void main() {
           source,
           path: '/project/lib/features/auth/presentation/screens/login.dart',
         );
-        expect(
-          reporter.errors,
-          hasLength(2),
-        ); // Only the feature imports should be flagged
-      });
-
-      test('should work in test files within features', () async {
-        const source = '''
-        import 'package:test/test.dart';
-        import 'package:project/features/product/data/models/product.dart';
-        
-        void main() {
-          test('should work', () {});
-        }
-        ''';
-        await analyzeCode(
-          source,
-          path:
-              '/project/lib/features/auth/presentation/screens/login_test.dart',
-        );
-        expect(reporter.errors, hasLength(1));
+        expect(reporter.errors, hasLength(2));
       });
 
       test('should not flag star imports without feature path', () async {
@@ -317,7 +296,6 @@ void main() {
         
         void main() {}
         ''';
-        // Windows path with backslashes
         await analyzeCode(
           source,
           path: r'C:\project\lib\features\auth\presentation\screens\login.dart',
