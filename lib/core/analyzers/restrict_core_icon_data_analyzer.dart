@@ -3,6 +3,29 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Analyzer that restricts CoreIconData and CoreMaterialIcons usage to coreui package.
+///
+/// This rule enforces icon abstraction by requiring developers to use the `CoreIcons`
+/// constants instead of directly instantiating `CoreIconData` or accessing
+/// `CoreMaterialIcons`. This ensures consistent icon management and makes it easier
+/// to modify icon implementations across the codebase.
+///
+/// Example of code that triggers this rule:
+/// ```dart
+/// final icon = CoreIconData.svg('assets/icon.svg');         // LINT
+/// final icon = CoreIconData.material(Icons.home);           // LINT
+/// final icon = CoreMaterialIcons.arrowRight;                // LINT
+/// CoreIconData getIcon() => CoreIcons.home;                 // LINT (type annotation)
+/// ```
+///
+/// Example of correct code:
+/// ```dart
+/// final icon = CoreIcons.arrowRight;  // OK
+/// final icon = CoreIcons.microsoft;   // OK
+/// ```
+///
+/// Files under `/lib/src/theme/icons/` are excluded from this rule as they
+/// define the CoreIcons constants.
 class RestrictCoreIconDataAnalyzer extends BaseAnalyzer {
   static const _restrictedClasses = ['CoreIconData', 'CoreMaterialIcons'];
 

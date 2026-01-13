@@ -207,6 +207,36 @@ void main() {
         await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
         expect(reporter.errors, isEmpty);
       });
+
+      test('should flag const CoreIconData.svg() usage', () async {
+        const source = '''
+        class MyWidget {
+          static const icon = CoreIconData.svg('assets/icon.svg');
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag CoreIconData in generic type parameters', () async {
+        const source = '''
+        class MyWidget {
+          List<CoreIconData> getIcons() => [];
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag CoreIconData as function parameter type', () async {
+        const source = '''
+        class MyWidget {
+          void setIcon(CoreIconData icon) {}
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
     });
   });
 }
