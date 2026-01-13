@@ -44,7 +44,7 @@ void main() {
           'prefer_fake_over_mock',
           'test_file_mutation_coverage',
           'feature_module_isolation',
-          'library_module_no_feature_dependencies',
+          'prevent_library_module_dependencies',
         };
 
         expect(ruleNames, equals(expectedRules));
