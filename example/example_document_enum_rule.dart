@@ -76,6 +76,30 @@ enum DigitType {
   decimal,
 }
 
+// Example extension on DigitType enum
+extension DigitTypeExtension on DigitType {
+  /// Returns the display string for each digit type.
+  String get display {
+    switch (this) {
+      /// Numeric digit 0.
+      case DigitType.zero:
+        return '0';
+
+      /// Numeric digit 1.
+      case DigitType.one:
+        return '1';
+
+      /// Numeric digit 2.
+      case DigitType.two:
+        return '2';
+
+      /// Decimal point symbol.
+      case DigitType.decimal:
+        return '.';
+    }
+  }
+}
+
 // Good: Complex enum with enhanced values (Dart 2.17+)
 /// Defines the strategy for applying markups to cost estimates.
 ///
@@ -83,8 +107,11 @@ enum DigitType {
 /// all cost components or separately to different categories.
 enum MarkupType {
   /// Apply a single markup to the entire project cost.
-  overall,
+  overall('Overall Markup'),
 
   /// Apply separate markups to different cost categories.
-  granular,
+  granular('Granular Markup');
+
+  final String description;
+  const MarkupType(this.description);
 }
