@@ -156,7 +156,9 @@ print('User: $name');
 
 ### forbid_datetime_now
 
-Forbids the use of `DateTime.now()` in production code. This rule enforces the use of the `clock` package (`package:clock/clock.dart`) instead, enabling deterministic testing and time mocking in widget and unit tests.
+Forbids the use of `DateTime.now()` in production code. This rule enforces the use of the custom `Clock` interface from `libraries/time/interfaces/clock.dart` instead, enabling deterministic testing and time mocking in widget and unit tests.
+
+**Exception**: `DateTime.now()` is allowed in `system_clock_impl.dart` where the Clock implementation is defined.
 
 #### Bad ❌
 ```dart
@@ -173,7 +175,7 @@ class TimeService {
 
 #### Good ✅
 ```dart
-import 'package:clock/clock.dart';
+import 'libraries/time/interfaces/clock.dart';
 
 class TimeService {
   final Clock clock;
@@ -185,6 +187,14 @@ class TimeService {
 
   bool isExpired(DateTime expirationDate) {
     return clock.now().isAfter(expirationDate);  // OK - testable
+  }
+}
+
+// Good: DateTime.now() is allowed in system_clock_impl.dart
+class SystemClock implements Clock {
+  @override
+  DateTime now() {
+    return DateTime.now();  // OK - allowed in system_clock_impl.dart
   }
 }
 ```

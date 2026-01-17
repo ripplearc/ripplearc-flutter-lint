@@ -1,6 +1,6 @@
 // ignore_for_file: unused_local_variable
 
-class TimeService {
+class BadTimeService {
   // Bad: Using DateTime.now() directly - not testable
   DateTime getCurrentTime() {
     return DateTime.now(); // LINT
@@ -17,9 +17,10 @@ class TimeService {
   }
 }
 
-// Good: Using Clock from package:clock/clock.dart
-// In real code, use: import 'package:clock/clock.dart';
+// Good: Using Clock from libraries/time/interfaces/clock.dart
+/// An abstraction for getting the current time.
 abstract class Clock {
+  /// Returns the current date and time.
   DateTime now();
 }
 

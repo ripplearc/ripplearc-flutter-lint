@@ -264,13 +264,14 @@ void main() {
         expect(rule.code.name, equals('forbid_datetime_now'));
       });
 
-      test('should have problem message mentioning clock package', () {
+      test('should have problem message mentioning clock interface', () {
         expect(rule.code.problemMessage, contains('clock.now()'));
-        expect(rule.code.problemMessage, contains('package:clock/clock.dart'));
+        expect(rule.code.problemMessage, contains('libraries/time/interfaces/clock.dart'));
       });
 
       test('should have correction message with guidance', () {
         expect(rule.code.correctionMessage, contains('clock.now()'));
+        expect(rule.code.correctionMessage, contains('libraries/time/interfaces/clock.dart'));
       });
     });
 
@@ -303,6 +304,36 @@ void main() {
         ''';
         await analyzeCode(source, path: 'lib/my_service.dart');
         expect(reporter.errors, hasLength(1));
+      });
+
+      test('should NOT flag DateTime.now() in system_clock_impl.dart', () async {
+        const source = '''
+        import 'libraries/time/interfaces/clock.dart';
+        
+        class SystemClock implements Clock {
+          @override
+          DateTime now() {
+            return DateTime.now();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/system_clock_impl.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should NOT flag DateTime.now() in nested system_clock_impl.dart path', () async {
+        const source = '''
+        import 'libraries/time/interfaces/clock.dart';
+        
+        class SystemClock implements Clock {
+          @override
+          DateTime now() {
+            return DateTime.now();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/time/system_clock_impl.dart');
+        expect(reporter.errors, isEmpty);
       });
     });
 

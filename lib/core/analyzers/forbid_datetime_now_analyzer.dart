@@ -6,8 +6,11 @@ import '../models/lint_issue.dart';
 /// Analyzer that forbids using `DateTime.now()` in production code.
 ///
 /// This rule flags direct usage of `DateTime.now()` to encourage the use of the
-/// `clock` package from `package:clock/clock.dart` instead. Using a `Clock` instance
-/// enables deterministic testing and time mocking in widget and unit tests.
+/// custom `Clock` interface from `libraries/time/interfaces/clock.dart` instead.
+/// Using a `Clock` instance enables deterministic testing and time mocking in widget and unit tests.
+///
+/// Exception: `DateTime.now()` is allowed in `system_clock_impl.dart` where the
+/// Clock implementation is defined.
 ///
 /// Example of code that triggers this rule:
 /// ```dart
@@ -17,7 +20,7 @@ import '../models/lint_issue.dart';
 ///
 /// Example of code that doesn't trigger this rule:
 /// ```dart
-/// import 'package:clock/clock.dart';
+/// import 'libraries/time/interfaces/clock.dart';
 ///
 /// final clock = Clock();  // or inject via dependency injection
 /// final currentTime = clock.now();  // OK - testable
@@ -29,11 +32,24 @@ class ForbidDateTimeNowAnalyzer extends BaseAnalyzer {
 
   @override
   String get problemMessage =>
-      'DateTime.now() is not allowed. Use clock.now() from package:clock/clock.dart instead for testable code.';
+      'DateTime.now() is not allowed. Use clock.now() from libraries/time/interfaces/clock.dart instead for testable code.';
 
   @override
   String get correctionMessage =>
-      'Replace DateTime.now() with clock.now() from package:clock/clock.dart. Inject Clock via dependency injection for testing.';
+      'Replace DateTime.now() with clock.now() from libraries/time/interfaces/clock.dart. Inject Clock via dependency injection for testing.';
+
+  @override
+  List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
+    // Allow DateTime.now() in system_clock_impl.dart where Clock implementation is defined
+    final path = resolver.path ?? '';
+    if (path.endsWith('system_clock_impl.dart')) {
+      return [];
+    }
+
+    final visitor = _DateTimeNowVisitor(this);
+    unit.accept(visitor);
+    return visitor.issues;
+  }
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {

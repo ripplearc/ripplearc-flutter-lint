@@ -4,11 +4,15 @@ import '../core/analyzers/base_analyzer.dart';
 
 /// Lint rule that forbids using `DateTime.now()` in production code.
 ///
-/// This rule enforces the use of the `clock` package (`package:clock/clock.dart`)
-/// instead of direct `DateTime.now()` calls. This is essential for:
+/// This rule enforces the use of the custom `Clock` interface from
+/// `libraries/time/interfaces/clock.dart` instead of direct `DateTime.now()` calls.
+/// This is essential for:
 /// - Deterministic testing: Tests can control the current time
 /// - Widget testing: Time-dependent widgets can be tested reliably
 /// - Mocking: Time can be easily mocked in unit and integration tests
+///
+/// Exception: `DateTime.now()` is allowed in `system_clock_impl.dart` where the
+/// Clock implementation is defined.
 ///
 /// Example of code that triggers this rule:
 /// ```dart
@@ -17,7 +21,7 @@ import '../core/analyzers/base_analyzer.dart';
 ///
 /// Example of correct usage:
 /// ```dart
-/// import 'package:clock/clock.dart';
+/// import 'libraries/time/interfaces/clock.dart';
 ///
 /// // Inject clock via constructor or use dependency injection
 /// final Clock clock;
