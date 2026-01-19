@@ -17,10 +17,7 @@ class DirectInstantiationPatterns {
 
   static final List<RegExp> filePathPatterns = [
     RegExp(r'.*testing/.*', caseSensitive: false),
-    RegExp(r'.*test/.*', caseSensitive: false),
     RegExp(r'.*main\.dart$', caseSensitive: false),
-    RegExp(r'.*params/.*', caseSensitive: false),
-    RegExp(r'.*usecases/params/.*', caseSensitive: false),
   ];
 
   static bool isExcludedByFilePath(String path) {
