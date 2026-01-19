@@ -160,14 +160,14 @@ void main() {
         },
       );
 
-      test('should be case-sensitive (no false positives)', () async {
+      test('should flag forbidden names regardless of case', () async {
         const source = '''
-        class helper {}  // lowercase - not flagged (non-standard class name)
-        class util {}    // lowercase - not flagged (non-standard class name)
-        class HELPER {}  // uppercase - not flagged (non-standard class name)
+        class helper {}  // lowercase - flagged
+        class util {}    // lowercase - flagged
+        class HELPER {}  // uppercase - flagged
         ''';
         await analyzeCode(source, path: 'lib/test/case_test.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, hasLength(3));
       });
 
       test('should flag "Utils" plural form', () async {

@@ -46,7 +46,9 @@ class ForbidHelperUtilNamingAnalyzer extends BaseAnalyzer {
   }
 
   bool containsForbiddenPattern(String className) {
-    return _forbiddenSubstrings.any((pattern) => className.contains(pattern));
+    return _forbiddenSubstrings.any(
+      (pattern) => className.toLowerCase().contains(pattern.toLowerCase()),
+    );
   }
 }
 
