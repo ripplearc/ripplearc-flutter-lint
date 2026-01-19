@@ -1,4 +1,3 @@
-
 ## Rules
 
 ### avoid_static_colors
