@@ -198,22 +198,30 @@ void exceptionExample() {
 }
 
 // ============================================================================
-// ✅ ALLOWED: DTO, Entity, Model classes (by name pattern)
+// ✅ ALLOWED: DTO, Entity, Model classes (extend Equatable)
 // ============================================================================
 
-// Good: Classes ending with DTO, Entity, Model are allowed
-class UserDto {} // ✅ Allowed: Ends with Dto
-class UserDTO {} // ✅ Allowed: Ends with DTO
-class UserEntity {} // ✅ Allowed: Ends with Entity
-class UserModel {} // ✅ Allowed: Ends with Model
-class ProductValue {} // ✅ Allowed: Ends with Value
-class RequestParams {} // ✅ Allowed: Ends with Params
-class UserAttributes {} // ✅ Allowed: Ends with Attributes
+// Good: DTO, Entity, Model classes that extend Equatable are allowed
+class UserDto extends Equatable {} // ✅ Allowed: Extends Equatable
+
+class UserDTO extends Equatable {} // ✅ Allowed: Extends Equatable
+
+class UserEntity extends Equatable {} // ✅ Allowed: Extends Equatable
+
+class UserModel extends Equatable {} // ✅ Allowed: Extends Equatable
+
+// ============================================================================
+// ✅ ALLOWED: Pattern-based class names (by name pattern)
+// ============================================================================
+
+class RequestParams {} // ✅ Allowed: Ends with Params (pattern match)
+
 
 void dataExample() {
-  final dto = UserDto(); // ✅ Allowed: DTO class
-  final entity = UserEntity(); // ✅ Allowed: Entity class
-  final model = UserModel(); // ✅ Allowed: Model class
+  final dto = UserDto(); // ✅ Allowed: Extends Equatable
+  final entity = UserEntity(); // ✅ Allowed: Extends Equatable
+  final model = UserModel(); // ✅ Allowed: Extends Equatable
+  final params = RequestParams(); // ✅ Allowed: Pattern match
 }
 
 // ============================================================================
@@ -221,32 +229,11 @@ void dataExample() {
 // ============================================================================
 
 // Files in these paths are excluded:
-// - *_dto.dart, *_model.dart
-// - testing/, test/ directories
+// - testing/
 // - main.dart
-// - data/models/
-// - domain/entities/
-// - params/, usecases/params/
-
-// Example: lib/data/models/product_model.dart
-class ProductModel {} // ✅ Allowed: In model file
-
-// Example: lib/domain/entities/product_entity.dart
-class ProductEntity {} // ✅ Allowed: In entity file
 
 // Example: lib/testing/fake_service.dart
 class FakeService {} // ✅ Allowed: In testing directory
-
-// ============================================================================
-// ✅ ALLOWED: Classes imported from domain entities or models
-// ============================================================================
-
-// If a class is imported from a domain entity or model path, it's allowed
-// import 'package:app/domain/entities/user_entity.dart';
-// final user = UserEntity(); // ✅ Allowed: Imported from domain entity
-
-// import 'package:app/data/models/user_model.dart';
-// final model = UserModel(); // ✅ Allowed: Imported from model
 
 // ============================================================================
 // ✅ ALLOWED: Classes from whitelisted packages
@@ -282,12 +269,13 @@ void privateExample() {
 // ✅ ALLOWED: Sealed classes
 // ============================================================================
 
-sealed class Result<T> {} // ✅ Allowed: Sealed class
-class Success<T> extends Result<T> {}
-class Failure<T> extends Result<T> {}
+sealed class Result<T> {
+  final T value;
+  Result(this.value);
+}
 
 void sealedExample() {
-  final result = Success<String>(); // ✅ Allowed: Sealed class
+  final result = Result<String>('data'); // ✅ Allowed: Sealed class
 }
 
 // ============================================================================
