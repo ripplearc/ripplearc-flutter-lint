@@ -1,3 +1,9 @@
+import '../base_analyzer.dart';
+
+/// Centralized pattern matching for class names, file paths, and package exclusions.
+///
+/// This class provides static methods to check if a class or file should be excluded
+/// from direct instantiation analysis based on naming patterns, file paths, or package origins.
 class DirectInstantiationPatterns {
   static final List<RegExp> classNamePatterns = [
     RegExp(r'^Left$'),
@@ -29,6 +35,10 @@ class DirectInstantiationPatterns {
     return false;
   }
 
+  static bool shouldSkipFile(String filePath) {
+    return isExcludedByFilePath(filePath) || BaseAnalyzer.isTestFile(filePath);
+  }
+
   static bool isExcludedByClassName(String className) {
     return classNamePatterns.any((pattern) => pattern.hasMatch(className));
   }
@@ -46,10 +56,8 @@ class DirectInstantiationPatterns {
   static bool matchesPackage(String libraryUri, String package) {
     if (package == 'dart:core') return libraryUri == 'dart:core';
     if (package == 'dart:async') return libraryUri == 'dart:async';
-    // For package: URLs, check if it starts with the package name
-    // e.g., package:equatable/equatable.dart matches package:equatable/src/equatable.dart
     if (package.startsWith('package:')) {
-      final packageName = package.split('/')[0]; // e.g., "package:equatable"
+      final packageName = package.split('/')[0];
       return libraryUri.startsWith(packageName + '/');
     }
     return libraryUri.contains(package) || libraryUri.endsWith(package);
