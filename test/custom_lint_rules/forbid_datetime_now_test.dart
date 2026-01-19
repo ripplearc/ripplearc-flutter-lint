@@ -337,26 +337,34 @@ void main() {
       });
     });
 
-    group('Known limitations', () {
-      test(
-        'does not catch aliased DateTime imports (known limitation)',
-        () async {
-          const source = '''
-        // In real code: import 'dart:core' as core;
-        // core.DateTime.now() would not be caught
-        // This is a syntactic-only check limitation
+    group('Aliased DateTime detection', () {
+      test('should flag aliased DateTime.now() call', () async {
+        const source = '''
+        import 'dart:core' as core;
+        void main() {
+          final now = core.DateTime.now();
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/my_service.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag DateTime.now() with class prefix', () async {
+        const source = '''
         class core {
           static DateTime get DateTime => _DateTime();
         }
         class _DateTime {
           static DateTime now() => DateTime(2024);
         }
+        void main() {
+          final now = core.DateTime.now();
+        }
         ''';
-          await analyzeCode(source, path: 'lib/my_service.dart');
-          // Aliased DateTime.now() calls won't be detected - documented limitation
-          expect(reporter.errors, isEmpty);
-        },
-      );
+        await analyzeCode(source, path: 'lib/my_service.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
     });
   });
 }

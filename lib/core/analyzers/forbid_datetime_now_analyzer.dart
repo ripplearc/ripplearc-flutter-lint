@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
@@ -55,9 +56,37 @@ class _DateTimeNowVisitor extends RecursiveAstVisitor<void> {
   }
 
   bool _isDateTimeNowCall(MethodInvocation node) {
+    if (node.methodName.name != 'now') return false;
+
+    final element = node.methodName.staticElement;
+    if (element != null) {
+      if (element is ConstructorElement) {
+        final enclosingElement = element.enclosingElement3;
+        return enclosingElement is ClassElement &&
+            enclosingElement.name == 'DateTime' &&
+            enclosingElement.library.isDartCore;
+      }
+      if (element is MethodElement && element.isStatic) {
+        final enclosingElement = element.enclosingElement3;
+        return enclosingElement is ClassElement &&
+            enclosingElement.name == 'DateTime' &&
+            enclosingElement.library.isDartCore;
+      }
+      return false;
+    }
+
     final target = node.target;
-    return target is SimpleIdentifier &&
-        target.name == 'DateTime' &&
-        node.methodName.name == 'now';
+    if (target == null) return false;
+
+    String? targetName;
+    if (target is SimpleIdentifier) {
+      targetName = target.name;
+    } else if (target is PrefixedIdentifier) {
+      targetName = target.identifier.name;
+    } else if (target is PropertyAccess) {
+      targetName = target.propertyName.name;
+    }
+
+    return targetName == 'DateTime';
   }
 }
