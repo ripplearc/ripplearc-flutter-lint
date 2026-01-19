@@ -347,21 +347,18 @@ void main() {
     });
 
     group('case sensitivity', () {
-      test(
-        'should not flag uppercase Features in path (case-sensitive)',
-        () async {
-          const source = '''
+      test('should flag uppercase Features in path (case-sensitive)', () async {
+        const source = '''
         import 'package:project/Features/auth/data/models/user.dart';
         
         void main() {}
         ''';
-          await analyzeCode(
-            source,
-            path: '/project/lib/libraries/config/config_impl.dart',
-          );
-          expect(reporter.errors, isEmpty);
-        },
-      );
+        await analyzeCode(
+          source,
+          path: '/project/lib/libraries/config/config_impl.dart',
+        );
+        expect(reporter.errors, isNotEmpty);
+      });
     });
 
     group('part directives', () {

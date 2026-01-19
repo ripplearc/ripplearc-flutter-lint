@@ -56,9 +56,9 @@ String? extractFeatureNameFromImport(String importUri) {
 
 bool isLibraryModuleFile(String path) {
   final normalized = _normalizePath(path);
-  return normalized.contains('/libraries/');
+  return normalized.toLowerCase().contains('/libraries/');
 }
 
 bool containsFeatureImport(String uri) {
-  return uri.contains('/features/');
+  return uri.toLowerCase().contains('/features/');
 }
