@@ -50,7 +50,7 @@ class RestrictCoreIconDataAnalyzer extends BaseAnalyzer {
   @override
   List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
     final path = resolver.path ?? '';
-    if (_shouldSkipFile(path)) {
+    if (shouldSkipFile(path)) {
       return [];
     }
     final visitor = _RestrictCoreIconDataVisitor(this, path);
@@ -58,7 +58,8 @@ class RestrictCoreIconDataAnalyzer extends BaseAnalyzer {
     return visitor.issues;
   }
 
-  bool _shouldSkipFile(String path) {
+  @override
+  bool shouldSkipFile(String path) {
     final normalized = path.replaceAll('\\', '/');
     return _isInCoreuiIconsDirectory(normalized);
   }
