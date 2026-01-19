@@ -484,5 +484,152 @@ void main() {
         expect(reporter.errors, isNotEmpty);
       },
     );
+
+    test('does not flag sealed class instantiation', () async {
+      const source = '''
+      sealed class Result<T> {}
+      class Success<T> extends Result<T> {
+        final T value;
+        Success(this.value);
+      }
+      class Failure<T> extends Result<T> {
+        final String error;
+        Failure(this.error);
+      }
+      void main() {
+        final success = Success<String>('data'); // Should NOT be flagged (sealed class)
+        final failure = Failure<String>('error'); // Should NOT be flagged (sealed class)
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('does not flag Left/Right pattern in repository implementation', () async {
+      const source = '''
+      class Left<L> {
+        final L value;
+        Left(this.value);
+      }
+      class Right<R> {
+        final R value;
+        Right(this.value);
+      }
+      class Equatable {}
+      class UserEntity extends Equatable {}
+      class UserRepository {
+        dynamic getUser(String id) {
+          if (id.isEmpty) {
+            return Left('Invalid ID'); // Should NOT be flagged (pattern match)
+          }
+          return Right(UserEntity()); // Should NOT be flagged (pattern match - Entity extends Equatable)
+        }
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('does not flag pattern-based class names', () async {
+      const source = '''
+      class AuthGuard {}
+      class ApiResult {}
+      void main() {
+        final guard = AuthGuard(); // Should NOT be flagged (pattern match)
+        final result = ApiResult(); // Should NOT be flagged (pattern match)
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('does not flag special whitelisted classes', () async {
+      const source = '''
+      class Trace {}
+      class DateTime {
+        DateTime.now();
+      }
+      class Uri {
+        static Uri parse(String str) => Uri();
+      }
+      class Uuid {}
+      class Completer<T> {}
+      void main() {
+        final trace = Trace(); // Should NOT be flagged (whitelisted)
+        final date = DateTime.now(); // Should NOT be flagged (whitelisted)
+        final uri = Uri.parse('https://example.com'); // Should NOT be flagged (whitelisted)
+        final uuid = Uuid(); // Should NOT be flagged (whitelisted)
+        final completer = Completer<String>(); // Should NOT be flagged (whitelisted)
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('does not flag instantiation in super constructor invocation', () async {
+      const source = '''
+      class Parent {
+        Parent(Child child);
+      }
+      class Child {}
+      class MyClass extends Parent {
+        MyClass() : super(Child()); // Should NOT be flagged (super constructor)
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('does not flag instantiation in constructor initializer', () async {
+      const source = '''
+      class OtherClass {}
+      class MyClass {
+        final OtherClass other;
+        MyClass() : other = OtherClass(); // Should NOT be flagged (constructor initializer)
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('does not flag nested Equatable inheritance (indirect)', () async {
+      const source = '''
+      class Equatable {}
+      class BaseState extends Equatable {}
+      class AuthState extends BaseState {}
+      class AuthInitial extends AuthState {}
+      void main() {
+        final state = AuthInitial(); // Should NOT be flagged (indirect Equatable)
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('does not flag class that implements Equatable', () async {
+      const source = '''
+      class Equatable {}
+      class MyState implements Equatable {}
+      void main() {
+        final state = MyState(); // Should NOT be flagged (implements Equatable)
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
+
+    test('does not flag nested implements Equatable', () async {
+      const source = '''
+      class Equatable {}
+      class BaseState implements Equatable {}
+      class AuthState extends BaseState {}
+      class AuthInitial extends AuthState {}
+      void main() {
+        final state = AuthInitial(); // Should NOT be flagged (nested implements Equatable)
+      }
+      ''';
+      await analyzeCode(source);
+      expect(reporter.errors, isEmpty);
+    });
   });
 }
