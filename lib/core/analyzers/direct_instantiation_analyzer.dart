@@ -34,11 +34,7 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
   List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
     final filePath = resolver.path ?? '';
 
-    if (DirectInstantiationPatterns.isExcludedByFilePath(filePath)) {
-      return [];
-    }
-
-    if (BaseAnalyzer.isTestFile(filePath)) {
+    if (DirectInstantiationPatterns.shouldSkipFile(filePath)) {
       return [];
     }
 
