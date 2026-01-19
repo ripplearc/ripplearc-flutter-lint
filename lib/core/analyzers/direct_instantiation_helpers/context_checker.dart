@@ -15,14 +15,17 @@ class ContextChecker {
         extendsClause.superclass.name2.lexeme == 'Module';
   }
 
-  static bool isExcludedByContext(InstanceCreationExpression node) {
-    if (node.keyword?.lexeme == 'const') return true;
 
+  static bool isInConstOrFactoryContext(AstNode node) {
     AstNode? current = node.parent;
     while (current != null) {
       if (current is ListLiteral && current.constKeyword != null) return true;
       if (current is SetOrMapLiteral && current.constKeyword != null)
         return true;
+      if (current is VariableDeclaration) {
+        final parent = current.parent;
+        if (parent is VariableDeclarationList && parent.isConst) return true;
+      }
       if (current is ArgumentList) {
         final parent = current.parent;
         if (parent is InstanceCreationExpression &&
@@ -44,6 +47,14 @@ class ContextChecker {
       if (current is MethodDeclaration || current is FunctionDeclaration) break;
       current = current.parent;
     }
+
+    return false;
+  }
+
+  static bool isExcludedByContext(InstanceCreationExpression node) {
+    if (node.keyword?.lexeme == 'const') return true;
+
+    if (isInConstOrFactoryContext(node)) return true;
 
     final constructorElement = node.constructorName.staticElement;
     if (constructorElement is ConstructorElement &&
