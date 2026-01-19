@@ -3,13 +3,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'models.dart';
 import 'patterns.dart';
 import 'context_checker.dart';
+import 'type_names.dart';
 
 /// Provides type-based exclusion checks for direct instantiation analysis.
 ///
 /// This class checks if a class instantiation should be excluded based on:
 /// - Class hierarchy (subtypes of Widget, State, Exception, etc.)
 /// - Library/package imports (Flutter, BLoC, etc.)
-/// - Domain entity patterns
 /// - Sealed class patterns
 class TypeChecker {
   static bool isExcludedBySubtype(InstanceCreationExpression node) {
@@ -43,9 +43,9 @@ class TypeChecker {
         final supertypeElement = supertype.element;
         if (supertypeElement is! ClassElement) continue;
 
-        if (supertypeElement.name == 'Object') continue;
+        if (supertypeElement.name == TypeNames.object) continue;
 
-        if (supertypeElement.name == 'Either') return true;
+        if (supertypeElement.name == TypeNames.either) return true;
 
         final libraryUri = supertypeElement.library.source.uri.toString();
 
@@ -62,14 +62,15 @@ class TypeChecker {
         if (interfaceElement is! ClassElement) continue;
 
         final libraryUri = interfaceElement.library.source.uri.toString();
-        if ((interfaceElement.name == 'Exception' || interfaceElement.name == 'Error') &&
+        if ((interfaceElement.name == TypeNames.exception ||
+                interfaceElement.name == TypeNames.error) &&
             libraryUri == 'dart:core') {
           return true;
         }
       }
 
       final libraryUri = classElement.library.source.uri.toString();
-      if (classElement.name == 'Either') return true;
+      if (classElement.name == TypeNames.either) return true;
 
       for (final excludedType in excludedTypes) {
         if (classElement.name == excludedType.name &&
@@ -90,22 +91,38 @@ class TypeChecker {
     }
   }
 
-  static bool isSealedClass(InstanceCreationExpression node) {
+  static bool isSealedClass(
+    InstanceCreationExpression node, {
+    Map<String, ClassDeclaration>? classCache,
+  }) {
     try {
+      final className = node.constructorName.type.name2.lexeme;
+      final classDecl = ContextChecker.findClassDeclaration(
+        className,
+        node,
+        classCache: classCache,
+      );
+      if (classDecl != null) {
+        final source = classDecl.toSource();
+        if (source.contains('sealed class') || source.startsWith('sealed '))
+          return true;
+      }
+
       final element = node.constructorName.staticElement;
       if (element == null) return false;
       final typeElement = element.returnType.element;
       if (typeElement is! ClassElement) return false;
 
-      final classDecl = ContextChecker.findClassDeclaration(typeElement.name, node);
-      if (classDecl != null) {
-        final source = classDecl.toSource();
-        if (source.contains('sealed class') || source.startsWith('sealed ')) return true;
-      }
+      final classElement = typeElement;
 
-      for (final supertype in typeElement.allSupertypes) {
-        if (supertype.element.name == 'Object') continue;
-        if (supertype.element.name.endsWith('Event')) return true;
+      if (classElement.isSealed) return true;
+
+      for (final supertype in classElement.allSupertypes) {
+        final supertypeElement = supertype.element;
+        if (supertypeElement is! ClassElement) continue;
+        if (supertypeElement.name == TypeNames.object) continue;
+        if (supertypeElement.isSealed) return true;
+        if (supertypeElement.name.endsWith(TypeNames.event)) return true;
       }
 
       return false;
