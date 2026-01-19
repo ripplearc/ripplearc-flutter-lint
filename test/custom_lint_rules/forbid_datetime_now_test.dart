@@ -275,25 +275,25 @@ void main() {
       });
     });
 
-    group('Test file exclusion', () {
-      test('should NOT flag DateTime.now() in test/ directory files', () async {
+    group('File type coverage', () {
+      test('should flag DateTime.now() in test/ directory files', () async {
         const source = '''
         void main() {
           final now = DateTime.now();
         }
         ''';
         await analyzeCode(source, path: 'test/my_service_test.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, hasLength(1));
       });
 
-      test('should NOT flag DateTime.now() in _test.dart files', () async {
+      test('should flag DateTime.now() in _test.dart files', () async {
         const source = '''
         void main() {
           final now = DateTime.now();
         }
         ''';
         await analyzeCode(source, path: 'lib/my_service_test.dart');
-        expect(reporter.errors, isEmpty);
+        expect(reporter.errors, hasLength(1));
       });
 
       test('should flag DateTime.now() in production lib/ files', () async {
