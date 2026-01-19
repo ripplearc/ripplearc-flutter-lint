@@ -1,17 +1,25 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import '../base_analyzer.dart';
 import '../../models/lint_issue.dart';
 import 'patterns.dart';
 import 'context_checker.dart';
 import 'type_checker.dart';
 import 'import_checker.dart';
+import 'type_names.dart';
 
+/// AST visitor that detects direct class instantiations and flags violations.
+///
+/// This visitor traverses the AST and identifies direct instantiations of classes
+/// that should use dependency injection instead. It maintains a cache of class
+/// declarations per compilation unit to optimize performance.
 class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   final dynamic resolver;
   final String filePath;
   final List<LintIssue> issues = [];
   final Function(AstNode) createIssue;
+
+  Map<String, ClassDeclaration>? _classCache;
+  bool? _unitHasModuleClass;
 
   DirectInstantiationVisitor(
     this.createIssue, [
@@ -19,30 +27,51 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     this.filePath = '',
   ]);
 
+  Map<String, ClassDeclaration> _getClassCache(AstNode node) {
+    if (_classCache != null) return _classCache!;
+    final root = node.root;
+    final cache = <String, ClassDeclaration>{};
+    if (root is CompilationUnit) {
+      for (final decl in root.declarations) {
+        if (decl is ClassDeclaration) {
+          cache[decl.name.lexeme] = decl;
+        }
+      }
+    }
+    _classCache = cache;
+    return _classCache!;
+  }
+
+  bool _getUnitHasModuleClass(AstNode node) {
+    if (_unitHasModuleClass != null) return _unitHasModuleClass!;
+    final cache = _getClassCache(node);
+    _unitHasModuleClass = cache.values.any((c) {
+      final extendsClause = c.extendsClause;
+      return extendsClause != null &&
+          extendsClause.superclass.name2.lexeme == TypeNames.module;
+    });
+    return _unitHasModuleClass!;
+  }
+
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.target == null && node.argumentList.arguments.isEmpty) {
       final methodName = node.methodName.name;
-      final unit = node.root;
-      if (unit is CompilationUnit) {
-        for (final decl in unit.declarations) {
-          if (decl is ClassDeclaration && decl.name.lexeme == methodName) {
-            bool hasFactoryConstructor = false;
-            for (final member in decl.members) {
-              if (member is ConstructorDeclaration &&
-                  member.factoryKeyword != null) {
-                if (member.name == null || member.name!.lexeme == methodName) {
-                  hasFactoryConstructor = true;
-                  break;
-                }
-              }
+      final decl = _getClassCache(node)[methodName];
+      if (decl != null) {
+        bool hasFactoryConstructor = false;
+        for (final member in decl.members) {
+          if (member is ConstructorDeclaration &&
+              member.factoryKeyword != null) {
+            if (member.name == null || member.name!.lexeme == methodName) {
+              hasFactoryConstructor = true;
+              break;
             }
-
-            if (!hasFactoryConstructor) {
-              _checkInstantiation(methodName, node);
-            }
-            break;
           }
+        }
+
+        if (!hasFactoryConstructor) {
+          _checkInstantiation(methodName, node);
         }
       }
     }
@@ -50,16 +79,11 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _checkInstantiation(String className, AstNode node) {
-    if (DirectInstantiationPatterns.isExcludedByFilePath(filePath) ||
-        BaseAnalyzer.isTestFile(filePath)) {
+    if (DirectInstantiationPatterns.shouldSkipFile(filePath)) {
       return;
     }
 
-    if (_isInConstContext(node)) {
-      return;
-    }
-
-    if (_isInFactoryConstructor(node)) {
+    if (ContextChecker.isInConstOrFactoryContext(node)) {
       return;
     }
 
@@ -71,7 +95,10 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (ContextChecker.isInsideModuleBindsMethod(node)) {
+    if (ContextChecker.isInsideModuleBindsMethodWithUnitHint(
+      node,
+      unitHasModuleClass: _getUnitHasModuleClass(node),
+    )) {
       return;
     }
 
@@ -79,11 +106,19 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (ContextChecker.isExcludedClass(className, node)) {
+    if (ContextChecker.isExcludedClass(
+      className,
+      node,
+      classCache: _getClassCache(node),
+    )) {
       return;
     }
 
-    if (ContextChecker.extendsEquatable(className, node)) {
+    if (ContextChecker.extendsEquatable(
+      className,
+      node,
+      classCache: _getClassCache(node),
+    )) {
       return;
     }
 
@@ -92,43 +127,13 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  bool _isInConstContext(AstNode node) {
-    AstNode? current = node.parent;
-    while (current != null) {
-      if (current is ListLiteral && current.constKeyword != null) return true;
-      if (current is SetOrMapLiteral && current.constKeyword != null)
-        return true;
-      if (current is VariableDeclaration) {
-        final parent = current.parent;
-        if (parent is VariableDeclarationList && parent.isConst) return true;
-      }
-      if (current is ConstructorDeclaration) break;
-      if (current is MethodDeclaration || current is FunctionDeclaration) break;
-      current = current.parent;
-    }
-    return false;
-  }
-
-  bool _isInFactoryConstructor(AstNode node) {
-    AstNode? current = node.parent;
-    while (current != null) {
-      if (current is ConstructorDeclaration) {
-        return current.factoryKeyword != null;
-      }
-      if (current is MethodDeclaration || current is FunctionDeclaration) break;
-      current = current.parent;
-    }
-    return false;
-  }
-
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     final constructorName = node.constructorName;
     final name2 = constructorName.type.name2;
     final className = name2.lexeme;
 
-    if (DirectInstantiationPatterns.isExcludedByFilePath(filePath) ||
-        BaseAnalyzer.isTestFile(filePath)) {
+    if (DirectInstantiationPatterns.shouldSkipFile(filePath)) {
       super.visitInstanceCreationExpression(node);
       return;
     }
@@ -157,7 +162,10 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (ContextChecker.isInsideModuleBindsMethod(node)) {
+    if (ContextChecker.isInsideModuleBindsMethodWithUnitHint(
+      node,
+      unitHasModuleClass: _getUnitHasModuleClass(node),
+    )) {
       super.visitInstanceCreationExpression(node);
       return;
     }
@@ -167,7 +175,11 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (ContextChecker.isExcludedClass(className, node)) {
+    if (ContextChecker.isExcludedClass(
+      className,
+      node,
+      classCache: _getClassCache(node),
+    )) {
       super.visitInstanceCreationExpression(node);
       return;
     }
@@ -182,17 +194,23 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
         super.visitInstanceCreationExpression(node);
         return;
       }
-    } else {
-
-      if (ContextChecker.extendsEquatable(className, node)) {
+      if (TypeChecker.isSealedClass(node, classCache: _getClassCache(node))) {
         super.visitInstanceCreationExpression(node);
         return;
       }
-    }
-
-    if (TypeChecker.isSealedClass(node)) {
-      super.visitInstanceCreationExpression(node);
-      return;
+    } else {
+      if (ContextChecker.extendsEquatable(
+        className,
+        node,
+        classCache: _getClassCache(node),
+      )) {
+        super.visitInstanceCreationExpression(node);
+        return;
+      }
+      if (TypeChecker.isSealedClass(node, classCache: _getClassCache(node))) {
+        super.visitInstanceCreationExpression(node);
+        return;
+      }
     }
 
     issues.add(createIssue(node));
