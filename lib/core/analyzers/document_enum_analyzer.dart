@@ -4,18 +4,18 @@ import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 import '../utils/documentation_utils.dart';
 
-/// Ensures enums and their values have documentation.
+/// Ensures enums, their values, and extensions on enums have documentation.
 ///
-/// Flags enums and values missing documentation comments.
+/// Flags enums, values, and extension members missing documentation comments.
 class DocumentEnumAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'document_enum';
   @override
   String get problemMessage =>
-      'Enums and their values must have documentation.';
+      'Enums, their values and extensions must have documentation.';
   @override
   String get correctionMessage =>
-      'Add /// documentation for the enum and its values.';
+      'Add /// documentation for the enum, its values and extensions.';
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
@@ -47,5 +47,40 @@ class _EnumDocumentationVisitor extends RecursiveAstVisitor<void> {
     }
 
     super.visitEnumDeclaration(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    final hasExtensionDocumentation = DocumentationUtils.hasDocumentation(
+      node.documentationComment,
+    );
+
+    if (!hasExtensionDocumentation) {
+      issues.add(analyzer.createIssue(node));
+    }
+
+    for (final member in node.members) {
+      if (member is MethodDeclaration) {
+        if (!member.name.lexeme.startsWith('_')) {
+          if (!DocumentationUtils.hasDocumentation(
+            member.documentationComment,
+          )) {
+            issues.add(analyzer.createIssue(member));
+          }
+        }
+      } else if (member is FieldDeclaration) {
+        for (final variable in member.fields.variables) {
+          if (!variable.name.lexeme.startsWith('_')) {
+            if (!DocumentationUtils.hasDocumentation(
+              member.documentationComment,
+            )) {
+              issues.add(analyzer.createIssue(member));
+            }
+          }
+        }
+      }
+    }
+
+    super.visitExtensionDeclaration(node);
   }
 }

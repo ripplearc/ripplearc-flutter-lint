@@ -420,5 +420,70 @@ void main() {
         expect(reporter.errors, hasLength(2));
       });
     });
+    group('Extensions', () {
+      test('should flag extension without documentation', () async {
+        const source = '''
+        extension DigitTypeExtension on DigitType {
+          /// Returns the display string.
+          String get display => '0';
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/extensions.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag extension with undocumented public method', () async {
+        const source = '''
+        /// Extension on DigitType.
+        extension DigitTypeExtension on DigitType {
+          String get display => '0';
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/extensions.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should not flag extension with documented public method', () async {
+        const source = '''
+        /// Extension on DigitType.
+        extension DigitTypeExtension on DigitType {
+          /// Returns the display string.
+          String get display => '0';
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/extensions.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should not flag extension with private method', () async {
+        const source = '''
+        /// Extension on DigitType.
+        extension DigitTypeExtension on DigitType {
+          String _internal() => '0';
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/extensions.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should not flag switch cases inside extension methods', () async {
+        const source = '''
+        /// Extension on DigitType.
+        extension DigitTypeExtension on DigitType {
+          /// Returns the display string.
+          String get display {
+            switch (this) {
+              case DigitType.zero:
+                return '0';
+              case DigitType.one:
+                return '1';
+            }
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/extensions.dart');
+        expect(reporter.errors, isEmpty);
+      });
+    });
   });
 }

@@ -22,6 +22,18 @@ enum ProjectStatus {
   archived,
 }
 
+// Bad: Extension without documentation
+extension StatusExtension on Status {
+  String get display {
+    switch (this) {
+      case Status.active:
+        return 'Active';
+      case Status.inactive:
+        return 'Inactive';
+    }
+  }
+}
+
 // Good: Enum with proper documentation for both enum and values
 /// Defines the type of toast notification and its visual styling.
 ///
@@ -77,23 +89,21 @@ enum DigitType {
 }
 
 // Example extension on DigitType enum
+
+/// Extension providing display string representations for each [DigitType] value.
 extension DigitTypeExtension on DigitType {
-  /// Returns the display string for each digit type.
+  /// Gets the string representation shown on the calculator for this digit type.
   String get display {
     switch (this) {
-      /// Numeric digit 0.
       case DigitType.zero:
         return '0';
 
-      /// Numeric digit 1.
       case DigitType.one:
         return '1';
 
-      /// Numeric digit 2.
       case DigitType.two:
         return '2';
 
-      /// Decimal point symbol.
       case DigitType.decimal:
         return '.';
     }
