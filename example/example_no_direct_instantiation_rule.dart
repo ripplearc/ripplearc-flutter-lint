@@ -92,14 +92,31 @@ class FeatureModule extends Module {
 class ConstExample {
   void example() {
     const value = String.fromEnvironment('KEY'); // ✅ Allowed: Const constructor
-    // Note: const list/map examples require const constructors
-    // In real code, const [MyConstClass()] would be allowed if MyConstClass has const constructor
   }
 }
 
 class MyConstClass {
-  const MyConstClass(); // Const constructor
+  final String name;
+  const MyConstClass(this.name);
 }
+
+// Const list with const constructors
+const myConstList = [
+  MyConstClass('item1'), // ✅ Allowed: Const constructor in const list
+  MyConstClass('item2'), // ✅ Allowed: Const constructor in const list
+];
+
+// Const map with const constructors
+const myConstMap = {
+  'key1': MyConstClass('value1'), // ✅ Allowed: Const constructor in const map
+  'key2': MyConstClass('value2'), // ✅ Allowed: Const constructor in const map
+};
+
+// Const set with const constructors
+const myConstSet = {
+  MyConstClass('a'), // ✅ Allowed: Const constructor in const set
+  MyConstClass('b'), // ✅ Allowed: Const constructor in const set
+};
 
 // ============================================================================
 // ✅ ALLOWED: Factory constructors
@@ -253,17 +270,24 @@ class FakeService {} // ✅ Allowed: In testing directory
 // final formatter = NumberFormat(); // ✅ Allowed: intl package
 
 // ============================================================================
-// ✅ ALLOWED: Private named constructors
+// ✅ ALLOWED: Private constructor calls inside the same class
 // ============================================================================
 
-class MyService {
-  MyService._private(); // ✅ Allowed: Private constructor
-  factory MyService() => MyService._private();
+// Private constructors can be called from within the same class.
+// This supports builder/fluent API patterns where a class creates new instances of itself.
+class AppLogger {
+  final String _tag;
+  
+  AppLogger._private(this._tag);
+  
+  // ✅ Allowed: Private constructor called inside the same class
+  AppLogger fresh() => AppLogger._private('default');
+  
+  // ✅ Allowed: Private constructor called inside the same class  
+  AppLogger tag(String newTag) => AppLogger._private(newTag);
 }
 
-void privateExample() {
-  final service = MyService._private(); // ✅ Allowed: Private named constructor
-}
+
 
 // ============================================================================
 // ✅ ALLOWED: Sealed classes
