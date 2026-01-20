@@ -53,6 +53,17 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     return _unitHasModuleClass!;
   }
 
+  bool _isInsideSameClass(AstNode node, String className) {
+    AstNode? current = node.parent;
+    while (current != null) {
+      if (current is ClassDeclaration) {
+        return current.name.lexeme == className;
+      }
+      current = current.parent;
+    }
+    return false;
+  }
+
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.target == null && node.argumentList.arguments.isEmpty) {
@@ -75,6 +86,40 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
         }
       }
     }
+    
+      if (node.target is SimpleIdentifier) {
+      final targetName = (node.target as SimpleIdentifier).name;
+      final methodName = node.methodName.name;
+      final decl = _getClassCache(node)[targetName];
+      
+      if (decl != null) {
+        bool isNamedConstructor = false;
+        bool hasFactoryConstructor = false;
+        
+        for (final member in decl.members) {
+          if (member is ConstructorDeclaration && member.name != null) {
+            if (member.name!.lexeme == methodName) {
+              isNamedConstructor = true;
+              if (member.factoryKeyword != null) {
+                hasFactoryConstructor = true;
+              }
+              break;
+            }
+          }
+        }
+        
+        if (isNamedConstructor && !hasFactoryConstructor) {
+          if (methodName.startsWith('_')) {
+            if (_isInsideSameClass(node, targetName)) {
+              super.visitMethodInvocation(node);
+              return;
+            }
+          }
+          _checkInstantiation(targetName, node);
+        }
+      }
+    }
+    
     super.visitMethodInvocation(node);
   }
 
@@ -141,8 +186,10 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     if (constructorName.name != null) {
       final constructorNameStr = constructorName.name!.name;
       if (constructorNameStr.startsWith('_')) {
-        super.visitInstanceCreationExpression(node);
-        return;
+        if (_isInsideSameClass(node, className)) {
+          super.visitInstanceCreationExpression(node);
+          return;
+        }
       }
     }
 
