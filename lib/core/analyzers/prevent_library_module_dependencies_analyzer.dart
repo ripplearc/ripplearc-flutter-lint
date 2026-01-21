@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'base_analyzer.dart';
-import '../models/lint_issue.dart';
-import '../utils/feature_path_utils.dart';
+import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
+import 'package:ripplearc_linter/core/models/lint_issue.dart';
+import 'package:ripplearc_linter/core/utils/feature_path_utils.dart';
 
 /// Analyzer that enforces library module independence from feature modules.
 ///
