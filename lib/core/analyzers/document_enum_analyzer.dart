@@ -60,27 +60,27 @@ class _EnumDocumentationVisitor extends RecursiveAstVisitor<void> {
     }
 
     for (final member in node.members) {
-      if (member is MethodDeclaration) {
-        if (!member.name.lexeme.startsWith('_')) {
-          if (!DocumentationUtils.hasDocumentation(
-            member.documentationComment,
-          )) {
-            issues.add(analyzer.createIssue(member));
-          }
-        }
-      } else if (member is FieldDeclaration) {
-        for (final variable in member.fields.variables) {
-          if (!variable.name.lexeme.startsWith('_')) {
-            if (!DocumentationUtils.hasDocumentation(
-              member.documentationComment,
-            )) {
-              issues.add(analyzer.createIssue(member));
-            }
-          }
-        }
+      if (_isPrivateMember(member)) continue;
+
+      if (!DocumentationUtils.hasDocumentation(member.documentationComment)) {
+        issues.add(analyzer.createIssue(member));
       }
     }
 
     super.visitExtensionDeclaration(node);
+  }
+
+  bool _isPrivateMember(ClassMember member) {
+    if (member is MethodDeclaration) {
+      return member.name.lexeme.startsWith('_');
+    }
+
+    if (member is FieldDeclaration) {
+      return member.fields.variables.every(
+        (variable) => variable.name.lexeme.startsWith('_'),
+      );
+    }
+
+    return true;
   }
 }
