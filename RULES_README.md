@@ -542,3 +542,156 @@ class TextFormatter {}
 #### What's Detected
 - Class names containing the substrings: `Helper`, `Helpers`, `Util`, `Utils`
 - Typical PascalCase class names that include those substrings
+
+
+### restrict_core_icon_data
+
+Restricts `CoreIconData` and `CoreMaterialIcons` usage to the coreui package icons directory. This rule enforces icon abstraction by requiring developers to use `CoreIcons` constants instead of directly instantiating icon data classes, ensuring consistent icon management across the codebase.
+
+#### Bad ❌
+```dart
+class MyWidget {
+  void build() {
+    // Direct CoreIconData instantiation
+    final svgIcon = CoreIconData.svg('assets/icons/custom.svg');  // LINT
+    final materialIcon = CoreIconData.material(Icons.home);  // LINT
+    
+    // Direct CoreMaterialIcons access
+    final arrow = CoreMaterialIcons.arrowRight;  // LINT
+  }
+  
+  // Type annotations are also flagged
+  CoreIconData getIcon() => CoreIcons.arrowRight;  // LINT
+  void setIcon(CoreIconData icon) {}  // LINT
+}
+```
+
+#### Good ✅
+```dart
+class MyWidget {
+  void build() {
+    // Use CoreIcons constants
+    final icon1 = CoreIcons.arrowRight;
+    final icon2 = CoreIcons.arrowLeft;
+    final icon3 = CoreIcons.microsoft;
+    
+    // Lists of icons
+    final icons = [
+      CoreIcons.arrowRight,
+      CoreIcons.arrowLeft,
+    ];
+  }
+}
+```
+
+#### What's Detected
+- **Direct instantiation**: `CoreIconData.svg()`, `CoreIconData.material()`
+- **Static access**: `CoreMaterialIcons.arrowRight`, `CoreMaterialIcons.arrowLeft`
+- **Type annotations**: `CoreIconData` used as return type, parameter type, or in generics
+
+#### Excluded Files
+- Files under `/lib/src/theme/icons/` directory (coreui icon definitions)
+
+
+### document_enum
+
+Enforces documentation on enums and their values. This rule ensures that every enum type and each enum value has a `///` documentation comment, providing clear descriptions of the enum's purpose and the meaning of each value.
+
+#### Bad ❌
+```dart
+// Missing enum documentation
+enum Status {
+  active,    // LINT: Missing value documentation
+  inactive,  // LINT: Missing value documentation
+}
+
+// Enum with only class documentation
+/// Represents the authentication status.
+enum AuthStatus {
+  authenticated,    // LINT: Missing value documentation
+  unauthenticated,  // LINT: Missing value documentation
+}
+
+// Enum with only value documentation
+enum ProjectStatus {
+  /// The project is active.
+  active,
+  /// The project is archived.
+  archived,
+}
+```
+
+#### Good ✅
+```dart
+/// Defines the type of toast notification and its visual styling.
+enum ToastType {
+  /// Error toast with red background for critical issues.
+  error,
+
+  /// Warning toast with orange background for cautionary messages.
+  warning,
+
+  /// Info toast with blue background for general notifications.
+  info,
+
+  /// Success toast with green background for positive confirmations.
+  success,
+}
+
+/// Storage providers supported for project export functionality.
+enum StorageProvider {
+  /// Google Drive cloud storage service.
+  googleDrive,
+
+  /// Microsoft OneDrive cloud storage service.
+  oneDrive,
+
+  /// Dropbox cloud storage service.
+  dropbox,
+}
+```
+
+### forbid_datetime_now
+
+Forbids the use of `DateTime.now()` in production code. This rule enforces the use of the custom `Clock` interface from `libraries/time/interfaces/clock.dart` instead, enabling deterministic testing and time mocking in widget and unit tests.
+
+**Exception**: `DateTime.now()` is allowed in `system_clock_impl.dart` where the Clock implementation is defined.
+
+#### Bad ❌
+```dart
+class TimeService {
+  DateTime getCurrentTime() {
+    return DateTime.now();  // LINT
+  }
+
+  bool isExpired(DateTime expirationDate) {
+    return DateTime.now().isAfter(expirationDate);  // LINT
+  }
+}
+```
+
+#### Good ✅
+```dart
+import 'libraries/time/interfaces/clock.dart';
+
+class TimeService {
+  final Clock clock;
+  TimeService({required this.clock});
+
+  DateTime getCurrentTime() {
+    return clock.now();  // OK - testable
+  }
+
+  bool isExpired(DateTime expirationDate) {
+    return clock.now().isAfter(expirationDate);  // OK - testable
+  }
+}
+
+// Good: DateTime.now() is allowed in system_clock_impl.dart
+class SystemClock implements Clock {
+  @override
+  DateTime now() {
+    return DateTime.now();  // OK - allowed in system_clock_impl.dart
+  }
+}
+```

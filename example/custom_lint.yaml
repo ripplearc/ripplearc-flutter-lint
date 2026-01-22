@@ -13,6 +13,7 @@ rules:
   - specific_exception_types
   - test_file_mutation_coverage
   - prevent_feature_module_dependencies
+  - restrict_core_icon_data
 
 analyzer:
   plugins:
