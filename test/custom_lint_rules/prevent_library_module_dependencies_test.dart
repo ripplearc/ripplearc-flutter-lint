@@ -360,7 +360,6 @@ void main() {
         expect(reporter.errors, isNotEmpty);
       });
     });
-
     group('part directives', () {
       test('should not flag part directive', () async {
         const source = '''
