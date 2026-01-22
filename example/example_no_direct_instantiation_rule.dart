@@ -201,7 +201,10 @@ void eventExample() {
 // ============================================================================
 
 // Good: Exception and Error classes are allowed
-class CustomException implements Exception {} // ✅ Allowed: Exception class
+class CustomException implements Exception {
+  final String message;
+  CustomException(this.message);
+} // ✅ Allowed: Exception class
 class ValidationException implements Exception { // ✅ Allowed: Exception class
   final String message;
   ValidationException(this.message);
@@ -210,15 +213,15 @@ class NetworkError extends Error {} // ✅ Allowed: Error class
 class CustomError extends Error {} // ✅ Allowed: Error class
 
 void exceptionExample() {
-  throw CustomException(); // ✅ Allowed: Exception instantiation
   throw ValidationException('Invalid'); // ✅ Allowed: Exception instantiation
+  throw CustomException('Invalid'); // ✅ Allowed: Exception instantiation
 }
 
 // ============================================================================
-// ✅ ALLOWED: DTO, Entity, Model classes (extend Equatable)
+// ✅ ALLOWED: DTO, Entity, Model, Params classes (extend Equatable)
 // ============================================================================
 
-// Good: DTO, Entity, Model classes that extend Equatable are allowed
+// Good: DTO, Entity, Model, and Params classes that extend Equatable are allowed
 class UserDto extends Equatable {} // ✅ Allowed: Extends Equatable
 
 class UserDTO extends Equatable {} // ✅ Allowed: Extends Equatable
@@ -227,18 +230,26 @@ class UserEntity extends Equatable {} // ✅ Allowed: Extends Equatable
 
 class UserModel extends Equatable {} // ✅ Allowed: Extends Equatable
 
-// ============================================================================
-// ✅ ALLOWED: Pattern-based class names (by name pattern)
-// ============================================================================
+class RequestParams extends Equatable {
+  @override
+  List<Object?> get props => [];
+} // ✅ Allowed: Params extends Equatable
 
-class RequestParams {} // ✅ Allowed: Ends with Params (pattern match)
+class LoginParams extends Equatable {
+  @override
+  List<Object?> get props => [];
+} // ✅ Allowed: Params extends Equatable
 
+// Note: Attributes classes from package:supabase/ or package:supabase_flutter/
+// are also allowed for direct instantiation, even without extending Equatable.
+// This is a special case for Supabase's generated Attributes classes.
 
 void dataExample() {
   final dto = UserDto(); // ✅ Allowed: Extends Equatable
   final entity = UserEntity(); // ✅ Allowed: Extends Equatable
   final model = UserModel(); // ✅ Allowed: Extends Equatable
-  final params = RequestParams(); // ✅ Allowed: Pattern match
+  final params = RequestParams(); // ✅ Allowed: Params extends Equatable
+  final loginParams = LoginParams(); // ✅ Allowed: Params extends Equatable
 }
 
 // ============================================================================
@@ -247,7 +258,6 @@ void dataExample() {
 
 // Files in these paths are excluded:
 // - testing/
-// - main.dart
 
 // Example: lib/testing/fake_service.dart
 class FakeService {} // ✅ Allowed: In testing directory
@@ -259,15 +269,33 @@ class FakeService {} // ✅ Allowed: In testing directory
 // Classes from these packages are allowed:
 // - package:flutter/* (Widget, State, TextEditingController, FocusNode, etc.)
 // - package:flutter_bloc/* (BLoC classes)
-// - package:supabase/*, package:supabase_flutter/*
-// - package:intl/* (NumberFormat, DateFormat)
-// - package:uuid/* (Uuid)
+// - package:supabase/*, package:supabase_flutter/* (Attributes classes)
+// - Specific utility classes from third-party packages:
+//   * Uuid (package:uuid) - UUID generation
+//   * DateFormat, NumberFormat (package:intl) - Internationalization
+//   * Faker (package:faker) - Test data generation
+//   * BehaviorSubject, PublishSubject, ReplaySubject (package:rxdart) - Reactive streams
 
 // import 'package:flutter/material.dart';
 // final controller = TextEditingController(); // ✅ Allowed: Flutter package
 
-// import 'package:intl/intl.dart';
-// final formatter = NumberFormat(); // ✅ Allowed: intl package
+void whitelistedUtilityExamples() {
+  // ✅ Allowed: UUID generation utility
+  final uuid = Uuid();
+  final id = uuid.v4();
+
+  // ✅ Allowed: Internationalization utilities
+  final dateFormat = DateFormat.yMd();
+  final numberFormat = NumberFormat.currency();
+
+  // ✅ Allowed: Test data generation utility
+  final faker = Faker();
+
+  // ✅ Allowed: Reactive stream utilities
+  final behaviorSubject = BehaviorSubject<String>();
+  final publishSubject = PublishSubject<int>();
+  final replaySubject = ReplaySubject<bool>();
+}
 
 // ============================================================================
 // ✅ ALLOWED: Private constructor calls inside the same class
@@ -303,23 +331,46 @@ void sealedExample() {
 }
 
 // ============================================================================
-// ✅ ALLOWED: Special classes (by name)
+// ✅ ALLOWED: Dart SDK & Flutter framework types
 // ============================================================================
 
-// These specific classes are whitelisted:
-// - Trace
-// - DateTime
-// - Uri
-// - Uuid
-// - Completer
-// - RegExp
-// - Locale
-// - StreamController
+// All types from dart:core, dart:async, dart:ui, and package:flutter are allowed.
+// These are fundamental types that don't need dependency injection.
 
-void specialExample() {
-  final date = DateTime.now(); // ✅ Allowed: DateTime
-  final uri = Uri.parse('https://example.com'); // ✅ Allowed: Uri
-  final regex = RegExp(r'pattern'); // ✅ Allowed: RegExp
+// dart:core types
+void dartCoreExamples() {
+  final date = DateTime.now(); // ✅ Allowed: dart:core
+  final duration = Duration(seconds: 5); // ✅ Allowed: dart:core
+  final uri = Uri.parse('https://example.com'); // ✅ Allowed: dart:core
+  final regex = RegExp(r'pattern'); // ✅ Allowed: dart:core
+  final stopwatch = Stopwatch(); // ✅ Allowed: dart:core
+  final buffer = StringBuffer(); // ✅ Allowed: dart:core
+}
+
+// dart:async types
+void dartAsyncExamples() {
+  final completer = Completer<String>(); // ✅ Allowed: dart:async
+  final controller = StreamController<int>(); // ✅ Allowed: dart:async
+  final broadcastController = StreamController<String>.broadcast(); // ✅ Allowed: dart:async
+}
+
+// dart:ui types (via Flutter)
+void dartUiExamples() {
+  const color = Color(0xFF000000); // ✅ Allowed: dart:ui
+  const offset = Offset(10, 20); // ✅ Allowed: dart:ui
+  const radius = Radius.circular(8); // ✅ Allowed: dart:ui
+}
+
+// package:flutter types
+void flutterExamples() {
+  const edgeInsets = EdgeInsets.all(16); // ✅ Allowed: package:flutter
+  const borderRadius = BorderRadius.all(Radius.circular(8)); // ✅ Allowed: package:flutter
+  const locale = Locale('en', 'US'); // ✅ Allowed: package:flutter
+  final textController = TextEditingController(); // ✅ Allowed: package:flutter
+  final focusNode = FocusNode(); // ✅ Allowed: package:flutter
+  final scrollController = ScrollController(); // ✅ Allowed: package:flutter
+  final pageController = PageController(); // ✅ Allowed: package:flutter
+  final tabController = TabController(length: 3, vsync: _TickerProvider()); // ✅ Allowed: package:flutter
 }
 
 // ============================================================================
