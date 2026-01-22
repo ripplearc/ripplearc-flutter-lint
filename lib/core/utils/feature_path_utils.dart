@@ -53,3 +53,12 @@ String? extractFeatureNameFromImport(String importUri) {
     return match != null && match.groupCount >= 1 ? match.group(1) : null;
   });
 }
+
+bool isLibraryModuleFile(String path) {
+  final normalized = _normalizePath(path);
+  return normalized.toLowerCase().contains('/libraries/');
+}
+
+bool containsFeatureImport(String uri) {
+  return uri.toLowerCase().contains('/features/');
+}

@@ -460,4 +460,238 @@ lib/
 ├── libraries/                  
 
 ```
+### prevent_library_module_dependencies
 
+Enforces library module independence by preventing library modules from importing feature modules. This rule ensures that libraries remain reusable and do not have feature-specific dependencies, enabling better code reuse and maintainability.
+
+#### Bad ❌
+```dart
+// lib/libraries/auth/auth_library_module.dart
+import 'package:project/features/auth/presentation/pages/login_page.dart'; // LINT: Library importing a feature
+import 'package:project/features/dashboard/domain/entities/dashboard.dart'; // LINT: Library importing a feature
+
+class AuthLibraryModule {
+  void initialize() {
+    // Library code should not depend on feature implementations
+  }
+}
+```
+
+#### Good ✅
+```dart
+// lib/libraries/auth/auth_library_module.dart
+
+// Good: Imports from other libraries
+import 'package:project/libraries/time/interfaces/clock.dart';
+import 'package:project/libraries/supabase/interfaces/supabase_wrapper.dart';
+
+// Good: External packages
+import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
+
+class AuthLibraryModule {
+  void initialize() {
+    // Library code with proper dependencies
+  }
+}
+```
+
+#### Allowed Patterns
+- **Library-to-library imports**: Libraries can import from other libraries (`package:project/libraries/...`)
+- **External packages**: All libraries can import from Flutter, Dart SDK, and pub.dev packages
+- **Dart SDK**: All libraries can import Dart core libraries (`dart:async`, `dart:convert`, etc.)
+
+#### Library Structure
+```
+lib/
+├── features/              # Feature modules (can import from libraries)
+│   ├── auth/
+│   ├── dashboard/
+│   └── project/
+└── libraries/             # Library modules (cannot import from features)
+    ├── auth/              # Shared auth utilities
+    ├── config/            # Configuration
+    ├── either/            # Either pattern
+    ├── project/           # Shared project utilities
+    ├── router/            # Navigation
+    ├── storage/           # Storage services
+    ├── supabase/          # Supabase integration
+    └── time/              # Time utilities
+```
+### forbid_helper_util_naming
+
+Forbids class names that include generic substrings like `Helper` or `Util`.
+This rule encourages more descriptive, domain-specific names (e.g.,
+`AssetLoader` instead of `AssetHelper`) to improve clarity and reduce
+catch-all utility classes.
+
+#### Bad ❌
+```dart
+class AssetHelper {}        // LINT: prefer AssetLoader or AssetAdapter
+class StringUtil {}         // LINT: prefer StringParser or StringSanitizer
+class FormattingUtils {}    // LINT: prefer TextFormatter
+```
+
+#### Good ✅
+```dart
+class AssetLoader {}
+class StringParser {}
+class TextFormatter {}
+```
+
+#### What's Detected
+- Class names containing the substrings: `Helper`, `Helpers`, `Util`, `Utils`
+- Typical PascalCase class names that include those substrings
+
+
+### restrict_core_icon_data
+
+Restricts `CoreIconData` and `CoreMaterialIcons` usage to the coreui package icons directory. This rule enforces icon abstraction by requiring developers to use `CoreIcons` constants instead of directly instantiating icon data classes, ensuring consistent icon management across the codebase.
+
+#### Bad ❌
+```dart
+class MyWidget {
+  void build() {
+    // Direct CoreIconData instantiation
+    final svgIcon = CoreIconData.svg('assets/icons/custom.svg');  // LINT
+    final materialIcon = CoreIconData.material(Icons.home);  // LINT
+    
+    // Direct CoreMaterialIcons access
+    final arrow = CoreMaterialIcons.arrowRight;  // LINT
+  }
+  
+  // Type annotations are also flagged
+  CoreIconData getIcon() => CoreIcons.arrowRight;  // LINT
+  void setIcon(CoreIconData icon) {}  // LINT
+}
+```
+
+#### Good ✅
+```dart
+class MyWidget {
+  void build() {
+    // Use CoreIcons constants
+    final icon1 = CoreIcons.arrowRight;
+    final icon2 = CoreIcons.arrowLeft;
+    final icon3 = CoreIcons.microsoft;
+    
+    // Lists of icons
+    final icons = [
+      CoreIcons.arrowRight,
+      CoreIcons.arrowLeft,
+    ];
+  }
+}
+```
+
+#### What's Detected
+- **Direct instantiation**: `CoreIconData.svg()`, `CoreIconData.material()`
+- **Static access**: `CoreMaterialIcons.arrowRight`, `CoreMaterialIcons.arrowLeft`
+- **Type annotations**: `CoreIconData` used as return type, parameter type, or in generics
+
+#### Excluded Files
+- Files under `/lib/src/theme/icons/` directory (coreui icon definitions)
+
+
+### document_enum
+
+Enforces documentation on enums and their values. This rule ensures that every enum type and each enum value has a `///` documentation comment, providing clear descriptions of the enum's purpose and the meaning of each value.
+
+#### Bad ❌
+```dart
+// Missing enum documentation
+enum Status {
+  active,    // LINT: Missing value documentation
+  inactive,  // LINT: Missing value documentation
+}
+
+// Enum with only class documentation
+/// Represents the authentication status.
+enum AuthStatus {
+  authenticated,    // LINT: Missing value documentation
+  unauthenticated,  // LINT: Missing value documentation
+}
+
+// Enum with only value documentation
+enum ProjectStatus {
+  /// The project is active.
+  active,
+  /// The project is archived.
+  archived,
+}
+```
+
+#### Good ✅
+```dart
+/// Defines the type of toast notification and its visual styling.
+enum ToastType {
+  /// Error toast with red background for critical issues.
+  error,
+
+  /// Warning toast with orange background for cautionary messages.
+  warning,
+
+  /// Info toast with blue background for general notifications.
+  info,
+
+  /// Success toast with green background for positive confirmations.
+  success,
+}
+
+/// Storage providers supported for project export functionality.
+enum StorageProvider {
+  /// Google Drive cloud storage service.
+  googleDrive,
+
+  /// Microsoft OneDrive cloud storage service.
+  oneDrive,
+
+  /// Dropbox cloud storage service.
+  dropbox,
+}
+```
+
+### forbid_datetime_now
+
+Forbids the use of `DateTime.now()` in production code. This rule enforces the use of the custom `Clock` interface from `libraries/time/interfaces/clock.dart` instead, enabling deterministic testing and time mocking in widget and unit tests.
+
+**Exception**: `DateTime.now()` is allowed in `system_clock_impl.dart` where the Clock implementation is defined.
+
+#### Bad ❌
+```dart
+class TimeService {
+  DateTime getCurrentTime() {
+    return DateTime.now();  // LINT
+  }
+
+  bool isExpired(DateTime expirationDate) {
+    return DateTime.now().isAfter(expirationDate);  // LINT
+  }
+}
+```
+
+#### Good ✅
+```dart
+import 'libraries/time/interfaces/clock.dart';
+
+class TimeService {
+  final Clock clock;
+  TimeService({required this.clock});
+
+  DateTime getCurrentTime() {
+    return clock.now();  // OK - testable
+  }
+
+  bool isExpired(DateTime expirationDate) {
+    return clock.now().isAfter(expirationDate);  // OK - testable
+  }
+}
+
+// Good: DateTime.now() is allowed in system_clock_impl.dart
+class SystemClock implements Clock {
+  @override
+  DateTime now() {
+    return DateTime.now();  // OK - allowed in system_clock_impl.dart
+  }
+}
+```

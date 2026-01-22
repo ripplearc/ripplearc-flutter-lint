@@ -173,6 +173,7 @@ This configuration file includes all our custom lint rules:
 - `no_internal_method_docs` - Forbid documentation on private methods to reduce noise
 - `document_interface` - Enforce documentation on abstract classes and their public methods
 - `prevent_feature_module_dependencies` - Enforce feature module independence by preventing features from depending on other features
+- `prevent_library_module_dependencies` - Enforce library module independence by preventing libraries from depending on features
 
 #### Rule Configuration
 - Each rule is listed under the `rules` section
@@ -229,6 +230,7 @@ To update your project to use the latest version of `ripplearc_linter` and enabl
        - todo_with_story_links
        - no_internal_method_docs
        - prevent_feature_module_dependencies
+       - prevent_library_module_dependencies
      ```
    - Only include the rules you want to enforce in your project.
 

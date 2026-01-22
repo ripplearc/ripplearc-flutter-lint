@@ -5,8 +5,10 @@ import 'package:ripplearc_linter/core/analyzers/avoid_static_typography_analyzer
 import 'package:ripplearc_linter/core/analyzers/avoid_static_colors_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/forbid_helper_util_naming_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/prevent_feature_module_dependencies_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/prevent_library_module_dependencies_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/sealed_over_dynamic_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/private_subject_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/specific_exception_types_analyzer.dart';
@@ -63,6 +65,7 @@ class StandaloneLintChecker {
     AvoidStaticTypographyAnalyzer(),
     AvoidStaticColorsAnalyzer(),
     ForcedUnwrappingAnalyzer(),
+    ForbidHelperUtilNamingAnalyzer(),
     DirectInstantiationAnalyzer(),
     SealedOverDynamicAnalyzer(),
     PrivateSubjectAnalyzer(),
@@ -75,7 +78,7 @@ class StandaloneLintChecker {
     PreferFakeOverMockAnalyzer(),
     TestFileMutationCoverageAnalyzer(),
     FeatureModuleIsolationAnalyzer(),
-    // Add other analyzers here as you refactor them
+    LibraryModuleDependenciesAnalyzer(),
   ];
 
   static const Set<String> _testOnlyRuleNames = {
@@ -89,6 +92,7 @@ class StandaloneLintChecker {
   static const Set<String> _bothFilesRuleNames = {
     'avoid_static_colors',
     'avoid_static_typography',
+    'forbid_helper_util_naming',
   };
 
   /// Analyzes the given files and directories for linting issues.

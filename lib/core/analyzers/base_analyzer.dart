@@ -34,6 +34,13 @@ abstract class BaseAnalyzer {
   /// Implement this method to provide the core logic for your custom lint rule.
   List<LintIssue> analyze(CompilationUnit unit);
 
+  /// Returns true if the file at [path] should be skipped by this analyzer.
+  ///
+  /// Called before analysis to exclude files or directories from this rule.
+  bool shouldSkipFile(String path) {
+    return false;
+  }
+
   /// Analyze the given [CompilationUnit] with resolver context and return a list of [LintIssue]s.
   ///
   /// This method provides access to the resolver for file path and other context information.
