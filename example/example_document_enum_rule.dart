@@ -88,7 +88,11 @@ enum DigitType {
   decimal,
 }
 
-// Example extension on DigitType enum
+/// Example extension on the [DigitType] enum providing additional functionality.
+///
+/// This extension adds utility methods and properties to the [DigitType] enum,
+/// allowing for enhanced interaction and display logic related to calculator
+/// digit types within the application.
 
 /// Extension providing display string representations for each [DigitType] value.
 extension DigitTypeExtension on DigitType {
