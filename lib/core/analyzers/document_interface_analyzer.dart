@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
+import '../utils/documentation_utils.dart';
 
 /// Analyzer that ensures abstract classes and their public methods have documentation.
 ///
@@ -53,7 +54,9 @@ class _DocumentationVisitor extends RecursiveAstVisitor<void> {
     if (node.abstractKeyword == null) return;
 
     // Check if class has documentation
-    final hasClassDocumentation = _hasDocumentation(node.documentationComment);
+    final hasClassDocumentation = DocumentationUtils.hasDocumentation(
+      node.documentationComment,
+    );
 
     // Check public methods for documentation
     final undocumentedMethods = <MethodDeclaration>[];
@@ -64,7 +67,9 @@ class _DocumentationVisitor extends RecursiveAstVisitor<void> {
         if (!member.name.lexeme.startsWith('_') &&
             !member.isGetter &&
             !member.isSetter) {
-          if (!_hasDocumentation(member.documentationComment)) {
+          if (!DocumentationUtils.hasDocumentation(
+            member.documentationComment,
+          )) {
             undocumentedMethods.add(member);
           }
         }
@@ -82,22 +87,5 @@ class _DocumentationVisitor extends RecursiveAstVisitor<void> {
     }
 
     super.visitClassDeclaration(node);
-  }
-
-  bool _hasDocumentation(Comment? comment) {
-    if (comment == null) return false;
-
-    // Check for /// documentation (not /** */ or //)
-    for (final token in comment.tokens) {
-      if (token.lexeme.startsWith('///')) {
-        // Check if there's actual content (not just ///)
-        final content = token.lexeme.substring(3).trim();
-        if (content.isNotEmpty) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 }
