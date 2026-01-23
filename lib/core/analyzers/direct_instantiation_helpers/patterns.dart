@@ -16,7 +16,7 @@ class DirectInstantiationPatterns {
   }
 
   static bool shouldSkipFile(String filePath) {
-    return isExcludedByFilePath(filePath) || BaseAnalyzer.isTestFile(filePath);
+    return isExcludedByFilePath(filePath);
   }
 
 }
