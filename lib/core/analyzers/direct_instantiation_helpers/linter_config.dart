@@ -4,58 +4,64 @@
 /// safe value objects, file path patterns, and AST analysis constants.
 /// All helper classes reference this configuration to avoid hardcoded values.
 class LinterConfig {
-  static const Set<String> allowedPackagePrefixes = {
-    'dart:',
-    'package:flutter/',
-    'package:intl/',
-    'package:uuid/',
-    'package:supabase/',
-    'package:supabase_flutter/',
-    'package:rxdart/',
-    'package:dartz/',
-    'package:faker/',
-    'package:gotrue/',
-  };
+  final Set<String> allowedPackagePrefixes;
+  final Set<String> ignoredBaseClasses;
+  final Set<String> safeValueObjects;
+  final List<RegExp> filePathPatterns;
+  final Set<String> astTypeNames;
+  final Set<String> astTypeSuffixes;
+  final Set<String> astMethodNames;
+  final Set<String> astKeywords;
 
-  static const Set<String> ignoredBaseClasses = {
-    'Equatable',
-    'Module',
-    'Event',
-    'Exception',
-    'Error',
-    'RouteGuard',
-  };
+  const LinterConfig({
+    required this.allowedPackagePrefixes,
+    required this.ignoredBaseClasses,
+    required this.safeValueObjects,
+    required this.filePathPatterns,
+    required this.astTypeNames,
+    required this.astTypeSuffixes,
+    required this.astMethodNames,
+    required this.astKeywords,
+  });
 
-  static const Set<String> safeValueObjects = {
-    'Uuid',
-    'DateFormat',
-    'NumberFormat',
-    'Unit',
-    'Faker',
-  };
+  factory LinterConfig.defaults() {
+    return LinterConfig(
+      allowedPackagePrefixes: const {
+        'dart:',
+        'package:flutter/',
+        'package:intl/',
+        'package:uuid/',
+        'package:supabase/',
+        'package:supabase_flutter/',
+        'package:rxdart/',
+        'package:dartz/',
+        'package:faker/',
+        'package:gotrue/',
+      },
+      ignoredBaseClasses: const {
+        'Equatable',
+        'Module',
+        'Event',
+        'Exception',
+        'Error',
+        'RouteGuard',
+      },
+      safeValueObjects: const {
+        'Uuid',
+        'DateFormat',
+        'NumberFormat',
+        'Unit',
+        'Faker',
+      },
+      filePathPatterns: [RegExp(r'.*main\.dart$', caseSensitive: false)],
+      astTypeNames: const {'Object'},
+      astTypeSuffixes: const {'Factory'},
+      astMethodNames: const {'binds', 'exportedBinds'},
+      astKeywords: const {'const'},
+    );
+  }
 
-  static final List<RegExp> filePathPatterns = [
-    RegExp(r'.*main\.dart$', caseSensitive: false),
-  ];
-
-  static const Set<String> astTypeNames = {
-    'Object',
-  };
-
-  static const Set<String> astTypeSuffixes = {
-    'Factory',
-  };
-
-  static const Set<String> astMethodNames = {
-    'binds',
-    'exportedBinds',
-  };
-
-  static const Set<String> astKeywords = {
-    'const',
-  };
-
-  static bool shouldSkipFile(String filePath) {
+  bool shouldSkipFile(String filePath) {
     if (filePath.isEmpty) return false;
     final normalizedPath = filePath.replaceAll('\\', '/');
     return filePathPatterns.any((pattern) => pattern.hasMatch(normalizedPath));
