@@ -3,7 +3,7 @@ import '../core/analyzers/direct_instantiation_analyzer.dart';
 import '../core/analyzers/base_analyzer.dart';
 
 class NoDirectInstantiation extends BaseLintRule {
-  NoDirectInstantiation() : super(BaseLintRule.createLintCode(_analyzer));
+  NoDirectInstantiation() : super(BaseLintRule.createLintCode(_analyzer), bothFiles: true);
 
   static final _analyzer = DirectInstantiationAnalyzer();
 
