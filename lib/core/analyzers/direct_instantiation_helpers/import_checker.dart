@@ -19,8 +19,8 @@ class ImportChecker {
     return null;
   }
 
-  static bool _isLibraryUriAllowed(String libraryUri) {
-    for (final prefix in LinterConfig.allowedPackagePrefixes) {
+  static bool _isLibraryUriAllowed(String libraryUri, LinterConfig config) {
+    for (final prefix in config.allowedPackagePrefixes) {
       if (libraryUri.startsWith(prefix)) {
         return true;
       }
@@ -28,22 +28,23 @@ class ImportChecker {
     return false;
   }
 
-  static bool _isSafeValueObject(String className, String libraryUri) {
-    if (!LinterConfig.safeValueObjects.contains(className)) {
+  static bool _isSafeValueObject(String className, String libraryUri, LinterConfig config) {
+    if (!config.safeValueObjects.contains(className)) {
       return false;
     }
-    return _isLibraryUriAllowed(libraryUri);
+    return _isLibraryUriAllowed(libraryUri, config);
   }
 
   static bool _checkPrefixedImportForExcludedPackage(
     String className,
     String prefix,
     CompilationUnit compilationUnit,
+    LinterConfig config,
   ) {
     for (final directive in compilationUnit.directives) {
       if (directive is ImportDirective && directive.prefix?.name == prefix) {
         final uri = directive.uri.stringValue ?? '';
-        if (_isLibraryUriAllowed(uri) || _isSafeValueObject(className, uri)) {
+        if (_isLibraryUriAllowed(uri, config) || _isSafeValueObject(className, uri, config)) {
           return true;
         }
       }
@@ -62,9 +63,10 @@ class ImportChecker {
   static bool _checkNonPrefixedImportForExcludedPackage(
     String className,
     ImportDirective directive,
+    LinterConfig config,
   ) {
     final uri = directive.uri.stringValue ?? '';
-    if (!_isLibraryUriAllowed(uri) && !_isSafeValueObject(className, uri)) {
+    if (!_isLibraryUriAllowed(uri, config) && !_isSafeValueObject(className, uri, config)) {
       return false;
     }
 
@@ -85,12 +87,13 @@ class ImportChecker {
       }
     }
 
-    return _isLibraryUriAllowed(uri) || _isSafeValueObject(className, uri);
+    return _isLibraryUriAllowed(uri, config) || _isSafeValueObject(className, uri, config);
   }
 
   static bool isImportedFromAllowedPackage(
     String className,
     InstanceCreationExpression node,
+    LinterConfig config,
   ) {
     final constructorName = node.constructorName;
     final typeSource = constructorName.type.toSource();
@@ -103,7 +106,7 @@ class ImportChecker {
       if (parts.length == 2) {
         final prefix = parts[0];
         if (_checkPrefixedImportForExcludedPackage(
-            className, prefix, compilationUnit)) {
+            className, prefix, compilationUnit, config)) {
           return true;
         }
       }
@@ -111,7 +114,7 @@ class ImportChecker {
 
     for (final directive in compilationUnit.directives) {
       if (directive is ImportDirective && directive.prefix == null) {
-        if (_checkNonPrefixedImportForExcludedPackage(className, directive)) {
+        if (_checkNonPrefixedImportForExcludedPackage(className, directive, config)) {
           return true;
         }
       }
@@ -124,11 +127,12 @@ class ImportChecker {
     String className,
     String prefix,
     CompilationUnit compilationUnit,
+    LinterConfig config,
   ) {
     for (final directive in compilationUnit.directives) {
       if (directive is ImportDirective && directive.prefix?.name == prefix) {
         final uri = directive.uri.stringValue ?? '';
-        return _isSafeValueObject(className, uri);
+        return _isSafeValueObject(className, uri, config);
       }
     }
     return false;
@@ -137,9 +141,10 @@ class ImportChecker {
   static bool _checkNonPrefixedImportForSafeValueObject(
     String className,
     ImportDirective directive,
+    LinterConfig config,
   ) {
     final uri = directive.uri.stringValue ?? '';
-    if (!_isSafeValueObject(className, uri)) {
+    if (!_isSafeValueObject(className, uri, config)) {
       return false;
     }
 
@@ -153,6 +158,7 @@ class ImportChecker {
   static bool isWhitelistedThirdPartyClass(
     String className,
     InstanceCreationExpression node,
+    LinterConfig config,
   ) {
     final compilationUnit = _getCompilationUnit(node);
     if (compilationUnit == null) return false;
@@ -165,7 +171,7 @@ class ImportChecker {
       if (parts.length == 2) {
         final prefix = parts[0];
         if (_checkPrefixedImportForSafeValueObject(
-            className, prefix, compilationUnit)) {
+            className, prefix, compilationUnit, config)) {
           return true;
         }
       }
@@ -173,7 +179,7 @@ class ImportChecker {
 
     for (final directive in compilationUnit.directives) {
       if (directive is ImportDirective && directive.prefix == null) {
-        if (_checkNonPrefixedImportForSafeValueObject(className, directive)) {
+        if (_checkNonPrefixedImportForSafeValueObject(className, directive, config)) {
           return true;
         }
       }

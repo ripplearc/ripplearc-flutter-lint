@@ -22,10 +22,10 @@ class _ModuleBindsContext {
 /// const/factory constructors, Module class contexts, binds methods, and ignored base class inheritance.
 /// Uses LinterConfig for base classes, method names, and keywords.
 class ContextChecker {
-  static bool _extendsModule(ExtendsClause? extendsClause) {
+  static bool _extendsModule(ExtendsClause? extendsClause, LinterConfig config) {
     if (extendsClause == null) return false;
     final superclassName = extendsClause.superclass.name2.lexeme;
-    return LinterConfig.ignoredBaseClasses.contains(superclassName);
+    return config.ignoredBaseClasses.contains(superclassName);
   }
 
   static ClassDeclaration? findClassDeclaration(
@@ -61,12 +61,12 @@ class ContextChecker {
     return parent is VariableDeclarationList && parent.isConst;
   }
 
-  static bool _isConstArgumentList(AstNode node) {
+  static bool _isConstArgumentList(AstNode node, LinterConfig config) {
     if (node is! ArgumentList) return false;
     final parent = node.parent;
     return parent is InstanceCreationExpression &&
            parent.keyword != null &&
-           LinterConfig.astKeywords.contains(parent.keyword!.lexeme);
+           config.astKeywords.contains(parent.keyword!.lexeme);
   }
 
   static bool _isFactoryConstructor(AstNode node) {
@@ -77,12 +77,12 @@ class ContextChecker {
     return node is SuperConstructorInvocation || node is ConstructorInitializer;
   }
 
-  static bool isInConstOrFactoryContext(AstNode node) {
+  static bool isInConstOrFactoryContext(AstNode node, LinterConfig config) {
     AstNode? current = node.parent;
     while (current != null) {
       if (_isConstLiteral(current)) return true;
       if (_isConstVariable(current)) return true;
-      if (_isConstArgumentList(current)) return true;
+      if (_isConstArgumentList(current, config)) return true;
       if (_isFactoryConstructor(current)) return true;
       if (_isConstructorInitializer(current)) return true;
 
@@ -93,13 +93,13 @@ class ContextChecker {
     return false;
   }
 
-  static bool isExcludedByContext(InstanceCreationExpression node) {
+  static bool isExcludedByContext(InstanceCreationExpression node, LinterConfig config) {
     if (node.keyword != null &&
-        LinterConfig.astKeywords.contains(node.keyword!.lexeme)) {
+        config.astKeywords.contains(node.keyword!.lexeme)) {
       return true;
     }
 
-    if (isInConstOrFactoryContext(node)) return true;
+    if (isInConstOrFactoryContext(node, config)) return true;
 
     final constructorElement = node.constructorName.staticElement;
     if (constructorElement is ConstructorElement &&
@@ -110,8 +110,8 @@ class ContextChecker {
     return false;
   }
 
-  static bool isInsideModuleBindsMethod(AstNode node) {
-    return _isInsideModuleBindsMethodInternal(node);
+  static bool isInsideModuleBindsMethod(AstNode node, LinterConfig config) {
+    return _isInsideModuleBindsMethodInternal(node, config);
   }
 
   static _ModuleBindsContext _findModuleBindsContext(AstNode node) {
@@ -142,17 +142,18 @@ class ContextChecker {
     );
   }
 
-  static bool _isModuleBindsMethod(MethodDeclaration methodDecl, ClassDeclaration classDecl) {
+  static bool _isModuleBindsMethod(MethodDeclaration methodDecl, ClassDeclaration classDecl, LinterConfig config) {
     final methodName = methodDecl.name.lexeme;
-    return (LinterConfig.astMethodNames.contains(methodName) ||
+    return (config.astMethodNames.contains(methodName) ||
             methodName.startsWith('_')) &&
-           _extendsModule(classDecl.extendsClause);
+           _extendsModule(classDecl.extendsClause, config);
   }
 
   static bool _isModuleBindsFunction(
     FunctionDeclaration functionDecl,
     CompilationUnit compilationUnit,
     bool? unitHasModuleClass,
+    LinterConfig config,
   ) {
     final functionName = functionDecl.name.lexeme;
     if (!functionName.startsWith('_')) return false;
@@ -160,7 +161,7 @@ class ContextChecker {
     if (unitHasModuleClass != null) return unitHasModuleClass;
 
     for (final decl in compilationUnit.declarations) {
-      if (decl is ClassDeclaration && _extendsModule(decl.extendsClause)) {
+      if (decl is ClassDeclaration && _extendsModule(decl.extendsClause, config)) {
         return true;
       }
     }
@@ -168,13 +169,14 @@ class ContextChecker {
   }
 
   static bool _isInsideModuleBindsMethodInternal(
-    AstNode node, {
+    AstNode node,
+    LinterConfig config, {
     bool? unitHasModuleClass,
   }) {
     final context = _findModuleBindsContext(node);
 
     if (context.methodDecl != null && context.classDecl != null) {
-      if (_isModuleBindsMethod(context.methodDecl!, context.classDecl!)) {
+      if (_isModuleBindsMethod(context.methodDecl!, context.classDecl!, config)) {
         return true;
       }
     }
@@ -186,6 +188,7 @@ class ContextChecker {
             context.functionDecl!,
             context.compilationUnit!,
             unitHasModuleClass,
+            config,
           )) {
         return true;
       }
@@ -195,20 +198,22 @@ class ContextChecker {
   }
 
   static bool isInsideModuleBindsMethodWithUnitHint(
-    AstNode node, {
+    AstNode node,
+    LinterConfig config, {
     required bool unitHasModuleClass,
   }) {
     return _isInsideModuleBindsMethodInternal(
       node,
+      config,
       unitHasModuleClass: unitHasModuleClass,
     );
   }
 
-  static bool isInsideModule(AstNode node) {
+  static bool isInsideModule(AstNode node, LinterConfig config) {
     AstNode? current = node.parent;
     while (current != null) {
       if (current is ClassDeclaration) {
-        if (_extendsModule(current.extendsClause)) {
+        if (_extendsModule(current.extendsClause, config)) {
           return true;
         }
         break;
@@ -220,10 +225,11 @@ class ContextChecker {
 
   static bool isExcludedClass(
     String className,
-    AstNode node, {
+    AstNode node,
+    LinterConfig config, {
     Map<String, ClassDeclaration>? classCache,
   }) {
-    if (LinterConfig.astTypeSuffixes.any((suffix) => className.endsWith(suffix))) {
+    if (config.astTypeSuffixes.any((suffix) => className.endsWith(suffix))) {
       return true;
     }
     final classDecl = findClassDeclaration(
@@ -231,14 +237,15 @@ class ContextChecker {
       node,
       classCache: classCache,
     );
-    if (classDecl != null && _extendsModule(classDecl.extendsClause)) {
+    if (classDecl != null && _extendsModule(classDecl.extendsClause, config)) {
       return true;
     }
     return false;
   }
 
   static bool hasIgnoredBaseClassInUnit(
-    AstNode node, {
+    AstNode node,
+    LinterConfig config, {
     Map<String, ClassDeclaration>? classCache,
   }) {
     final cache = classCache ?? _getClassCacheFromNode(node);
@@ -246,7 +253,7 @@ class ContextChecker {
       final extendsClause = c.extendsClause;
       if (extendsClause == null) return false;
       final superclassName = extendsClause.superclass.name2.lexeme;
-      return _isIgnoredBaseClass(superclassName);
+      return _isIgnoredBaseClass(superclassName, config);
     });
   }
 
@@ -269,7 +276,8 @@ class ContextChecker {
 
   static bool extendsIgnoredBaseClass(
     String className,
-    AstNode node, {
+    AstNode node,
+    LinterConfig config, {
     Map<String, ClassDeclaration>? classCache,
   }) {
     try {
@@ -283,6 +291,7 @@ class ContextChecker {
         classDecl,
         node,
         <String>{},
+        config,
         classCache: classCache,
       );
     } catch (e) {
@@ -290,17 +299,18 @@ class ContextChecker {
     }
   }
 
-  static bool _isIgnoredBaseClass(String className) {
-    return LinterConfig.ignoredBaseClasses.contains(className);
+  static bool _isIgnoredBaseClass(String className, LinterConfig config) {
+    return config.ignoredBaseClasses.contains(className);
   }
 
   static bool _checkSuperclass(
     String superclassName,
     AstNode node,
-    Set<String> visited, {
+    Set<String> visited,
+    LinterConfig config, {
     Map<String, ClassDeclaration>? classCache,
   }) {
-    if (_isIgnoredBaseClass(superclassName)) return true;
+    if (_isIgnoredBaseClass(superclassName, config)) return true;
 
     final superclassDecl = findClassDeclaration(
       superclassName,
@@ -313,6 +323,7 @@ class ContextChecker {
         superclassDecl,
         node,
         visited,
+        config,
         classCache: classCache,
       );
     }
@@ -322,12 +333,13 @@ class ContextChecker {
   static bool _checkInterfaces(
     ImplementsClause implementsClause,
     AstNode node,
-    Set<String> visited, {
+    Set<String> visited,
+    LinterConfig config, {
     Map<String, ClassDeclaration>? classCache,
   }) {
     for (final interface in implementsClause.interfaces) {
       final interfaceName = interface.name2.lexeme;
-      if (_isIgnoredBaseClass(interfaceName)) return true;
+      if (_isIgnoredBaseClass(interfaceName, config)) return true;
 
       final interfaceDecl = findClassDeclaration(
         interfaceName,
@@ -340,6 +352,7 @@ class ContextChecker {
               interfaceDecl,
               node,
               visited,
+              config,
               classCache: classCache,
             )) {
           return true;
@@ -352,7 +365,8 @@ class ContextChecker {
   static bool _extendsIgnoredBaseClassRecursive(
     ClassDeclaration classDecl,
     AstNode node,
-    Set<String> visited, {
+    Set<String> visited,
+    LinterConfig config, {
     Map<String, ClassDeclaration>? classCache,
   }) {
     if (visited.contains(classDecl.name.lexeme)) return false;
@@ -361,14 +375,14 @@ class ContextChecker {
     final extendsClause = classDecl.extendsClause;
     if (extendsClause != null) {
       final superclassName = extendsClause.superclass.name2.lexeme;
-      if (_checkSuperclass(superclassName, node, visited, classCache: classCache)) {
+      if (_checkSuperclass(superclassName, node, visited, config, classCache: classCache)) {
         return true;
       }
     }
 
     final implementsClause = classDecl.implementsClause;
     if (implementsClause != null) {
-      if (_checkInterfaces(implementsClause, node, visited, classCache: classCache)) {
+      if (_checkInterfaces(implementsClause, node, visited, config, classCache: classCache)) {
         return true;
       }
     }

@@ -12,27 +12,28 @@ import 'import_checker.dart';
 class PackageChecker {
   static bool isFromAllowedPackage(
     InstanceCreationExpression node,
-    String className, {
+    String className,
+    LinterConfig config, {
     ClassElement? typeElement,
   }) {
     if (typeElement != null) {
-      if (isFromAllowedLibrary(typeElement)) {
+      if (isFromAllowedLibrary(typeElement, config)) {
         return true;
       }
     }
 
-    if (ImportChecker.isImportedFromAllowedPackage(className, node)) {
+    if (ImportChecker.isImportedFromAllowedPackage(className, node, config)) {
       return true;
     }
 
-    if (ImportChecker.isWhitelistedThirdPartyClass(className, node)) {
+    if (ImportChecker.isWhitelistedThirdPartyClass(className, node, config)) {
       return true;
     }
 
     return false;
   }
 
-  static bool isFromAllowedLibrary(ClassElement classElement) {
+  static bool isFromAllowedLibrary(ClassElement classElement, LinterConfig config) {
     final library = classElement.library;
     final uri = library.source.uri;
 
@@ -40,15 +41,15 @@ class PackageChecker {
 
     final libraryUri = uri.toString();
 
-    for (final prefix in LinterConfig.allowedPackagePrefixes) {
+    for (final prefix in config.allowedPackagePrefixes) {
       if (libraryUri.startsWith(prefix)) {
         return true;
       }
     }
 
     final className = classElement.name;
-    if (LinterConfig.safeValueObjects.contains(className)) {
-      for (final prefix in LinterConfig.allowedPackagePrefixes) {
+    if (config.safeValueObjects.contains(className)) {
+      for (final prefix in config.allowedPackagePrefixes) {
         if (libraryUri.startsWith(prefix)) {
           return true;
         }

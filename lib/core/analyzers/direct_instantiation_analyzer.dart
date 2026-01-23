@@ -12,7 +12,15 @@ import 'direct_instantiation_helpers/visitor.dart';
 /// - Classes extending ignored base classes (Equatable, Module, Event, etc.)
 /// - Instantiations in specific contexts (const, factory, Module binds methods)
 /// - Safe value objects from whitelisted packages
+///
+/// Configuration should be provided at analyzer creation time. If no config is provided,
+/// defaults are used.
 class DirectInstantiationAnalyzer extends BaseAnalyzer {
+  final LinterConfig _config;
+
+  DirectInstantiationAnalyzer({LinterConfig? config})
+      : _config = config ?? LinterConfig.defaults();
+
   @override
   String get ruleName => 'no_direct_instantiation';
 
@@ -26,7 +34,7 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
-    final visitor = DirectInstantiationVisitor(createIssue);
+    final visitor = DirectInstantiationVisitor(createIssue, null, '', _config);
     unit.accept(visitor);
     return visitor.issues;
   }
@@ -35,11 +43,11 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
   List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
     final filePath = resolver.path ?? '';
 
-    if (LinterConfig.shouldSkipFile(filePath)) {
+    if (_config.shouldSkipFile(filePath)) {
       return [];
     }
 
-    final visitor = DirectInstantiationVisitor(createIssue, resolver, filePath);
+    final visitor = DirectInstantiationVisitor(createIssue, resolver, filePath, _config);
     unit.accept(visitor);
     return visitor.issues;
   }

@@ -9,7 +9,7 @@ import 'package_checker.dart';
 /// inheritance hierarchies, and sealed classes. Uses LinterConfig for ignored base classes
 /// and PackageChecker for package-based exclusion checks. Requires full type resolution.
 class TypeChecker {
-  static bool isExcludedBySubtype(InstanceCreationExpression node) {
+  static bool isExcludedBySubtype(InstanceCreationExpression node, LinterConfig config) {
     try {
       final element = node.constructorName.staticElement;
       if (element == null) return false;
@@ -18,15 +18,15 @@ class TypeChecker {
 
       final classElement = typeElement;
 
-      if (PackageChecker.isFromAllowedLibrary(classElement)) return true;
+      if (PackageChecker.isFromAllowedLibrary(classElement, config)) return true;
 
       for (final interface in classElement.interfaces) {
         final interfaceElement = interface.element;
         if (interfaceElement is! ClassElement) continue;
 
-        if (PackageChecker.isFromAllowedLibrary(interfaceElement)) return true;
+        if (PackageChecker.isFromAllowedLibrary(interfaceElement, config)) return true;
 
-        if (LinterConfig.ignoredBaseClasses.contains(interfaceElement.name)) {
+        if (config.ignoredBaseClasses.contains(interfaceElement.name)) {
           return true;
         }
       }
@@ -34,11 +34,11 @@ class TypeChecker {
       for (final supertype in classElement.allSupertypes) {
         final supertypeElement = supertype.element;
         if (supertypeElement is! ClassElement) continue;
-        if (LinterConfig.astTypeNames.contains(supertypeElement.name)) continue;
+        if (config.astTypeNames.contains(supertypeElement.name)) continue;
 
-        if (PackageChecker.isFromAllowedLibrary(supertypeElement)) return true;
+        if (PackageChecker.isFromAllowedLibrary(supertypeElement, config)) return true;
 
-        if (LinterConfig.ignoredBaseClasses.contains(supertypeElement.name)) {
+        if (config.ignoredBaseClasses.contains(supertypeElement.name)) {
           return true;
         }
       }
@@ -53,7 +53,7 @@ class TypeChecker {
     }
   }
 
-  static bool isSealedClass(InstanceCreationExpression node) {
+  static bool isSealedClass(InstanceCreationExpression node, LinterConfig config) {
     try {
       final element = node.constructorName.staticElement;
       if (element == null) return false;
@@ -67,7 +67,7 @@ class TypeChecker {
       if (classElement.allSupertypes.any((t) {
         final supertypeElement = t.element;
         if (supertypeElement is! ClassElement) return false;
-        if (LinterConfig.astTypeNames.contains(supertypeElement.name))
+        if (config.astTypeNames.contains(supertypeElement.name))
           return false;
         return supertypeElement.isSealed;
       })) {
