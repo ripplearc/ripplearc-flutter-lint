@@ -237,6 +237,36 @@ class ContextChecker {
     return false;
   }
 
+  static bool hasIgnoredBaseClassInUnit(
+    AstNode node, {
+    Map<String, ClassDeclaration>? classCache,
+  }) {
+    final cache = classCache ?? _getClassCacheFromNode(node);
+    return cache.values.any((c) {
+      final extendsClause = c.extendsClause;
+      if (extendsClause == null) return false;
+      final superclassName = extendsClause.superclass.name2.lexeme;
+      return _isIgnoredBaseClass(superclassName);
+    });
+  }
+
+  static Map<String, ClassDeclaration> _getClassCacheFromNode(AstNode node) {
+    final cache = <String, ClassDeclaration>{};
+    AstNode? current = node;
+    while (current != null) {
+      if (current is CompilationUnit) {
+        for (final decl in current.declarations) {
+          if (decl is ClassDeclaration) {
+            cache[decl.name.lexeme] = decl;
+          }
+        }
+        break;
+      }
+      current = current.parent;
+    }
+    return cache;
+  }
+
   static bool extendsIgnoredBaseClass(
     String className,
     AstNode node, {
