@@ -22,7 +22,7 @@ void main() {
     }) async {
       final parseResult = parseString(content: sourceCode);
       unit = parseResult.unit;
-      reporter.errors.clear(); // Clear previous errors
+      reporter.errors.clear();
       rule.run(
         TestCustomLintResolver(unit, path: path),
         reporter,
@@ -185,165 +185,133 @@ void main() {
       },
     );
 
-    test('does not flag Widget class instantiation', () async {
-      const source = '''
-      class MyWidget {}
+    group('TypeChecker - Allowed package prefixes', () {
+      test('does not flag Widget class instantiation from Flutter', () async {
+        const source = '''
+      import 'package:flutter/widgets.dart';
+      
       void main() {
-        final widget = MyWidget(); // Should NOT be flagged
+        final widget = Container(); // Should NOT be flagged (from Flutter package)
       }
       ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      });
 
-    test('does not flag State class instantiation', () async {
-      const source = '''
-      class Equatable {}
-      class LoadingState extends Equatable {}
+      test(
+        'does not flag classes from allowed dart: and package: prefixes',
+        () async {
+        const source = '''
+      import 'dart:async';
+      import 'dart:core';
+      import 'package:uuid/uuid.dart';
+      import 'package:intl/intl.dart';
+      
       void main() {
-        final state = LoadingState(); // Should NOT be flagged (extends Equatable)
+        final date = DateTime.now(); // Should NOT be flagged (dart:core)
+        final uri = Uri.parse('https://example.com'); // Should NOT be flagged (dart:core)
+        final uuid = Uuid(); // Should NOT be flagged (package:uuid)
+        final completer = Completer<String>(); // Should NOT be flagged (dart:async)
+        final controller = StreamController<String>(); // Should NOT be flagged (dart:async)
+        final dateFormat = DateFormat.yMd(); // Should NOT be flagged (package:intl)
+        final numberFormat = NumberFormat.currency(); // Should NOT be flagged (package:intl)
       }
       ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
+          await analyzeCode(source);
+          expect(reporter.errors, isEmpty);
+        },
+      );
+
+      test('does not flag Supabase Attributes classes', () async {
+        const source = '''
+      import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+      
+      void main() {
+        final attributes = supabase.UserAttributes(password: 'test'); // Should NOT be flagged (Supabase package)
+      }
+      ''';
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      });
     });
 
-    test('does not flag Event class instantiation', () async {
-      const source = '''
+    group('ContextChecker - Ignored base classes', () {
+      test('does not flag classes that extend ignored base classes', () async {
+        const source = '''
       class Equatable {}
       class UserEvent extends Equatable {}
-      void main() {
-        final event = UserEvent(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag DTO class instantiation', () async {
-      const source = '''
-      class Equatable {}
       class UserDto extends Equatable {}
+      class UserEntity extends Equatable {}
+      class UserModel extends Equatable {}
+      class LoginParams extends Equatable {}
+      class UserValue extends Equatable {}
+      
       void main() {
         final dto = UserDto(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag Entity class instantiation', () async {
-      const source = '''
-      class Equatable {}
-      class UserEntity extends Equatable {}
-      void main() {
         final entity = UserEntity(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag Model class instantiation', () async {
-      const source = '''
-      class Equatable {}
-      class UserModel extends Equatable {}
-      void main() {
         final model = UserModel(); // Should NOT be flagged (extends Equatable)
+        final params = LoginParams(); // Should NOT be flagged (extends Equatable)
+        final value = UserValue(); // Should NOT be flagged (extends Equatable)
       }
       ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      });
 
-    test('does not flag Exception class instantiation', () async {
-      const source = '''
-      class AuthException {}
+      test('does not flag nested ignored base class inheritance', () async {
+        const source = '''
+      class Equatable {}
+      class BaseState extends Equatable {}
+      class AuthState extends BaseState {}
+      class AuthInitial extends AuthState {}
+      
+      
       void main() {
-        final exception = AuthException(); // Should NOT be flagged
+        final state = AuthInitial(); // Should NOT be flagged (indirect extends Equatable)
       }
       ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      });
 
-    test('does not flag Error class instantiation', () async {
-      const source = '''
-      class AuthError {}
+      test('does not flag Exception class instantiation', () async {
+        const source = '''
+      class AuthException implements Exception{
+        final String message;
+        AuthException(this.message);
+      }
       void main() {
-        final error = AuthError(); // Should NOT be flagged
+        final exception = AuthException('Invalid'); // Should NOT be flagged
       }
       ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      });
 
-    test('does not flag Params class instantiation', () async {
-      const source = '''
-      class LoginParams {}
+      test('does not flag Error class instantiation', () async {
+        const source = '''
+      class AuthError extends Error{
+        final String message;
+        AuthError(this.message);
+      }
       void main() {
-        final params = LoginParams(); // Should NOT be flagged
+        final error = AuthError('Invalid'); // Should NOT be flagged
       }
       ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      });
     });
 
-    test('does not flag Value class instantiation', () async {
-      const source = '''
-      class UserValue {}
-      void main() {
-        final value = UserValue(); // Should NOT be flagged
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag instantiation in test files', () async {
+    test('flags instantiation in test files', () async {
       const source = '''
       class AuthService {}
       void main() {
-        final service = AuthService(); // Should NOT be flagged in test files
+        final service = AuthService(); // Should be flagged in test files
       }
       ''';
       await analyzeCode(source, path: 'test/auth_service_test.dart');
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag instantiation in test directory', () async {
-      const source = '''
-      class AuthService {}
-      void main() {
-        final service = AuthService(); // Should NOT be flagged in test directory
-      }
-      ''';
-      await analyzeCode(source, path: 'test/unit/auth_service_test.dart');
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag instantiation in model files', () async {
-      const source = '''
-      class Equatable {}
-      class UserModel extends Equatable {}
-      void main() {
-        final model = UserModel(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source, path: 'lib/data/models/user_model.dart');
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag instantiation in DTO files', () async {
-      const source = '''
-      class Equatable {}
-      class UserDto extends Equatable {}
-      void main() {
-        final dto = UserDto(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source, path: 'lib/data/user_dto.dart');
-      expect(reporter.errors, isEmpty);
+      expect(reporter.errors, isNotEmpty);
     });
 
     test('does not flag instantiation in main.dart', () async {
@@ -357,27 +325,16 @@ void main() {
       expect(reporter.errors, isEmpty);
     });
 
-    test('does not flag instantiation in domain entities directory', () async {
-      const source = '''
-      class Equatable {}
-      class UserEntity extends Equatable {}
-      void main() {
-        final entity = UserEntity(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source, path: 'lib/domain/entities/user_entity.dart');
-      expect(reporter.errors, isEmpty);
-    });
 
     test(
-      'does not flag instantiation of class imported from domain entity',
+      'does not flag private constructor called inside the same class',
       () async {
         const source = '''
-      class Equatable {}
-      class UserEntity extends Equatable {}
-      
-      void main() {
-        final user = UserEntity(); // Should NOT be flagged (extends Equatable)
+      class MyClass {
+        MyClass._private();
+        
+        // Private constructor called inside the same class - allowed
+        MyClass create() => MyClass._private();
       }
       ''';
         await analyzeCode(source);
@@ -385,91 +342,7 @@ void main() {
       },
     );
 
-    test('does not flag instantiation of class imported from model', () async {
-      const source = '''
-      class Equatable {}
-      class UserModel extends Equatable {}
-      
-      void main() {
-        final user = UserModel(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
 
-    test('does not flag private named constructor instantiation', () async {
-      const source = '''
-      class MyClass {
-        MyClass._private();
-      }
-      void main() {
-        final instance = MyClass._private(); // Should NOT be flagged
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag Event pattern class instantiation', () async {
-      const source = '''
-      class Equatable {}
-      class LoginEvent extends Equatable {}
-      void main() {
-        final event = LoginEvent(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag Initial state class', () async {
-      const source = '''
-      class Equatable {}
-      class AuthInitial extends Equatable {}
-      void main() {
-        final state = AuthInitial(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag Loading state class', () async {
-      const source = '''
-      class Equatable {}
-      class AuthLoading extends Equatable {}
-      void main() {
-        final state = AuthLoading(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag Success state class', () async {
-      const source = '''
-      class Equatable {}
-      class AuthSuccess extends Equatable {}
-      void main() {
-        final state = AuthSuccess(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag Failure state class', () async {
-      const source = '''
-      class Equatable {}
-      class AuthFailure extends Equatable {}
-      void main() {
-        final state = AuthFailure(); // Should NOT be flagged (extends Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
 
     test(
       'flags regular class even if it contains pattern-like substring',
@@ -505,66 +378,7 @@ void main() {
       expect(reporter.errors, isEmpty);
     });
 
-    test('does not flag Left/Right pattern in repository implementation', () async {
-      const source = '''
-      class Left<L> {
-        final L value;
-        Left(this.value);
-      }
-      class Right<R> {
-        final R value;
-        Right(this.value);
-      }
-      class Equatable {}
-      class UserEntity extends Equatable {}
-      class UserRepository {
-        dynamic getUser(String id) {
-          if (id.isEmpty) {
-            return Left('Invalid ID'); // Should NOT be flagged (pattern match)
-          }
-          return Right(UserEntity()); // Should NOT be flagged (pattern match - Entity extends Equatable)
-        }
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
 
-    test('does not flag pattern-based class names', () async {
-      const source = '''
-      class AuthGuard {}
-      class ApiResult {}
-      void main() {
-        final guard = AuthGuard(); // Should NOT be flagged (pattern match)
-        final result = ApiResult(); // Should NOT be flagged (pattern match)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag special whitelisted classes', () async {
-      const source = '''
-      class Trace {}
-      class DateTime {
-        DateTime.now();
-      }
-      class Uri {
-        static Uri parse(String str) => Uri();
-      }
-      class Uuid {}
-      class Completer<T> {}
-      void main() {
-        final trace = Trace(); // Should NOT be flagged (whitelisted)
-        final date = DateTime.now(); // Should NOT be flagged (whitelisted)
-        final uri = Uri.parse('https://example.com'); // Should NOT be flagged (whitelisted)
-        final uuid = Uuid(); // Should NOT be flagged (whitelisted)
-        final completer = Completer<String>(); // Should NOT be flagged (whitelisted)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
 
     test('does not flag instantiation in super constructor invocation', () async {
       const source = '''
@@ -592,44 +406,5 @@ void main() {
       expect(reporter.errors, isEmpty);
     });
 
-    test('does not flag nested Equatable inheritance (indirect)', () async {
-      const source = '''
-      class Equatable {}
-      class BaseState extends Equatable {}
-      class AuthState extends BaseState {}
-      class AuthInitial extends AuthState {}
-      void main() {
-        final state = AuthInitial(); // Should NOT be flagged (indirect Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag class that implements Equatable', () async {
-      const source = '''
-      class Equatable {}
-      class MyState implements Equatable {}
-      void main() {
-        final state = MyState(); // Should NOT be flagged (implements Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
-
-    test('does not flag nested implements Equatable', () async {
-      const source = '''
-      class Equatable {}
-      class BaseState implements Equatable {}
-      class AuthState extends BaseState {}
-      class AuthInitial extends AuthState {}
-      void main() {
-        final state = AuthInitial(); // Should NOT be flagged (nested implements Equatable)
-      }
-      ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
   });
 }
