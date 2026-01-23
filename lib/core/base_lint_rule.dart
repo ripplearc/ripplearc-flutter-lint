@@ -13,13 +13,13 @@ import 'analyzers/base_analyzer.dart';
 /// 2. Implement the analyzer getter
 /// 3. Create their own LintCode in the constructor
 abstract class BaseLintRule extends DartLintRule {
-  BaseLintRule(LintCode code, {bool testOnly = false, bool bothFiles = false})
+  BaseLintRule(LintCode code, {bool testOnly = false, bool includeTests = false})
     : _testOnly = testOnly,
-      _bothFiles = bothFiles,
+      _includeTests = includeTests,
       super(code: code);
 
   final bool _testOnly;
-  final bool _bothFiles;
+  final bool _includeTests;
 
   BaseAnalyzer get analyzer;
 
@@ -40,7 +40,7 @@ abstract class BaseLintRule extends DartLintRule {
   ) {
     final isTestFile = BaseAnalyzer.isTestFile(resolver.path);
 
-    if (!_bothFiles) {
+    if (!_includeTests) {
       if (_testOnly && !isTestFile) return;
       if (!_testOnly && isTestFile) return;
     }
