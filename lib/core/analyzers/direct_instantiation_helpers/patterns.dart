@@ -1,4 +1,3 @@
-import '../base_analyzer.dart';
 import 'linter_config.dart';
 
 /// Utility class for pattern matching operations using LinterConfig.
