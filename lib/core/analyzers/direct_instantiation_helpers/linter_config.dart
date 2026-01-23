@@ -14,6 +14,7 @@ class LinterConfig {
     'package:rxdart/',
     'package:dartz/',
     'package:faker/',
+    'package:gotrue/',
   };
 
   static const Set<String> ignoredBaseClasses = {
@@ -34,7 +35,6 @@ class LinterConfig {
   };
 
   static final List<RegExp> filePathPatterns = [
-    RegExp(r'.*testing/.*', caseSensitive: false),
     RegExp(r'.*main\.dart$', caseSensitive: false),
   ];
 
@@ -44,7 +44,6 @@ class LinterConfig {
 
   static const Set<String> astTypeSuffixes = {
     'Factory',
-    'Attributes',
   };
 
   static const Set<String> astMethodNames = {
