@@ -228,15 +228,11 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return true;
     }
 
-    return ImportChecker.isFromSupabasePackage(className, node);
+    return false;
   }
 
   bool _checkImportBasedExclusions(String className, InstanceCreationExpression node) {
-    if (ImportChecker.isFromSupabasePackage(className, node)) {
-      return true;
-    }
-
-    if (ImportChecker.isImportedFromExcludedPackage(className, node)) {
+    if (ImportChecker.isImportedFromAllowedPackage(className, node)) {
       return true;
     }
 

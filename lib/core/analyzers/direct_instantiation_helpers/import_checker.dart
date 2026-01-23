@@ -88,7 +88,7 @@ class ImportChecker {
     return _isLibraryUriAllowed(uri) || _isSafeValueObject(className, uri);
   }
 
-  static bool isImportedFromExcludedPackage(
+  static bool isImportedFromAllowedPackage(
     String className,
     InstanceCreationExpression node,
   ) {
@@ -182,71 +182,4 @@ class ImportChecker {
     return false;
   }
 
-  static bool _hasAllowedSuffix(String className) {
-    return LinterConfig.astTypeSuffixes.any(
-      (suffix) => className.endsWith(suffix),
-    );
-  }
-
-  static bool _checkPrefixedImportForAllowedPackage(
-    String prefix,
-    CompilationUnit compilationUnit,
-  ) {
-    for (final directive in compilationUnit.directives) {
-      if (directive is ImportDirective && directive.prefix?.name == prefix) {
-        final uri = directive.uri.stringValue ?? '';
-        return _isLibraryUriAllowed(uri);
-      }
-    }
-    return false;
-  }
-
-  static bool _checkNonPrefixedImportForAllowedPackage(
-    String className,
-    ImportDirective directive,
-  ) {
-    final uri = directive.uri.stringValue ?? '';
-    if (!_isLibraryUriAllowed(uri)) {
-      return false;
-    }
-
-    final showCombinators =
-        directive.combinators.whereType<ShowCombinator>().toList();
-    if (showCombinators.isEmpty) return true;
-
-    return showCombinators.any((c) => _isClassNameShown(c, className));
-  }
-
-  static bool isFromSupabasePackage(
-    String className,
-    InstanceCreationExpression node,
-  ) {
-    if (!_hasAllowedSuffix(className)) return false;
-
-    final compilationUnit = _getCompilationUnit(node);
-    if (compilationUnit == null) return false;
-
-    final constructorName = node.constructorName;
-    final typeSource = constructorName.type.toSource();
-
-    if (typeSource.contains('.')) {
-      final parts = typeSource.split('.');
-      if (parts.length == 2) {
-        final prefix = parts[0];
-        if (_checkPrefixedImportForAllowedPackage(prefix, compilationUnit)) {
-          return true;
-        }
-      }
-    }
-
-    for (final directive in compilationUnit.directives) {
-      if (directive is ImportDirective && directive.prefix == null) {
-        if (_checkNonPrefixedImportForAllowedPackage(className, directive)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
 }
