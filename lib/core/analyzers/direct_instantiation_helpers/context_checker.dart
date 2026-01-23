@@ -19,7 +19,7 @@ class _ModuleBindsContext {
 /// Provides context-based exclusion checks for direct instantiation analysis.
 ///
 /// Checks if an instantiation should be excluded based on its AST context, including
-/// const/factory constructors, Module class contexts, binds methods, and Equatable inheritance.
+/// const/factory constructors, Module class contexts, binds methods, and ignored base class inheritance.
 /// Uses LinterConfig for base classes, method names, and keywords.
 class ContextChecker {
   static bool _extendsModule(ExtendsClause? extendsClause) {
@@ -237,7 +237,7 @@ class ContextChecker {
     return false;
   }
 
-  static bool extendsEquatable(
+  static bool extendsIgnoredBaseClass(
     String className,
     AstNode node, {
     Map<String, ClassDeclaration>? classCache,
@@ -249,7 +249,7 @@ class ContextChecker {
         classCache: classCache,
       );
       if (classDecl == null) return false;
-      return _extendsEquatableRecursive(
+      return _extendsIgnoredBaseClassRecursive(
         classDecl,
         node,
         <String>{},
@@ -279,7 +279,7 @@ class ContextChecker {
     );
     if (superclassDecl != null &&
         !visited.contains(superclassDecl.name.lexeme)) {
-      return _extendsEquatableRecursive(
+      return _extendsIgnoredBaseClassRecursive(
         superclassDecl,
         node,
         visited,
@@ -306,7 +306,7 @@ class ContextChecker {
       );
       if (interfaceDecl != null &&
           !visited.contains(interfaceDecl.name.lexeme)) {
-        if (_extendsEquatableRecursive(
+        if (_extendsIgnoredBaseClassRecursive(
               interfaceDecl,
               node,
               visited,
@@ -319,7 +319,7 @@ class ContextChecker {
     return false;
   }
 
-  static bool _extendsEquatableRecursive(
+  static bool _extendsIgnoredBaseClassRecursive(
     ClassDeclaration classDecl,
     AstNode node,
     Set<String> visited, {

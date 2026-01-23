@@ -263,7 +263,7 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return true;
     }
 
-    return ContextChecker.extendsEquatable(
+    return ContextChecker.extendsIgnoredBaseClass(
       className,
       node,
       classCache: _getClassCache(node),
