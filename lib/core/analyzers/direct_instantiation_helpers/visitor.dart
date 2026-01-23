@@ -1,17 +1,18 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import '../../models/lint_issue.dart';
 import 'patterns.dart';
 import 'context_checker.dart';
 import 'type_checker.dart';
 import 'import_checker.dart';
-import 'type_names.dart';
+import 'linter_config.dart';
 
 /// AST visitor that detects direct class instantiations and flags violations.
 ///
-/// This visitor traverses the AST and identifies direct instantiations of classes
-/// that should use dependency injection instead. It maintains a cache of class
-/// declarations per compilation unit to optimize performance.
+/// Traverses the AST to identify direct instantiations that should use dependency injection.
+/// Delegates exclusion checks to TypeChecker, ImportChecker, ContextChecker, and Patterns.
+/// Maintains a cache of class declarations per compilation unit for performance.
 class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   final dynamic resolver;
   final String filePath;
@@ -47,8 +48,9 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     final cache = _getClassCache(node);
     _unitHasModuleClass = cache.values.any((c) {
       final extendsClause = c.extendsClause;
-      return extendsClause != null &&
-          extendsClause.superclass.name2.lexeme == TypeNames.module;
+      if (extendsClause == null) return false;
+      final superclassName = extendsClause.superclass.name2.lexeme;
+      return LinterConfig.ignoredBaseClasses.contains(superclassName);
     });
     return _unitHasModuleClass!;
   }
@@ -66,61 +68,72 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.target == null && node.argumentList.arguments.isEmpty) {
-      final methodName = node.methodName.name;
-      final decl = _getClassCache(node)[methodName];
-      if (decl != null) {
-        bool hasFactoryConstructor = false;
-        for (final member in decl.members) {
-          if (member is ConstructorDeclaration &&
-              member.factoryKeyword != null) {
-            if (member.name == null || member.name!.lexeme == methodName) {
-              hasFactoryConstructor = true;
-              break;
-            }
-          }
-        }
-
-        if (!hasFactoryConstructor) {
-          _checkInstantiation(methodName, node);
-        }
-      }
-    }
-    
-      if (node.target is SimpleIdentifier) {
-      final targetName = (node.target as SimpleIdentifier).name;
-      final methodName = node.methodName.name;
-      final decl = _getClassCache(node)[targetName];
-      
-      if (decl != null) {
-        bool isNamedConstructor = false;
-        bool hasFactoryConstructor = false;
-        
-        for (final member in decl.members) {
-          if (member is ConstructorDeclaration && member.name != null) {
-            if (member.name!.lexeme == methodName) {
-              isNamedConstructor = true;
-              if (member.factoryKeyword != null) {
-                hasFactoryConstructor = true;
-              }
-              break;
-            }
-          }
-        }
-        
-        if (isNamedConstructor && !hasFactoryConstructor) {
-          if (methodName.startsWith('_')) {
-            if (_isInsideSameClass(node, targetName)) {
-              super.visitMethodInvocation(node);
-              return;
-            }
-          }
-          _checkInstantiation(targetName, node);
-        }
-      }
-    }
-    
+    _checkFactoryConstructorWithoutTarget(node);
+    _checkNamedConstructorWithTarget(node);
     super.visitMethodInvocation(node);
+  }
+
+  void _checkFactoryConstructorWithoutTarget(MethodInvocation node) {
+    if (node.target != null || node.argumentList.arguments.isNotEmpty) {
+      return;
+    }
+
+    final methodName = node.methodName.name;
+    final decl = _getClassCache(node)[methodName];
+    if (decl == null) return;
+
+    final hasFactoryConstructor = _hasFactoryConstructor(decl, methodName);
+    if (!hasFactoryConstructor) {
+      _checkInstantiation(methodName, node);
+    }
+  }
+
+  void _checkNamedConstructorWithTarget(MethodInvocation node) {
+    if (node.target is! SimpleIdentifier) return;
+
+    final targetName = (node.target as SimpleIdentifier).name;
+    final methodName = node.methodName.name;
+    final decl = _getClassCache(node)[targetName];
+    if (decl == null) return;
+
+    final constructorInfo = _findNamedConstructor(decl, methodName);
+    if (!constructorInfo.isNamedConstructor || constructorInfo.hasFactoryConstructor) {
+      return;
+    }
+
+    if (methodName.startsWith('_') && _isInsideSameClass(node, targetName)) {
+      return;
+    }
+
+    _checkInstantiation(targetName, node);
+  }
+
+  bool _hasFactoryConstructor(ClassDeclaration decl, String methodName) {
+    for (final member in decl.members) {
+      if (member is ConstructorDeclaration && member.factoryKeyword != null) {
+        if (member.name == null || member.name!.lexeme == methodName) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  ({bool isNamedConstructor, bool hasFactoryConstructor}) _findNamedConstructor(
+    ClassDeclaration decl,
+    String methodName,
+  ) {
+    for (final member in decl.members) {
+      if (member is ConstructorDeclaration && member.name != null) {
+        if (member.name!.lexeme == methodName) {
+          return (
+            isNamedConstructor: true,
+            hasFactoryConstructor: member.factoryKeyword != null,
+          );
+        }
+      }
+    }
+    return (isNamedConstructor: false, hasFactoryConstructor: false);
   }
 
   void _checkInstantiation(String className, AstNode node) {
@@ -132,38 +145,7 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (DirectInstantiationPatterns.isExcludedByClassName(className)) {
-      return;
-    }
-
-    if (DirectInstantiationPatterns.isWhitelistedClassName(className)) {
-      return;
-    }
-
-    if (ContextChecker.isInsideModuleBindsMethodWithUnitHint(
-      node,
-      unitHasModuleClass: _getUnitHasModuleClass(node),
-    )) {
-      return;
-    }
-
-    if (ContextChecker.isInsideModule(node)) {
-      return;
-    }
-
-    if (ContextChecker.isExcludedClass(
-      className,
-      node,
-      classCache: _getClassCache(node),
-    )) {
-      return;
-    }
-
-    if (ContextChecker.extendsEquatable(
-      className,
-      node,
-      classCache: _getClassCache(node),
-    )) {
+    if (_isExcludedByContext(node, className)) {
       return;
     }
 
@@ -174,52 +156,103 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    final constructorName = node.constructorName;
-    final name2 = constructorName.type.name2;
-    final className = name2.lexeme;
+    final className = node.constructorName.type.name2.lexeme;
 
-    if (DirectInstantiationPatterns.shouldSkipFile(filePath)) {
+    if (_shouldSkipInstanceCreation(node, className)) {
       super.visitInstanceCreationExpression(node);
       return;
     }
 
-    if (constructorName.name != null) {
-      final constructorNameStr = constructorName.name!.name;
-      if (constructorNameStr.startsWith('_')) {
-        if (_isInsideSameClass(node, className)) {
-          super.visitInstanceCreationExpression(node);
-          return;
-        }
+    if (_isExcludedByTypeOrImport(node, className)) {
+      super.visitInstanceCreationExpression(node);
+      return;
+    }
+
+    if (_isExcludedByContext(node, className)) {
+      super.visitInstanceCreationExpression(node);
+      return;
+    }
+
+    issues.add(createIssue(node));
+    super.visitInstanceCreationExpression(node);
+  }
+
+  bool _shouldSkipInstanceCreation(InstanceCreationExpression node, String className) {
+    if (DirectInstantiationPatterns.shouldSkipFile(filePath)) {
+      return true;
+    }
+
+    final constructorName = node.constructorName.name;
+    if (constructorName != null) {
+      final constructorNameStr = constructorName.name;
+      if (constructorNameStr.startsWith('_') && _isInsideSameClass(node, className)) {
+        return true;
       }
     }
 
-    final isExcludedByContext = ContextChecker.isExcludedByContext(node);
-    if (isExcludedByContext) {
-      super.visitInstanceCreationExpression(node);
-      return;
+    return ContextChecker.isExcludedByContext(node);
+  }
+
+  bool _isExcludedByTypeOrImport(InstanceCreationExpression node, String className) {
+    if (resolver == null) {
+      return _checkImportBasedExclusions(className, node);
     }
 
-    if (DirectInstantiationPatterns.isExcludedByClassName(className)) {
-      super.visitInstanceCreationExpression(node);
-      return;
+    final element = node.constructorName.staticElement;
+    final typeElement = element?.returnType.element;
+    final hasFullTypeResolution = element != null &&
+        typeElement != null &&
+        typeElement is ClassElement;
+
+    if (hasFullTypeResolution) {
+      return _checkTypeBasedExclusions(node, typeElement, className);
+    } else {
+      return _checkImportBasedExclusions(className, node);
+    }
+  }
+
+  bool _checkTypeBasedExclusions(
+    InstanceCreationExpression node,
+    ClassElement typeElement,
+    String className,
+  ) {
+    if (TypeChecker.isFromAllowedLibrary(typeElement)) {
+      return true;
     }
 
-    if (DirectInstantiationPatterns.isWhitelistedClassName(className)) {
-      super.visitInstanceCreationExpression(node);
-      return;
+    if (TypeChecker.isExcludedBySubtype(node)) {
+      return true;
     }
 
+    if (TypeChecker.isSealedClass(node)) {
+      return true;
+    }
+
+    return ImportChecker.isFromSupabasePackage(className, node);
+  }
+
+  bool _checkImportBasedExclusions(String className, InstanceCreationExpression node) {
+    if (ImportChecker.isFromSupabasePackage(className, node)) {
+      return true;
+    }
+
+    if (ImportChecker.isImportedFromExcludedPackage(className, node)) {
+      return true;
+    }
+
+    return ImportChecker.isWhitelistedThirdPartyClass(className, node);
+  }
+
+  bool _isExcludedByContext(AstNode node, String className) {
     if (ContextChecker.isInsideModuleBindsMethodWithUnitHint(
       node,
       unitHasModuleClass: _getUnitHasModuleClass(node),
     )) {
-      super.visitInstanceCreationExpression(node);
-      return;
+      return true;
     }
 
     if (ContextChecker.isInsideModule(node)) {
-      super.visitInstanceCreationExpression(node);
-      return;
+      return true;
     }
 
     if (ContextChecker.isExcludedClass(
@@ -227,41 +260,14 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       node,
       classCache: _getClassCache(node),
     )) {
-      super.visitInstanceCreationExpression(node);
-      return;
+      return true;
     }
 
-    if (ImportChecker.isImportedFromExcludedPackage(className, node)) {
-      super.visitInstanceCreationExpression(node);
-      return;
-    }
-
-    if (resolver != null) {
-      if (TypeChecker.isExcludedBySubtype(node)) {
-        super.visitInstanceCreationExpression(node);
-        return;
-      }
-      if (TypeChecker.isSealedClass(node, classCache: _getClassCache(node))) {
-        super.visitInstanceCreationExpression(node);
-        return;
-      }
-    } else {
-      if (ContextChecker.extendsEquatable(
-        className,
-        node,
-        classCache: _getClassCache(node),
-      )) {
-        super.visitInstanceCreationExpression(node);
-        return;
-      }
-      if (TypeChecker.isSealedClass(node, classCache: _getClassCache(node))) {
-        super.visitInstanceCreationExpression(node);
-        return;
-      }
-    }
-
-    issues.add(createIssue(node));
-    super.visitInstanceCreationExpression(node);
+    return ContextChecker.extendsEquatable(
+      className,
+      node,
+      classCache: _getClassCache(node),
+    );
   }
 }
 
