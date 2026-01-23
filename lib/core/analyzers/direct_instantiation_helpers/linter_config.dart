@@ -54,4 +54,10 @@ class LinterConfig {
   static const Set<String> astKeywords = {
     'const',
   };
+
+  static bool shouldSkipFile(String filePath) {
+    if (filePath.isEmpty) return false;
+    final normalizedPath = filePath.replaceAll('\\', '/');
+    return filePathPatterns.any((pattern) => pattern.hasMatch(normalizedPath));
+  }
 }
