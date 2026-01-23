@@ -2,22 +2,22 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import '../../models/lint_issue.dart';
-import 'patterns.dart';
 import 'context_checker.dart';
 import 'type_checker.dart';
-import 'import_checker.dart';
+import 'package_checker.dart';
 import 'linter_config.dart';
 
 /// AST visitor that detects direct class instantiations and flags violations.
 ///
 /// Traverses the AST to identify direct instantiations that should use dependency injection.
-/// Delegates exclusion checks to TypeChecker, ImportChecker, ContextChecker, and Patterns.
+/// Delegates exclusion checks to TypeChecker, PackageChecker, ContextChecker, and ImportChecker.
 /// Maintains a cache of class declarations per compilation unit for performance.
 class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   final dynamic resolver;
   final String filePath;
   final List<LintIssue> issues = [];
   final Function(AstNode) createIssue;
+  final bool _shouldSkipFile;
 
   Map<String, ClassDeclaration>? _classCache;
   bool? _unitHasModuleClass;
@@ -26,7 +26,7 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     this.createIssue, [
     this.resolver,
     this.filePath = '',
-  ]);
+  ]) : _shouldSkipFile = LinterConfig.shouldSkipFile(filePath);
 
   Map<String, ClassDeclaration> _getClassCache(AstNode node) {
     if (_classCache != null) return _classCache!;
@@ -46,12 +46,10 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   bool _getUnitHasModuleClass(AstNode node) {
     if (_unitHasModuleClass != null) return _unitHasModuleClass!;
     final cache = _getClassCache(node);
-    _unitHasModuleClass = cache.values.any((c) {
-      final extendsClause = c.extendsClause;
-      if (extendsClause == null) return false;
-      final superclassName = extendsClause.superclass.name2.lexeme;
-      return LinterConfig.ignoredBaseClasses.contains(superclassName);
-    });
+    _unitHasModuleClass = ContextChecker.hasIgnoredBaseClassInUnit(
+      node,
+      classCache: cache,
+    );
     return _unitHasModuleClass!;
   }
 
@@ -64,6 +62,14 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       current = current.parent;
     }
     return false;
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    if (_shouldSkipFile) {
+      return;
+    }
+    super.visitCompilationUnit(node);
   }
 
   @override
@@ -137,10 +143,6 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _checkInstantiation(String className, AstNode node) {
-    if (DirectInstantiationPatterns.shouldSkipFile(filePath)) {
-      return;
-    }
-
     if (ContextChecker.isInConstOrFactoryContext(node)) {
       return;
     }
@@ -178,10 +180,6 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   }
 
   bool _shouldSkipInstanceCreation(InstanceCreationExpression node, String className) {
-    if (DirectInstantiationPatterns.shouldSkipFile(filePath)) {
-      return true;
-    }
-
     final constructorName = node.constructorName.name;
     if (constructorName != null) {
       final constructorNameStr = constructorName.name;
@@ -216,7 +214,7 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     ClassElement typeElement,
     String className,
   ) {
-    if (TypeChecker.isFromAllowedLibrary(typeElement)) {
+    if (PackageChecker.isFromAllowedLibrary(typeElement)) {
       return true;
     }
 
@@ -232,11 +230,7 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   }
 
   bool _checkImportBasedExclusions(String className, InstanceCreationExpression node) {
-    if (ImportChecker.isImportedFromAllowedPackage(className, node)) {
-      return true;
-    }
-
-    return ImportChecker.isWhitelistedThirdPartyClass(className, node);
+    return PackageChecker.isFromAllowedPackage(node, className);
   }
 
   bool _isExcludedByContext(AstNode node, String className) {
