@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
-import 'direct_instantiation_helpers/patterns.dart';
+import 'direct_instantiation_helpers/linter_config.dart';
 import 'direct_instantiation_helpers/visitor.dart';
 
 /// Analyzer that enforces dependency injection by flagging direct class instantiations.
@@ -35,7 +35,7 @@ class DirectInstantiationAnalyzer extends BaseAnalyzer {
   List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
     final filePath = resolver.path ?? '';
 
-    if (DirectInstantiationPatterns.shouldSkipFile(filePath)) {
+    if (LinterConfig.shouldSkipFile(filePath)) {
       return [];
     }
 
