@@ -1,35 +1,15 @@
 import '../base_analyzer.dart';
+import 'linter_config.dart';
 
-/// Centralized pattern matching for class names, file paths, and package exclusions.
+/// Utility class for pattern matching operations using LinterConfig.
 ///
-/// This class provides static methods to check if a class or file should be excluded
-/// from direct instantiation analysis based on naming patterns, file paths, or package origins.
+/// Provides static methods to check if classes or files should be excluded from analysis
+/// based on name patterns and file paths. All patterns are configured in LinterConfig.
 class DirectInstantiationPatterns {
-  static final List<RegExp> classNamePatterns = [
-    RegExp(r'^Left$'),
-    RegExp(r'^Right$'),
-    RegExp(r'.*Error$'),
-    RegExp(r'.*Widget$'),
-    RegExp(r'.*Value$'),
-    RegExp(r'.*Params$'),
-    RegExp(r'.*Attributes$'),
-    RegExp(r'.*Guard$'),
-    RegExp(r'.*Result$'),
-    RegExp(r'.*Provider$'),
-    RegExp(r'^Uuid$'),
-    RegExp(r'^Logger$'),
-    RegExp(r'^Json.*'),
-  ];
-
-  static final List<RegExp> filePathPatterns = [
-    RegExp(r'.*testing/.*', caseSensitive: false),
-    RegExp(r'.*main\.dart$', caseSensitive: false),
-  ];
-
   static bool isExcludedByFilePath(String path) {
     if (path.isEmpty) return false;
     final normalizedPath = path.replaceAll('\\', '/');
-    if (filePathPatterns.any((pattern) => pattern.hasMatch(normalizedPath))) {
+    if (LinterConfig.filePathPatterns.any((pattern) => pattern.hasMatch(normalizedPath))) {
       return true;
     }
     return false;
@@ -39,39 +19,4 @@ class DirectInstantiationPatterns {
     return isExcludedByFilePath(filePath) || BaseAnalyzer.isTestFile(filePath);
   }
 
-  static bool isExcludedByClassName(String className) {
-    return classNamePatterns.any((pattern) => pattern.hasMatch(className));
-  }
-
-  static bool isWhitelistedClassName(String className) {
-    return className.endsWith('Exception') ||
-        className.endsWith('Error') ||
-        className == 'Trace' ||
-        className == 'DateTime' ||
-        className == 'Uri' ||
-        className == 'Uuid' ||
-        className == 'Completer';
-  }
-
-  static bool matchesPackage(String libraryUri, String package) {
-    if (package == 'dart:core') return libraryUri == 'dart:core';
-    if (package == 'dart:async') return libraryUri == 'dart:async';
-    if (package.startsWith('package:')) {
-      final packageName = package.split('/')[0];
-      return libraryUri.startsWith(packageName + '/');
-    }
-    return libraryUri.contains(package) || libraryUri.endsWith(package);
-  }
-
-
-  static bool isExcludedByPackage(String libraryUri) {
-    if (libraryUri.startsWith('package:flutter/')) return true;
-    if (libraryUri.startsWith('package:flutter_bloc/')) return true;
-    if (libraryUri.startsWith('package:supabase/')) return true;
-    if (libraryUri.startsWith('package:supabase_flutter/')) return true;
-    if (libraryUri.startsWith('package:intl/')) return true;
-    if (libraryUri.startsWith('package:uuid/')) return true;
-    return false;
-  }
 }
-
