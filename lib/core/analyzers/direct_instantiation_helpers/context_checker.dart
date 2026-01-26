@@ -64,9 +64,10 @@ class ContextChecker {
   static bool _isConstArgumentList(AstNode node, LinterConfig config) {
     if (node is! ArgumentList) return false;
     final parent = node.parent;
-    return parent is InstanceCreationExpression &&
-           parent.keyword != null &&
-           config.astKeywords.contains(parent.keyword!.lexeme);
+    if (parent is! InstanceCreationExpression) return false;
+    final keyword = parent.keyword;
+    return keyword != null &&
+           config.astKeywords.contains(keyword.lexeme);
   }
 
   static bool _isFactoryConstructor(AstNode node) {
@@ -94,8 +95,9 @@ class ContextChecker {
   }
 
   static bool isExcludedByContext(InstanceCreationExpression node, LinterConfig config) {
-    if (node.keyword != null &&
-        config.astKeywords.contains(node.keyword!.lexeme)) {
+    final keyword = node.keyword;
+    if (keyword != null &&
+        config.astKeywords.contains(keyword.lexeme)) {
       return true;
     }
 
@@ -175,18 +177,22 @@ class ContextChecker {
   }) {
     final context = _findModuleBindsContext(node);
 
-    if (context.methodDecl != null && context.classDecl != null) {
-      if (_isModuleBindsMethod(context.methodDecl!, context.classDecl!, config)) {
+    final methodDecl = context.methodDecl;
+    final classDecl = context.classDecl;
+    if (methodDecl != null && classDecl != null) {
+      if (_isModuleBindsMethod(methodDecl, classDecl, config)) {
         return true;
       }
     }
 
-    if (context.functionDecl != null &&
-        context.compilationUnit != null &&
+    final functionDecl = context.functionDecl;
+    final compilationUnit = context.compilationUnit;
+    if (functionDecl != null &&
+        compilationUnit != null &&
         context.classDecl == null) {
       if (_isModuleBindsFunction(
-            context.functionDecl!,
-            context.compilationUnit!,
+            functionDecl,
+            compilationUnit,
             unitHasModuleClass,
             config,
           )) {
