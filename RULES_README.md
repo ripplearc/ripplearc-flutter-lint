@@ -219,6 +219,76 @@ class AppModule extends Module {
 - **Factory classes**: Classes whose names end with "Factory" (e.g., `DatabaseFactory`, `HttpClientFactory`)
 - **Inside Module**: Any direct instantiation inside a class that extends `Module`
 
+#### Configuration: Allowing Classes and Packages
+
+You can configure allowed classes and packages in your `analysis_options.yaml` file to allow direct instantiation:
+
+```yaml
+custom_lint:
+  no_direct_instantiation:
+    allowed_package_prefixes:
+      - 'package:your_package/'
+    ignored_base_classes:
+      - 'YourCustomBaseClass'
+    safe_value_objects:
+      - 'YourValueObject'
+    ast_type_suffixes:
+      - 'Builder'
+    file_path_patterns:
+      - '.*/generated/.*'
+```
+
+**Example: Allowing Equatable classes**
+
+Classes extending `Equatable` (like BLoC states/events) are allowed by default. You can add more base classes:
+
+```yaml
+custom_lint:
+  no_direct_instantiation:
+    ignored_base_classes:
+      - 'Equatable'  # Already in defaults, allows BLoC states/events
+```
+
+```dart
+// ✅ Good: Allowed because UserState extends Equatable
+class UserState extends Equatable {
+  final String name;
+  UserState(this.name);
+  
+  @override
+  List<Object> get props => [name];
+}
+
+void someMethod() {
+  final state = UserState('John'); // ✅ Allowed
+}
+```
+
+**Example: Allowing Dart core packages**
+
+Dart core packages are allowed by default. You can add more packages:
+
+```yaml
+custom_lint:
+  no_direct_instantiation:
+    allowed_package_prefixes:
+      - 'dart:'  # Already in defaults, allows core Dart classes
+      - 'package:flutter/'  # Already in defaults
+      - 'package:your_utils/'  # Add your custom package
+```
+
+```dart
+import 'dart:io';
+import 'dart:convert';
+
+void someMethod() {
+  final file = File('path.txt'); // ✅ Allowed (dart:io)
+  final encoder = JsonEncoder(); // ✅ Allowed (dart:convert)
+}
+```
+
+**Note:** Configuration options merge with defaults, so you only need to specify additional allowed classes or packages. The rule will use both your custom configuration and the built-in defaults.
+
 ### document_fake_parameters
 
 Enforces documentation on Fake classes and their non-private members. This rule ensures that test helper methods and variables in Fake classes are properly documented for better test maintainability and team collaboration. Only applies to classes that extend `Fake` and implement interfaces.
