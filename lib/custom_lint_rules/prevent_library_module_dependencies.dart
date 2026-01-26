@@ -9,7 +9,7 @@ import '../core/analyzers/base_analyzer.dart';
 /// Libraries can only depend on other libraries, core packages, or external packages.
 class PreventLibraryModuleDependencies extends BaseLintRule {
   PreventLibraryModuleDependencies()
-    : super(BaseLintRule.createLintCode(_analyzer), bothFiles: true);
+    : super(BaseLintRule.createLintCode(_analyzer), includeTests: true);
 
   static final _analyzer = LibraryModuleDependenciesAnalyzer();
 

@@ -9,7 +9,7 @@ import '../core/analyzers/base_analyzer.dart';
 /// the codebase.
 class ForbidHelperUtilNaming extends BaseLintRule {
   ForbidHelperUtilNaming()
-    : super(BaseLintRule.createLintCode(_analyzer), bothFiles: true);
+    : super(BaseLintRule.createLintCode(_analyzer), includeTests: true);
 
   static final _analyzer = ForbidHelperUtilNamingAnalyzer();
 

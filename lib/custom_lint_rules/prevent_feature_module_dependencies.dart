@@ -9,7 +9,7 @@ import '../core/analyzers/base_analyzer.dart';
 /// can only depend on core, shared, or external packages.
 class PreventFeatureModuleDependencies extends BaseLintRule {
   PreventFeatureModuleDependencies()
-    : super(BaseLintRule.createLintCode(_analyzer), bothFiles: true);
+    : super(BaseLintRule.createLintCode(_analyzer), includeTests: true);
 
   static final _analyzer = FeatureModuleIsolationAnalyzer();
 

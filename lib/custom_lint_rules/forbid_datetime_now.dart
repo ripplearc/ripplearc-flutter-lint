@@ -28,7 +28,7 @@ import '../core/analyzers/base_analyzer.dart';
 /// final currentTime = clock.now();  // OK - testable
 /// ```
 class ForbidDateTimeNow extends BaseLintRule {
-  ForbidDateTimeNow() : super(BaseLintRule.createLintCode(_analyzer), bothFiles: true);
+  ForbidDateTimeNow() : super(BaseLintRule.createLintCode(_analyzer), includeTests: true);
 
   static final _analyzer = ForbidDateTimeNowAnalyzer();
 

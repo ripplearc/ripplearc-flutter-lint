@@ -4,7 +4,7 @@ import '../core/analyzers/base_analyzer.dart';
 
 class DocumentEnum extends BaseLintRule {
   DocumentEnum()
-    : super(BaseLintRule.createLintCode(_analyzer), bothFiles: true);
+    : super(BaseLintRule.createLintCode(_analyzer), includeTests: true);
 
   static final _analyzer = DocumentEnumAnalyzer();
 
