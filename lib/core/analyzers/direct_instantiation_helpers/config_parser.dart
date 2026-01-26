@@ -44,6 +44,10 @@ class LinterConfigParser {
           ruleConfig['ast_type_names'],
           defaults.astTypeNames,
         ),
+        astTypePrefixes: _parseAndMergeSet(
+          ruleConfig['ast_type_prefixes'],
+          defaults.astTypePrefixes,
+        ),
         astTypeSuffixes: _parseAndMergeSet(
           ruleConfig['ast_type_suffixes'],
           defaults.astTypeSuffixes,

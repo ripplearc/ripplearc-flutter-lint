@@ -9,6 +9,7 @@ class LinterConfig {
   final Set<String> safeValueObjects;
   final List<RegExp> filePathPatterns;
   final Set<String> astTypeNames;
+  final Set<String> astTypePrefixes;
   final Set<String> astTypeSuffixes;
   final Set<String> astMethodNames;
   final Set<String> astKeywords;
@@ -19,6 +20,7 @@ class LinterConfig {
     required this.safeValueObjects,
     required this.filePathPatterns,
     required this.astTypeNames,
+    required this.astTypePrefixes,
     required this.astTypeSuffixes,
     required this.astMethodNames,
     required this.astKeywords,
@@ -55,6 +57,7 @@ class LinterConfig {
       },
       filePathPatterns: [RegExp(r'.*main\.dart$', caseSensitive: false)],
       astTypeNames: const {'Object'},
+      astTypePrefixes: const {},
       astTypeSuffixes: const {'Factory'},
       astMethodNames: const {'binds', 'exportedBinds'},
       astKeywords: const {'const'},

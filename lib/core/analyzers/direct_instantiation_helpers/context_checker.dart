@@ -235,6 +235,9 @@ class ContextChecker {
     LinterConfig config, {
     Map<String, ClassDeclaration>? classCache,
   }) {
+    if (config.astTypePrefixes.any((prefix) => className.startsWith(prefix))) {
+      return true;
+    }
     if (config.astTypeSuffixes.any((suffix) => className.endsWith(suffix))) {
       return true;
     }
