@@ -1,0 +1,275 @@
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import '../../models/lint_issue.dart';
+import 'context_checker.dart';
+import 'type_checker.dart';
+import 'package_checker.dart';
+import 'linter_config.dart';
+
+/// AST visitor that detects direct class instantiations and flags violations.
+///
+/// Traverses the AST to identify direct instantiations that should use dependency injection.
+/// Delegates exclusion checks to TypeChecker, PackageChecker, ContextChecker, and ImportChecker.
+/// Maintains a cache of class declarations per compilation unit for performance.
+class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
+  final dynamic resolver;
+  final String filePath;
+  final List<LintIssue> issues = [];
+  final Function(AstNode) createIssue;
+  final LinterConfig config;
+  final bool _shouldSkipFile;
+
+  Map<String, ClassDeclaration>? _classCache;
+  bool? _unitHasModuleClass;
+
+  DirectInstantiationVisitor(
+    this.createIssue, [
+    this.resolver,
+    this.filePath = '',
+    LinterConfig? config,
+  ]) : config = config ?? LinterConfig.defaults(),
+       _shouldSkipFile = (config ?? LinterConfig.defaults()).shouldSkipFile(filePath);
+
+  Map<String, ClassDeclaration> _getClassCache(AstNode node) {
+    final existingCache = _classCache;
+    if (existingCache != null) return existingCache;
+    final root = node.root;
+    final cache = <String, ClassDeclaration>{};
+    if (root is CompilationUnit) {
+      for (final decl in root.declarations) {
+        if (decl is ClassDeclaration) {
+          cache[decl.name.lexeme] = decl;
+        }
+      }
+    }
+    _classCache = cache;
+    return cache;
+  }
+
+  bool _getUnitHasModuleClass(AstNode node) {
+    final existingValue = _unitHasModuleClass;
+    if (existingValue != null) return existingValue;
+    final cache = _getClassCache(node);
+    final result = ContextChecker.hasIgnoredBaseClassInUnit(
+      node,
+      config,
+      classCache: cache,
+    );
+    _unitHasModuleClass = result;
+    return result;
+  }
+
+  bool _isInsideSameClass(AstNode node, String className) {
+    AstNode? current = node.parent;
+    while (current != null) {
+      if (current is ClassDeclaration) {
+        return current.name.lexeme == className;
+      }
+      current = current.parent;
+    }
+    return false;
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    if (_shouldSkipFile) {
+      return;
+    }
+    super.visitCompilationUnit(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    _checkFactoryConstructorWithoutTarget(node);
+    _checkNamedConstructorWithTarget(node);
+    super.visitMethodInvocation(node);
+  }
+
+  void _checkFactoryConstructorWithoutTarget(MethodInvocation node) {
+    if (node.target != null || node.argumentList.arguments.isNotEmpty) {
+      return;
+    }
+
+    final methodName = node.methodName.name;
+    final decl = _getClassCache(node)[methodName];
+    if (decl == null) return;
+
+    final hasFactoryConstructor = _hasFactoryConstructor(decl, methodName);
+    if (!hasFactoryConstructor) {
+      _checkInstantiation(methodName, node);
+    }
+  }
+
+  void _checkNamedConstructorWithTarget(MethodInvocation node) {
+    if (node.target is! SimpleIdentifier) return;
+
+    final targetName = (node.target as SimpleIdentifier).name;
+    final methodName = node.methodName.name;
+    final decl = _getClassCache(node)[targetName];
+    if (decl == null) return;
+
+    final constructorInfo = _findNamedConstructor(decl, methodName);
+    if (!constructorInfo.isNamedConstructor || constructorInfo.hasFactoryConstructor) {
+      return;
+    }
+
+    if (methodName.startsWith('_') && _isInsideSameClass(node, targetName)) {
+      return;
+    }
+
+    _checkInstantiation(targetName, node);
+  }
+
+  bool _hasFactoryConstructor(ClassDeclaration decl, String methodName) {
+    for (final member in decl.members) {
+      if (member is ConstructorDeclaration && member.factoryKeyword != null) {
+        final name = member.name;
+        if (name == null || name.lexeme == methodName) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  ({bool isNamedConstructor, bool hasFactoryConstructor}) _findNamedConstructor(
+    ClassDeclaration decl,
+    String methodName,
+  ) {
+    for (final member in decl.members) {
+      if (member is ConstructorDeclaration) {
+        final name = member.name;
+        if (name != null && name.lexeme == methodName) {
+          return (
+            isNamedConstructor: true,
+            hasFactoryConstructor: member.factoryKeyword != null,
+          );
+        }
+      }
+    }
+    return (isNamedConstructor: false, hasFactoryConstructor: false);
+  }
+
+  void _checkInstantiation(String className, AstNode node) {
+    if (ContextChecker.isInConstOrFactoryContext(node, config)) {
+      return;
+    }
+
+    if (_isExcludedByContext(node, className)) {
+      return;
+    }
+
+    if (node is MethodInvocation) {
+      issues.add(createIssue(node));
+    }
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    final className = node.constructorName.type.name2.lexeme;
+
+    if (_shouldSkipInstanceCreation(node, className)) {
+      super.visitInstanceCreationExpression(node);
+      return;
+    }
+
+    if (_isExcludedByTypeOrImport(node, className)) {
+      super.visitInstanceCreationExpression(node);
+      return;
+    }
+
+    if (_isExcludedByContext(node, className)) {
+      super.visitInstanceCreationExpression(node);
+      return;
+    }
+
+    issues.add(createIssue(node));
+    super.visitInstanceCreationExpression(node);
+  }
+
+  bool _shouldSkipInstanceCreation(InstanceCreationExpression node, String className) {
+    final constructorName = node.constructorName.name;
+    if (constructorName != null) {
+      final constructorNameStr = constructorName.name;
+      if (constructorNameStr.startsWith('_') && _isInsideSameClass(node, className)) {
+        return true;
+      }
+    }
+
+    return ContextChecker.isExcludedByContext(node, config);
+  }
+
+  bool _isExcludedByTypeOrImport(InstanceCreationExpression node, String className) {
+    if (resolver == null) {
+      return _checkImportBasedExclusions(className, node);
+    }
+
+    final element = node.constructorName.staticElement;
+    final typeElement = element?.returnType.element;
+    final hasFullTypeResolution = element != null &&
+        typeElement != null &&
+        typeElement is ClassElement;
+
+    if (hasFullTypeResolution) {
+      return _checkTypeBasedExclusions(node, typeElement, className);
+    } else {
+      return _checkImportBasedExclusions(className, node);
+    }
+  }
+
+  bool _checkTypeBasedExclusions(
+    InstanceCreationExpression node,
+    ClassElement typeElement,
+    String className,
+  ) {
+    if (PackageChecker.isFromAllowedLibrary(typeElement, config)) {
+      return true;
+    }
+
+    if (TypeChecker.isExcludedBySubtype(node, config)) {
+      return true;
+    }
+
+    if (TypeChecker.isSealedClass(node, config)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool _checkImportBasedExclusions(String className, InstanceCreationExpression node) {
+    return PackageChecker.isFromAllowedPackage(node, className, config);
+  }
+
+  bool _isExcludedByContext(AstNode node, String className) {
+    if (ContextChecker.isInsideModuleBindsMethodWithUnitHint(
+      node,
+      config,
+      unitHasModuleClass: _getUnitHasModuleClass(node),
+    )) {
+      return true;
+    }
+
+    if (ContextChecker.isInsideModule(node, config)) {
+      return true;
+    }
+
+    if (ContextChecker.isExcludedClass(
+      className,
+      node,
+      config,
+      classCache: _getClassCache(node),
+    )) {
+      return true;
+    }
+
+    return ContextChecker.extendsIgnoredBaseClass(
+      className,
+      node,
+      config,
+      classCache: _getClassCache(node),
+    );
+  }
+}
+

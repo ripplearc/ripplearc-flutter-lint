@@ -4,11 +4,9 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:ripplearc_linter/core/analyzers/avoid_static_typography_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/avoid_static_colors_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/direct_instantiation_helpers/config_parser.dart';
 import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
-import 'package:ripplearc_linter/core/analyzers/forbid_helper_util_naming_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/direct_instantiation_analyzer.dart';
-import 'package:ripplearc_linter/core/analyzers/prevent_feature_module_dependencies_analyzer.dart';
-import 'package:ripplearc_linter/core/analyzers/prevent_library_module_dependencies_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/sealed_over_dynamic_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/private_subject_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/specific_exception_types_analyzer.dart';
@@ -19,6 +17,10 @@ import 'package:ripplearc_linter/core/analyzers/todo_with_story_links_analyzer.d
 import 'package:ripplearc_linter/core/analyzers/no_optional_operators_in_tests_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/prefer_fake_over_mock_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/test_file_mutation_coverage_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/forbid_helper_util_naming_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/prevent_feature_module_dependencies_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/prevent_library_module_dependencies_analyzer.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:analyzer/dart/analysis/utilities.dart';
 
@@ -61,25 +63,33 @@ class _SimpleResolver {
 /// );
 /// ```
 class StandaloneLintChecker {
-  final List<BaseAnalyzer> analyzers = [
-    AvoidStaticTypographyAnalyzer(),
-    AvoidStaticColorsAnalyzer(),
-    ForcedUnwrappingAnalyzer(),
-    ForbidHelperUtilNamingAnalyzer(),
-    DirectInstantiationAnalyzer(),
-    SealedOverDynamicAnalyzer(),
-    PrivateSubjectAnalyzer(),
-    SpecificExceptionTypesAnalyzer(),
-    DocumentFakeParametersAnalyzer(),
-    DocumentInterfaceAnalyzer(),
-    NoInternalMethodDocsAnalyzer(),
-    TodoWithStoryLinksAnalyzer(),
-    NoOptionalOperatorsInTestsAnalyzer(),
-    PreferFakeOverMockAnalyzer(),
-    TestFileMutationCoverageAnalyzer(),
-    FeatureModuleIsolationAnalyzer(),
-    LibraryModuleDependenciesAnalyzer(),
-  ];
+  StandaloneLintChecker({String? configFilePath}) {
+    final linterConfig = LinterConfigParser.loadFromFile(configFilePath);
+    
+    _analyzers = [
+      AvoidStaticTypographyAnalyzer(),
+      AvoidStaticColorsAnalyzer(),
+      ForcedUnwrappingAnalyzer(),
+      ForbidHelperUtilNamingAnalyzer(),
+      DirectInstantiationAnalyzer(config: linterConfig),
+      SealedOverDynamicAnalyzer(),
+      PrivateSubjectAnalyzer(),
+      SpecificExceptionTypesAnalyzer(),
+      DocumentFakeParametersAnalyzer(),
+      DocumentInterfaceAnalyzer(),
+      NoInternalMethodDocsAnalyzer(),
+      TodoWithStoryLinksAnalyzer(),
+      NoOptionalOperatorsInTestsAnalyzer(),
+      PreferFakeOverMockAnalyzer(),
+      TestFileMutationCoverageAnalyzer(),
+      FeatureModuleIsolationAnalyzer(),
+      LibraryModuleDependenciesAnalyzer(),
+    ];
+  }
+
+  late final List<BaseAnalyzer> _analyzers;
+  
+  List<BaseAnalyzer> get analyzers => _analyzers;
 
   static const Set<String> _testOnlyRuleNames = {
     'avoid_test_timeouts',
@@ -92,6 +102,7 @@ class StandaloneLintChecker {
   static const Set<String> _bothFilesRuleNames = {
     'avoid_static_colors',
     'avoid_static_typography',
+    'no_direct_instantiation',
     'forbid_helper_util_naming',
   };
 
@@ -315,6 +326,10 @@ class _PathGroups {
   _PathGroups({required this.files, required this.directories});
 }
 
+String? _getConfigFilePathFromFiles(List<String> files) {
+  return files.isNotEmpty ? files.first : null;
+}
+
 /// Main entry point for the standalone lint checker.
 ///
 /// **Command Line Usage:**
@@ -358,7 +373,8 @@ void main(List<String> args) async {
     exit(1);
   }
 
-  final checker = StandaloneLintChecker();
+  final configFilePath = _getConfigFilePathFromFiles(files);
+  final checker = StandaloneLintChecker(configFilePath: configFilePath);
   final issues = await checker.check(
     files,
     enabledRules: rules.isEmpty ? null : rules,

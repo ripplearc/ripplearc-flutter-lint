@@ -4,7 +4,7 @@ import '../core/analyzers/base_analyzer.dart';
 
 class AvoidStaticTypography extends BaseLintRule {
   AvoidStaticTypography()
-    : super(BaseLintRule.createLintCode(_analyzer), bothFiles: true);
+    : super(BaseLintRule.createLintCode(_analyzer), includeTests: true);
 
   static final _analyzer = AvoidStaticTypographyAnalyzer();
 

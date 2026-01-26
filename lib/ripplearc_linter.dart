@@ -33,7 +33,7 @@ class _RipplearcLintRules extends PluginBase {
     ForbidDateTimeNow(),
     NoOptionalOperatorsInTests(),
     PreferFakeOverMockRule(),
-    NoDirectInstantiation(),
+    NoDirectInstantiation(configs: configs),
     DocumentFakeParameters(),
     DocumentEnum(),
     TodoWithStoryLinks(),

@@ -17,19 +17,21 @@ PluginBase createPlugin() => _CustomLintPlugin();
 
 class _CustomLintPlugin extends PluginBase {
   @override
-  List<LintRule> getLintRules(CustomLintConfigs configs) => [
-    AvoidTestTimeouts(),
-    ForbidForcedUnwrapping(),
-    ForbidDateTimeNow(),
-    NoDirectInstantiation(),
-    SealedOverDynamic(),
-    PrivateSubject(),
-    SpecificExceptionTypes(),
-    DocumentFakeParameters(),
-    DocumentInterface(),
-    NoInternalMethodDocs(),
-    TodoWithStoryLinks(),
-    NoOptionalOperatorsInTests(),
-    PreferFakeOverMockRule(),
-  ];
+  List<LintRule> getLintRules(CustomLintConfigs configs) {
+    return [
+      AvoidTestTimeouts(),
+      ForbidForcedUnwrapping(),
+      ForbidDateTimeNow(),
+      NoDirectInstantiation(configs: configs),
+      SealedOverDynamic(),
+      PrivateSubject(),
+      SpecificExceptionTypes(),
+      DocumentFakeParameters(),
+      DocumentInterface(),
+      NoInternalMethodDocs(),
+      TodoWithStoryLinks(),
+      NoOptionalOperatorsInTests(),
+      PreferFakeOverMockRule(),
+    ];
+  }
 }
