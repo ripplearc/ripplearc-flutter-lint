@@ -32,7 +32,8 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
        _shouldSkipFile = (config ?? LinterConfig.defaults()).shouldSkipFile(filePath);
 
   Map<String, ClassDeclaration> _getClassCache(AstNode node) {
-    if (_classCache != null) return _classCache!;
+    final existingCache = _classCache;
+    if (existingCache != null) return existingCache;
     final root = node.root;
     final cache = <String, ClassDeclaration>{};
     if (root is CompilationUnit) {
@@ -43,18 +44,20 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       }
     }
     _classCache = cache;
-    return _classCache!;
+    return cache;
   }
 
   bool _getUnitHasModuleClass(AstNode node) {
-    if (_unitHasModuleClass != null) return _unitHasModuleClass!;
+    final existingValue = _unitHasModuleClass;
+    if (existingValue != null) return existingValue;
     final cache = _getClassCache(node);
-    _unitHasModuleClass = ContextChecker.hasIgnoredBaseClassInUnit(
+    final result = ContextChecker.hasIgnoredBaseClassInUnit(
       node,
       config,
       classCache: cache,
     );
-    return _unitHasModuleClass!;
+    _unitHasModuleClass = result;
+    return result;
   }
 
   bool _isInsideSameClass(AstNode node, String className) {
@@ -121,7 +124,8 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
   bool _hasFactoryConstructor(ClassDeclaration decl, String methodName) {
     for (final member in decl.members) {
       if (member is ConstructorDeclaration && member.factoryKeyword != null) {
-        if (member.name == null || member.name!.lexeme == methodName) {
+        final name = member.name;
+        if (name == null || name.lexeme == methodName) {
           return true;
         }
       }
@@ -134,8 +138,9 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     String methodName,
   ) {
     for (final member in decl.members) {
-      if (member is ConstructorDeclaration && member.name != null) {
-        if (member.name!.lexeme == methodName) {
+      if (member is ConstructorDeclaration) {
+        final name = member.name;
+        if (name != null && name.lexeme == methodName) {
           return (
             isNamedConstructor: true,
             hasFactoryConstructor: member.factoryKeyword != null,
