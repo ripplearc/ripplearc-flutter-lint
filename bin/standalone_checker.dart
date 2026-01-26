@@ -326,6 +326,10 @@ class _PathGroups {
   _PathGroups({required this.files, required this.directories});
 }
 
+String? _getConfigFilePathFromFiles(List<String> files) {
+  return files.isNotEmpty ? files.first : null;
+}
+
 /// Main entry point for the standalone lint checker.
 ///
 /// **Command Line Usage:**
@@ -369,8 +373,7 @@ void main(List<String> args) async {
     exit(1);
   }
 
-  // Use first file path to help find analysis_options.yaml
-  final configFilePath = files.isNotEmpty ? files.first : null;
+  final configFilePath = _getConfigFilePathFromFiles(files);
   final checker = StandaloneLintChecker(configFilePath: configFilePath);
   final issues = await checker.check(
     files,
