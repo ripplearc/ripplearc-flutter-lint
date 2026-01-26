@@ -102,6 +102,7 @@ class StandaloneLintChecker {
   static const Set<String> _bothFilesRuleNames = {
     'avoid_static_colors',
     'avoid_static_typography',
+    'no_direct_instantiation',
     'forbid_helper_util_naming',
   };
 
