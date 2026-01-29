@@ -1,6 +1,6 @@
 # avoid_static_typography
 
-Disallows static typography definitions (`CoreTypography.*` including static font-weight constants like `CoreTypography.semiBold`), raw `TextStyle` constructors, and direct `GoogleFonts.*` usage in production code. Typography must be accessed through `Theme.of(context).extension<TypographyExtension>()` so it participates in theming and dark mode.
+Disallows static typography definitions (`CoreTypography.*` including static font-weight constants like `CoreTypography.semiBold`), raw `TextStyle` constructors, and direct `GoogleFonts.*` usage in production code. Typography must be accessed through `AppTypographyExtension.of(context)` so it participates in theming and dark mode.
 
 ## Bad ❌
 ```dart
@@ -25,7 +25,7 @@ Text(
 
 ## Good ✅
 ```dart
-final typography = Theme.of(context).extension<TypographyExtension>();
+final typography = AppTypographyExtension.of(context);
 
 Text(
   'Hello',
