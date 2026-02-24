@@ -96,6 +96,27 @@
 # END AGENT INSTRUCTIONS
 # =============================================================================
 
+# Open GitHub compare/PR page in the default browser (when gh is not installed)
+_open_pr_in_browser() {
+  local base="$1"
+  local head="$2"
+  local origin_url
+  origin_url=$(git remote get-url origin 2>/dev/null | sed 's/\.git$//')
+  [ -z "$origin_url" ] && return 1
+  local pr_url="${origin_url}/compare/${base}...${head}"
+  echo "Open in browser to create the PR: $pr_url"
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$pr_url" 2>/dev/null && return 0
+  fi
+  if command -v open >/dev/null 2>&1; then
+    open "$pr_url" 2>/dev/null && return 0
+  fi
+  if command -v start >/dev/null 2>&1; then
+    start "$pr_url" 2>/dev/null && return 0
+  fi
+  return 1
+}
+
 set -e
 
 RULE_NAME="${1:-}"
@@ -120,15 +141,47 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-# Check for uncommitted changes
-if [ -n "$(git status --porcelain)" ]; then
-  echo "Creating branch and committing current changes..."
-else
+# If no uncommitted changes, check if we're on the rule branch and already pushed → just create PR
+if [ -z "$(git status --porcelain)" ]; then
+  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+  if [ "$CURRENT_BRANCH" = "$BRANCH_NAME" ]; then
+    # On the rule branch and clean. Push if needed, then create PR.
+    git push -u origin "$BRANCH_NAME" 2>/dev/null || true
+    if command -v gh >/dev/null 2>&1; then
+      if gh pr view --head "$BRANCH_NAME" >/dev/null 2>&1; then
+        echo "A PR for branch $BRANCH_NAME already exists."
+        gh pr view --web 2>/dev/null || true
+      else
+        echo "Creating pull request for existing branch $BRANCH_NAME..."
+        gh pr create --base "$BASE_BRANCH" --head "$BRANCH_NAME" \
+          --title "Add ${RULE_NAME} linter rule" \
+          --body "Adds the \`${RULE_NAME}\` custom linter rule.
+
+- Analyzer: \`lib/core/analyzers/${RULE_NAME}_analyzer.dart\`
+- Rule: \`lib/custom_lint_rules/${RULE_NAME}.dart\`
+- Registered in \`lib/ripplearc_linter.dart\`
+
+Created via \`scripts/create_linter_rule_from_spec.sh\`."
+        echo "Done."
+      fi
+      exit 0
+    else
+      echo "GitHub CLI (gh) not found. Opening GitHub in browser to create the PR..."
+      _open_pr_in_browser "$BASE_BRANCH" "$BRANCH_NAME" || echo "  Open: $(git remote get-url origin | sed 's/\.git$//')/compare/${BASE_BRANCH}...${BRANCH_NAME}"
+      exit 0
+    fi
+  fi
+  # Not on the rule branch, and no changes
   echo "No changes to commit. Have you created the analyzer and rule files?"
   echo "Expected files (at least):"
   echo "  lib/core/analyzers/${RULE_NAME}_analyzer.dart"
   echo "  lib/custom_lint_rules/${RULE_NAME}.dart"
   echo "  lib/ripplearc_linter.dart (updated)"
+  echo ""
+  echo "If you already committed and pushed to branch $BRANCH_NAME, run:"
+  echo "  git checkout $BRANCH_NAME"
+  echo "  $0 $RULE_NAME $BASE_BRANCH"
+  echo "to create the PR only."
   exit 1
 fi
 
@@ -152,8 +205,8 @@ for f in \
   fi
 done
 
-# Also stage any other modified files (e.g. custom_lint_package, standalone_checker)
-git add -u lib/ bin/ test/custom_lint_rules/ example/ docs/ 2>/dev/null || true
+# Stage every change under key dirs (rule files, script, spec, package, checker, tests, docs)
+git add -A lib/ bin/ test/custom_lint_rules/ example/ docs/ scripts/ rule_specs/ 2>/dev/null || true
 
 # Commit
 git status
@@ -184,8 +237,8 @@ if command -v gh >/dev/null 2>&1; then
 
 Created via \`scripts/create_linter_rule_from_spec.sh\`."
 else
-  echo "GitHub CLI (gh) not found. Create the PR manually:"
-  echo "  Open: $(git remote get-url origin | sed 's/\.git$//')/compare/${BASE_BRANCH}...${BRANCH_NAME}"
+  echo "GitHub CLI (gh) not found. Opening GitHub in browser to create the PR..."
+  _open_pr_in_browser "$BASE_BRANCH" "$BRANCH_NAME" || echo "  Open: $(git remote get-url origin | sed 's/\.git$//')/compare/${BASE_BRANCH}...${BRANCH_NAME}"
 fi
 
 echo "Done."
