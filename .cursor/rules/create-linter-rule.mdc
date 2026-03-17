@@ -1,0 +1,99 @@
+---
+description: Creates a new custom linter rule from a spec file. Use this rule whenever the user asks to create, add, or implement a new linter rule, references a rule spec file, or asks to automate linter rule creation.
+alwaysApply: false
+---
+
+# Create a Custom Linter Rule from a Spec
+
+When the user asks you to create a new custom linter rule, follow these steps in order. You have full terminal access — run the shell script yourself at the end. Do not ask the user to run anything.
+
+## Input
+
+The user will provide a rule spec — either a path to a `.md` or `.txt` file (e.g. `rule_specs/my_rule.md`) or content pasted directly. The spec format is:
+
+- **First heading**: rule name in `snake_case`, e.g. `# forbid_foo`
+- **Description**: 1–2 sentences after the heading
+- **Optional** `**Scope**`: `test_only` | `include_tests` | (omit = production only)
+- **Optional** `**Exceptions**`: when to skip the rule
+- `## Bad` — Dart code block(s) that should trigger the rule
+- `## Good` — Dart code block(s) showing correct code
+
+## Steps
+
+### 1. Parse the spec
+
+Extract:
+- `rule_name` — from the first `#` heading, normalized to `snake_case`
+- `description` — paragraph after the heading (used in `problemMessage` and doc comments)
+- `scope` — `test_only` → `testOnly: true`; `include_tests` → `includeTests: true`; omit otherwise
+- `exceptions` — used in `shouldSkipFile` or visitor logic
+- `bad_examples` / `good_examples` — drive the analyzer implementation and tests
+
+### 2. Create the analyzer
+
+**File:** `lib/core/analyzers/<rule_name>_analyzer.dart`
+
+- Extend `BaseAnalyzer`
+- Implement `ruleName`, `problemMessage`, `correctionMessage`
+- Implement `analyze(CompilationUnit)` using a `RecursiveAstVisitor` to detect nodes matching the Bad examples
+- Call `createIssue(node)` for each violation
+- If exceptions were specified, implement `shouldSkipFile(String path)`
+
+Reference: `lib/core/analyzers/forbid_datetime_now_analyzer.dart`
+
+### 3. Create the rule class
+
+**File:** `lib/custom_lint_rules/<rule_name>.dart`
+
+- Extend `BaseLintRule`
+- Constructor: `super(BaseLintRule.createLintCode(_analyzer), testOnly: ...)` — include `testOnly: true` or `includeTests: true` based on scope; omit both if scope is default
+- `static final _analyzer = <PascalCaseRuleName>Analyzer();`
+- `@override BaseAnalyzer get analyzer => _analyzer;`
+- Add doc comment from the spec description
+
+Reference: `lib/custom_lint_rules/forbid_datetime_now.dart`
+
+### 4. Register the rule
+
+**File:** `lib/ripplearc_linter.dart`
+
+- Add `import 'custom_lint_rules/<rule_name>.dart';`
+- In `getLintRules(...)`, add `<PascalCaseRuleClass>()` to the returned list
+
+### 5. Add tests (required)
+
+**File:** `test/custom_lint_rules/<rule_name>_test.dart`
+
+- Use `parseString`, `TestCustomLintResolver`, `TestErrorReporter`, `TestCustomLintContext`
+- At minimum: one test that expects a violation (Bad example) and one that expects no violation (Good example)
+
+Reference: `test/custom_lint_rules/forbid_datetime_now_test.dart`
+
+### 6. Add example and docs (optional)
+
+- `example/example_<rule_name>_rule.dart` — Bad/Good code with `// LINT` and `// OK` comments
+- `docs/<rule_name>.md` — same structure as `docs/forbid_datetime_now.md`
+
+### 7. Run the shell script to create the branch and PR
+
+Once all files are created and saved, run the script yourself from the terminal:
+
+```bash
+./scripts/create_linter_rule_from_spec.sh <rule_name> [base_branch]
+```
+
+Example:
+
+```bash
+./scripts/create_linter_rule_from_spec.sh forbid_foo
+```
+
+The script will:
+1. Normalize the rule name to `snake_case`
+2. Create branch `rule/<rule_name>`
+3. Stage only the rule-related files
+4. Commit with message `Add <rule_name> linter rule`
+5. Push the branch
+6. Create the PR via `gh` CLI (or print the compare URL if `gh` is unavailable)
+
+Do not ask the user to run this — run it yourself.
