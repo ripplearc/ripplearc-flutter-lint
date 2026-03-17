@@ -1,0 +1,98 @@
+---
+description: Fully automated workflow for creating a new custom linter rule from a spec file. Triggers when the user asks to create a linter rule, references a rule spec, or asks to add a new lint check to the project.
+alwaysApply: false
+---
+
+# Create a custom linter rule from a spec
+
+When the user asks you to create a custom linter rule (with or without a spec file), follow every step below **in order** and **without stopping to ask for confirmation**. This is a fully automated workflow — complete it end-to-end and open a PR.
+
+---
+
+## Step 1 — Read the spec
+
+The user will provide either:
+- A path to a spec file (e.g. `rule_specs/forbid_foo.md`), or
+- The spec content pasted inline.
+
+Parse the following fields:
+
+| Field | Where to find it | Notes |
+|---|---|---|
+| `rule_name` | First `#` heading | Normalize to `snake_case` |
+| `description` | Paragraph after heading | Used for `problemMessage` and doc comments |
+| `scope` | `**Scope**:` line | `test_only` → `testOnly: true`; `include_tests` → `includeTests: true`; omit = production only |
+| `exceptions` | `**Exceptions**:` line | Use in `shouldSkipFile` or visitor guard logic |
+| `bad_examples` | `## Bad` section | Dart code that must trigger the rule |
+| `good_examples` | `## Good` section | Dart code that must NOT trigger the rule |
+
+If no spec is provided, ask the user for the rule name and a one-sentence description, then proceed.
+
+---
+
+## Step 2 — Generate the Dart files
+
+Use the existing `forbid_datetime_now` rule as your reference pattern:
+- Analyzer: `lib/core/analyzers/forbid_datetime_now_analyzer.dart`
+- Rule class: `lib/custom_lint_rules/forbid_datetime_now.dart`
+- Test: `test/custom_lint_rules/forbid_datetime_now_test.dart`
+
+### 2a. Analyzer — `lib/core/analyzers/<rule_name>_analyzer.dart`
+- Extend `BaseAnalyzer`
+- Implement `ruleName`, `problemMessage`, `correctionMessage`
+- Implement `analyze(CompilationUnit)` using a `RecursiveAstVisitor` that matches the `bad_examples`
+- Call `createIssue(node)` for each violation
+- If `exceptions` were specified, implement `shouldSkipFile(String path)`
+
+### 2b. Rule class — `lib/custom_lint_rules/<rule_name>.dart`
+- Extend `BaseLintRule`
+- `static final _analyzer = <PascalCaseRuleName>Analyzer();`
+- Constructor: `super(BaseLintRule.createLintCode(_analyzer), testOnly: true)` / `includeTests: true` / neither — based on scope
+- `@override BaseAnalyzer get analyzer => _analyzer;`
+- Add a doc comment from the spec description
+
+### 2c. Register the rule — `lib/ripplearc_linter.dart`
+- Add `import 'custom_lint_rules/<rule_name>.dart';`
+- Add `<PascalCaseRuleClass>()` to the list in `getLintRules(...)`
+
+### 2d. Test — `test/custom_lint_rules/<rule_name>_test.dart`
+- Use `parseString`, `TestCustomLintResolver`, `TestErrorReporter`, `TestCustomLintContext`
+- At minimum: one test expecting a violation (from `bad_examples`) and one expecting no violation (from `good_examples`)
+- Reference: `test/custom_lint_rules/forbid_datetime_now_test.dart`
+
+### 2e. Optional
+- `example/example_<rule_name>_rule.dart` — Bad/Good code with `// LINT` and `// OK` comments
+- `docs/<rule_name>.md` — structured the same as `docs/forbid_datetime_now.md`
+
+---
+
+## Step 3 — Run the automation script
+
+Once all files are written, run the script from the repo root. The script handles branch creation, staging, committing, pushing, and opening the PR — **do not do any of these git steps manually**.
+
+```bash
+bash scripts/create_linter_rule_from_spec.sh <rule_name>
+```
+
+The script will:
+1. Normalize `rule_name` to `snake_case`
+2. Create branch `rule/<rule_name>` from the current branch
+3. Stage all rule-related files
+4. Commit with message `Add <rule_name> linter rule`
+5. Push the branch
+6. Open a PR via `gh` CLI (or print the compare URL if `gh` is not available)
+
+If the script exits with an error, read the output, fix the issue, and re-run. Common causes:
+- `No changes to commit` → verify the Dart files were saved before running
+- `gh: command not found` → the script will print the compare URL instead; open it to create the PR manually
+
+---
+
+## Step 4 — Report back
+
+After the script completes, tell the user:
+- The branch name (`rule/<rule_name>`)
+- The PR URL (from `gh` output or the compare URL)
+- A one-line summary of what the rule enforces
+
+Do not ask for any confirmation before running the script. The workflow is designed to be zero-touch.
