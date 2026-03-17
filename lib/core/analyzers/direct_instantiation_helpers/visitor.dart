@@ -29,7 +29,9 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     this.filePath = '',
     LinterConfig? config,
   ]) : config = config ?? LinterConfig.defaults(),
-       _shouldSkipFile = (config ?? LinterConfig.defaults()).shouldSkipFile(filePath);
+       _shouldSkipFile = (config ?? LinterConfig.defaults()).shouldSkipFile(
+         filePath,
+       );
 
   Map<String, ClassDeclaration> _getClassCache(AstNode node) {
     final existingCache = _classCache;
@@ -110,7 +112,8 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     if (decl == null) return;
 
     final constructorInfo = _findNamedConstructor(decl, methodName);
-    if (!constructorInfo.isNamedConstructor || constructorInfo.hasFactoryConstructor) {
+    if (!constructorInfo.isNamedConstructor ||
+        constructorInfo.hasFactoryConstructor) {
       return;
     }
 
@@ -156,6 +159,16 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
+    if (PackageChecker.isFromAllowedPackageForNode(
+      node,
+      className,
+      className,
+      config,
+      classCache: _getClassCache(node),
+    )) {
+      return;
+    }
+
     if (_isExcludedByContext(node, className)) {
       return;
     }
@@ -188,11 +201,15 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     super.visitInstanceCreationExpression(node);
   }
 
-  bool _shouldSkipInstanceCreation(InstanceCreationExpression node, String className) {
+  bool _shouldSkipInstanceCreation(
+    InstanceCreationExpression node,
+    String className,
+  ) {
     final constructorName = node.constructorName.name;
     if (constructorName != null) {
       final constructorNameStr = constructorName.name;
-      if (constructorNameStr.startsWith('_') && _isInsideSameClass(node, className)) {
+      if (constructorNameStr.startsWith('_') &&
+          _isInsideSameClass(node, className)) {
         return true;
       }
     }
@@ -200,16 +217,18 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     return ContextChecker.isExcludedByContext(node, config);
   }
 
-  bool _isExcludedByTypeOrImport(InstanceCreationExpression node, String className) {
+  bool _isExcludedByTypeOrImport(
+    InstanceCreationExpression node,
+    String className,
+  ) {
     if (resolver == null) {
       return _checkImportBasedExclusions(className, node);
     }
 
     final element = node.constructorName.staticElement;
     final typeElement = element?.returnType.element;
-    final hasFullTypeResolution = element != null &&
-        typeElement != null &&
-        typeElement is ClassElement;
+    final hasFullTypeResolution =
+        element != null && typeElement != null && typeElement is ClassElement;
 
     if (hasFullTypeResolution) {
       return _checkTypeBasedExclusions(node, typeElement, className);
@@ -238,8 +257,16 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  bool _checkImportBasedExclusions(String className, InstanceCreationExpression node) {
-    return PackageChecker.isFromAllowedPackage(node, className, config);
+  bool _checkImportBasedExclusions(
+    String className,
+    InstanceCreationExpression node,
+  ) {
+    return PackageChecker.isFromAllowedPackage(
+      node,
+      className,
+      config,
+      classCache: _getClassCache(node),
+    );
   }
 
   bool _isExcludedByContext(AstNode node, String className) {
@@ -272,4 +299,3 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
     );
   }
 }
-

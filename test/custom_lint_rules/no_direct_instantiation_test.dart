@@ -185,6 +185,72 @@ void main() {
       },
     );
 
+    group('PackageChecker - Local class inheritance fallback', () {
+      test(
+        'does not flag local class extending StatefulWidget in unresolved mode',
+        () async {
+          const source = '''
+      import 'package:flutter/widgets.dart';
+
+      class HomePage extends StatefulWidget {
+        @override
+        State<HomePage> createState() => _HomePageState();
+      }
+
+      class _HomePageState extends State<HomePage> {
+        @override
+        Widget build(BuildContext context) => const SizedBox();
+      }
+
+      void main() {
+        final page = HomePage(); // Should NOT be flagged
+      }
+      ''';
+          await analyzeCode(source);
+          expect(reporter.errors, isEmpty);
+        },
+      );
+
+      test(
+        'does not flag local class with multi-level inheritance from allowed type',
+        () async {
+          const source = '''
+      import 'package:flutter/widgets.dart';
+
+      class BaseWidget extends StatefulWidget {
+        @override
+        State<BaseWidget> createState() => _BaseWidgetState();
+      }
+
+      class _BaseWidgetState extends State<BaseWidget> {
+        @override
+        Widget build(BuildContext context) => const SizedBox();
+      }
+
+      class MyWidget extends BaseWidget {}
+
+      void main() {
+        final w = MyWidget(); // Should NOT be flagged (MyWidget -> BaseWidget -> StatefulWidget)
+      }
+      ''';
+          await analyzeCode(source);
+          expect(reporter.errors, isEmpty);
+        },
+      );
+
+      test('still flags local class extending a non-allowed base', () async {
+        const source = '''
+      class MyService extends SomeLocalBase {}
+      class SomeLocalBase {}
+      void main() {
+        final s = MyService(); // Should still be flagged
+      }
+      ''';
+        await analyzeCode(source);
+        expect(reporter.errors, isNotEmpty);
+      });
+    });
+
     group('TypeChecker - Allowed package prefixes', () {
       test('does not flag Widget class instantiation from Flutter', () async {
         const source = '''
@@ -201,7 +267,7 @@ void main() {
       test(
         'does not flag classes from allowed dart: and package: prefixes',
         () async {
-        const source = '''
+          const source = '''
       import 'dart:async';
       import 'dart:core';
       import 'package:uuid/uuid.dart';
@@ -325,7 +391,6 @@ void main() {
       expect(reporter.errors, isEmpty);
     });
 
-
     test(
       'does not flag private constructor called inside the same class',
       () async {
@@ -341,8 +406,6 @@ void main() {
         expect(reporter.errors, isEmpty);
       },
     );
-
-
 
     test(
       'flags regular class even if it contains pattern-like substring',
@@ -378,10 +441,10 @@ void main() {
       expect(reporter.errors, isEmpty);
     });
 
-
-
-    test('does not flag instantiation in super constructor invocation', () async {
-      const source = '''
+    test(
+      'does not flag instantiation in super constructor invocation',
+      () async {
+        const source = '''
       class Parent {
         Parent(Child child);
       }
@@ -390,9 +453,10 @@ void main() {
         MyClass() : super(Child()); // Should NOT be flagged (super constructor)
       }
       ''';
-      await analyzeCode(source);
-      expect(reporter.errors, isEmpty);
-    });
+        await analyzeCode(source);
+        expect(reporter.errors, isEmpty);
+      },
+    );
 
     test('does not flag instantiation in constructor initializer', () async {
       const source = '''
@@ -405,6 +469,5 @@ void main() {
       await analyzeCode(source);
       expect(reporter.errors, isEmpty);
     });
-
   });
 }
