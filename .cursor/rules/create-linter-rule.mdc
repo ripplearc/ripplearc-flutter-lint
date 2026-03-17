@@ -1,0 +1,125 @@
+---
+description: Fully automated workflow for creating a new custom linter rule from a spec file. Triggers when the user asks to create a linter rule, add a lint rule, or mentions a rule spec. The agent generates all required Dart files, runs the commit/push/PR script, and opens the PR — no manual steps required.
+alwaysApply: false
+---
+
+# Create a custom linter rule (fully automated)
+
+When the user asks to create a new custom linter rule — by providing a spec file path, pasting a spec, or describing what the rule should do — follow every step below in order without stopping to ask the user to run anything. You have terminal access: use it.
+
+---
+
+## Step 1 — Parse the spec
+
+The user will provide a rule spec as:
+- A file path (e.g. `rule_specs/forbid_foo.md`), or
+- Content pasted directly in the message.
+
+Extract these fields:
+
+| Field | Source | Notes |
+|---|---|---|
+| `rule_name` | First `#` heading | Normalize to `snake_case` |
+| `description` | Paragraph after the heading | Used in `problemMessage` and doc comments |
+| `scope` | `**Scope**:` line if present | `test_only` → `testOnly: true`; `include_tests` → `includeTests: true`; omit → production only |
+| `exceptions` | `**Exceptions**:` line if present | Used in `shouldSkipFile` or visitor logic |
+| `bad_examples` | `## Bad` code block(s) | Drive the AST visitor implementation |
+| `good_examples` | `## Good` code block(s) | Drive the passing test cases |
+
+---
+
+## Step 2 — Generate the analyzer
+
+**File:** `lib/core/analyzers/<rule_name>_analyzer.dart`
+
+- Extend `BaseAnalyzer`
+- Implement `ruleName`, `problemMessage`, `correctionMessage`
+- Implement `analyze(CompilationUnit)` using a `RecursiveAstVisitor` that matches the `bad_examples`
+- Call `createIssue(node)` for each violation
+- If `exceptions` were specified, implement `shouldSkipFile(String path)` accordingly
+
+**Reference:** `lib/core/analyzers/forbid_datetime_now_analyzer.dart`
+
+---
+
+## Step 3 — Generate the rule class
+
+**File:** `lib/custom_lint_rules/<rule_name>.dart`
+
+- Extend `BaseLintRule`
+- Constructor: `super(BaseLintRule.createLintCode(_analyzer), ...)` with the correct scope flag
+- `static final _analyzer = <PascalCaseRuleName>Analyzer();`
+- `@override BaseAnalyzer get analyzer => _analyzer;`
+- Add a doc comment using the spec description
+
+**Reference:** `lib/custom_lint_rules/forbid_datetime_now.dart`
+
+---
+
+## Step 4 — Register the rule
+
+**File:** `lib/ripplearc_linter.dart`
+
+- Add `import 'custom_lint_rules/<rule_name>.dart';`
+- Add `<PascalCaseRuleClass>()` to the list returned by `getLintRules(...)`
+
+---
+
+## Step 5 — Add tests (required)
+
+**File:** `test/custom_lint_rules/<rule_name>_test.dart`
+
+- Use `parseString`, `TestCustomLintResolver`, `TestErrorReporter`, `TestCustomLintContext`
+- At minimum: one test that expects a violation (from `bad_examples`), one that expects none (from `good_examples`)
+
+**Reference:** `test/custom_lint_rules/forbid_datetime_now_test.dart`
+
+---
+
+## Step 6 — Add example and docs (recommended)
+
+- `example/example_<rule_name>_rule.dart` — Bad/Good code annotated with `// LINT` and `// OK`
+- `docs/<rule_name>.md` — same structure as `docs/forbid_datetime_now.md`
+
+---
+
+## Step 7 — Run the commit/push/PR script (you run this, not the user)
+
+Once all files are created and saved, run the script from the repo root:
+
+```bash
+bash scripts/create_linter_rule_from_spec.sh <rule_name>
+```
+
+The script will:
+1. Normalize the rule name to `snake_case`
+2. Create branch `rule/<rule_name>` from the current HEAD
+3. Stage all rule-related files
+4. Commit with message `Add <rule_name> linter rule`
+5. Push the branch
+6. Open a PR via `gh` CLI (or print the compare URL if `gh` is unavailable)
+
+Do not prompt the user to run this. Run it yourself in the terminal.
+
+---
+
+## Spec format reference
+
+```markdown
+# rule_name_in_snake_case
+
+Short description: what this rule forbids or enforces.
+
+**Scope**: include_tests   ← optional: test_only | include_tests | omit for production only
+**Exceptions**: Skip files ending with `_impl.dart`   ← optional
+
+## Bad
+```dart
+// code that should trigger the rule
+```
+
+## Good
+```dart
+// code that should not trigger the rule
+```
+```
