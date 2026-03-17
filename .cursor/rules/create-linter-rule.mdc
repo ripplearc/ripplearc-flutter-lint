@@ -1,0 +1,129 @@
+---
+description: Fully automated workflow for creating a new custom linter rule from a spec file. Triggers when the user asks to create a linter rule, add a lint rule, or mentions a rule spec.
+alwaysApply: false
+---
+
+# Create a custom linter rule from a spec
+
+When the user asks you to create a new custom linter rule (with or without a spec file path), follow these steps **completely autonomously** — do not ask the user to run any script or perform any manual step. You have terminal access; use it.
+
+---
+
+## Step 1 — Parse the spec
+
+The user will provide either:
+- A path to a spec file, e.g. `rule_specs/forbid_foo.md`
+- The spec content pasted directly in the message
+
+Spec format:
+```
+# <rule_name>          ← snake_case, becomes the rule identifier
+<description>          ← 1–2 sentences, used in problemMessage and doc comments
+
+**Scope**: <test_only | include_tests | omit for production-only>
+**Exceptions**: <optional — when to skip the rule>
+
+## Bad
+```dart
+// code that should be flagged
+```
+
+## Good
+```dart
+// code that is allowed
+```
+```
+
+Extract:
+- `rule_name` — from the first `#` heading, normalized to `snake_case`
+- `description` — paragraph after the heading
+- `scope` — `test_only` → `testOnly: true`; `include_tests` → `includeTests: true`; omitted → neither
+- `exceptions` — feed into `shouldSkipFile` or visitor logic
+- `bad_examples` / `good_examples` — drive both the analyzer implementation and the tests
+
+---
+
+## Step 2 — Generate the analyzer
+
+**File:** `lib/core/analyzers/<rule_name>_analyzer.dart`
+
+- Extend `BaseAnalyzer`
+- Implement `ruleName`, `problemMessage`, `correctionMessage` (use `description` from spec)
+- Implement `analyze(CompilationUnit)` using a `RecursiveAstVisitor` that matches the Bad examples
+- Call `createIssue(node)` for each violation
+- If exceptions are specified, implement `shouldSkipFile(String path)`
+
+**Reference:** `lib/core/analyzers/forbid_datetime_now_analyzer.dart`
+
+---
+
+## Step 3 — Generate the rule class
+
+**File:** `lib/custom_lint_rules/<rule_name>.dart`
+
+- Extend `BaseLintRule`
+- Constructor: `super(BaseLintRule.createLintCode(_analyzer), testOnly: ... | includeTests: ...)`
+  - `testOnly: true` if scope is `test_only`
+  - `includeTests: true` if scope is `include_tests`
+  - omit both if scope is production-only
+- `static final _analyzer = <PascalCase>Analyzer();`
+- `@override BaseAnalyzer get analyzer => _analyzer;`
+- Add a doc comment from the spec description
+
+**Reference:** `lib/custom_lint_rules/forbid_datetime_now.dart`
+
+---
+
+## Step 4 — Register the rule
+
+**File:** `lib/ripplearc_linter.dart`
+
+- Add `import 'custom_lint_rules/<rule_name>.dart';`
+- Add `<PascalCaseRuleClass>()` to the list returned by `getLintRules(...)`
+
+---
+
+## Step 5 — Add tests (required)
+
+**File:** `test/custom_lint_rules/<rule_name>_test.dart`
+
+- Use `parseString`, `TestCustomLintResolver`, `TestErrorReporter`, `TestCustomLintContext`
+- At minimum: one test that expects a violation (Bad example) and one that expects no violation (Good example)
+- Derive test cases directly from the spec's Bad/Good sections
+
+**Reference:** `test/custom_lint_rules/forbid_datetime_now_test.dart`
+
+---
+
+## Step 6 — Add example and docs (recommended)
+
+- `example/example_<rule_name>_rule.dart` — Bad/Good code annotated with `// LINT` and `// OK`
+- `docs/<rule_name>.md` — same structure as `docs/forbid_datetime_now.md`
+
+---
+
+## Step 7 — Run the automation script (you do this, not the user)
+
+Once all files are created and saved, run the script yourself from the terminal:
+
+```bash
+bash scripts/create_linter_rule_from_spec.sh <rule_name>
+```
+
+The script will:
+1. Create branch `rule/<rule_name>`
+2. Stage all rule-related files
+3. Commit with message `Add <rule_name> linter rule`
+4. Push the branch
+5. Open a PR via `gh` CLI (or print the GitHub compare URL if `gh` is unavailable)
+
+Do **not** prompt the user to run this. You have terminal access — run it.
+
+---
+
+## What not to do
+
+- Do not ask the user to run any command
+- Do not stop after generating files and wait for confirmation before running the script
+- Do not skip the tests — they are required, not optional
+- Do not hallucinate API shapes — always reference the existing `forbid_datetime_now` files
