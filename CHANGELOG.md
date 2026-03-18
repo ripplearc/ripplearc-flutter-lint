@@ -4,17 +4,17 @@
 
 ### New Rules
 
-- **`forbid_helper_util_naming`** (disabled by default): Forbids class names containing "Helper" or "Util" to encourage more descriptive, domain-specific names (e.g., `AssetHelper` → `AssetLoader`, `StringUtil` → `StringParser`).
+- **`forbid_helper_util_naming`**: Forbids class names containing "Helper" or "Util" to encourage more descriptive, domain-specific names (e.g., `AssetHelper` → `AssetLoader`, `StringUtil` → `StringParser`).
 
-- **`forbid_datetime_now`** (disabled by default): Forbids `DateTime.now()` in production code. Use `clock.now()` from dependency injection for testable code.
+- **`forbid_datetime_now`**: Forbids `DateTime.now()` in production code. Use `clock.now()` from dependency injection for testable code.
 
-- **`document_enum`** (disabled by default): Requires documentation on enum declarations, their values, and extensions on enums.
+- **`document_enum`**: Requires documentation on enum declarations, their values, and extensions on enums.
 
-- **`prevent_feature_module_dependencies`** (enabled): Prevents feature modules from importing other feature modules. Features can only depend on the same feature, core, shared, or external packages.
+- **`prevent_feature_module_dependencies`**: Prevents feature modules from importing other feature modules. Features can only depend on the same feature, core, shared, or external packages.
 
-- **`prevent_library_module_dependencies`** (disabled by default): Prevents library modules from importing feature modules. Libraries should only depend on other libraries, core packages, or external packages.
+- **`prevent_library_module_dependencies`**: Prevents library modules from importing feature modules. Libraries should only depend on other libraries, core packages, or external packages.
 
-- **`restrict_core_icon_data`** (enabled): Restricts direct usage of `CoreIconData` and `CoreMaterialIcons`. Use `CoreIcons` constants instead for consistent icon management.
+- **`restrict_core_icon_data`**: Restricts direct usage of `CoreIconData` and `CoreMaterialIcons`. Use `CoreIcons` constants instead for consistent icon management.
 
 ## 0.2.3 - No Direct Instantiation Rule Critical Bug Fixes (patch)
 
