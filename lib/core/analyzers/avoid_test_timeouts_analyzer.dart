@@ -3,7 +3,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that forbids using .timeout() and Future.delayed() in test files.
+/// Analyzer that forbids using .timeout(), Future.delayed(), and
+/// Future.microtask() in test files.
 ///
 /// This rule flags timeout and delay patterns in test blocks to prevent flaky tests
 /// and encourage the use of proper async/await patterns and expectLater.
@@ -28,7 +29,7 @@ class AvoidTestTimeoutsAnalyzer extends BaseAnalyzer {
   String get ruleName => 'avoid_test_timeouts';
   @override
   String get problemMessage =>
-      'Using .timeout() or Future.delayed() in tests can cause flaky tests. Use expectLater or proper async/await patterns instead.';
+      'Using .timeout(), Future.delayed(), or Future.microtask() in tests can cause flaky tests. Use expectLater or proper async/await patterns instead.';
   @override
   String get correctionMessage =>
       'Replace with expectLater for streams or proper async/await patterns.';
@@ -42,6 +43,11 @@ class AvoidTestTimeoutsAnalyzer extends BaseAnalyzer {
 }
 
 class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
+  static const _timeoutMethodName = 'timeout';
+  static const _delayedMethodName = 'delayed';
+  static const _microtaskMethodName = 'microtask';
+  static const _futureTypeName = 'Future';
+
   static const _testBlockMethods = {
     'test',
     'group',
@@ -60,6 +66,18 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
 
   _AvoidTestTimeoutsVisitor(this.analyzer);
 
+  bool _isFutureTypeName(String typeName) {
+    return typeName == _futureTypeName ||
+        RegExp('^$_futureTypeName<.+>\$').hasMatch(typeName) ||
+        typeName.endsWith('.$_futureTypeName') ||
+        RegExp('\\.$_futureTypeName<.+>\$').hasMatch(typeName);
+  }
+
+  bool _isGenericStaticCallParsedAsConstructor(String? methodName) {
+    return methodName == _delayedMethodName ||
+        methodName == _microtaskMethodName;
+  }
+
   @override
   void visitMethodInvocation(MethodInvocation node) {
     final name = node.methodName.name;
@@ -68,14 +86,14 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
       super.visitMethodInvocation(node);
       _testBlockDepth--;
     } else {
-      if (_isInTestBlock && name == 'timeout') {
+      if (_isInTestBlock && name == _timeoutMethodName) {
         issues.add(analyzer.createIssue(node));
       }
-      if (_isInTestBlock && name == 'delayed') {
+      if (_isInTestBlock &&
+          (name == _delayedMethodName || name == _microtaskMethodName)) {
         final target = node.target;
-        if ((target is Identifier && target.name == 'Future') ||
-            (target is PrefixedIdentifier &&
-                target.identifier.name == 'Future')) {
+        final targetString = target?.toString();
+        if (targetString != null && _isFutureTypeName(targetString)) {
           issues.add(analyzer.createIssue(node));
         }
       }
@@ -101,7 +119,10 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
     final constructorName = node.constructorName;
     final typeName = constructorName.type.toString();
     final name = constructorName.name?.name;
-    if (_isInTestBlock && typeName == 'Future' && name == 'delayed') {
+    final isFutureType = _isFutureTypeName(typeName);
+    if (_isInTestBlock &&
+        isFutureType &&
+        _isGenericStaticCallParsedAsConstructor(name)) {
       issues.add(analyzer.createIssue(node));
     }
     super.visitInstanceCreationExpression(node);
