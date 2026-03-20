@@ -92,7 +92,7 @@ The agent will:
 3. Create `lib/custom_lint_rules/<rule_name>.dart`.
 4. Update `lib/ripplearc_linter.dart`.
 5. Create `test/custom_lint_rules/<rule_name>_test.dart`.
-6. Optionally add `example/` and `docs/` files.
+6. Add `example/` and `docs/` files.
 7. Run `./scripts/create_linter_rule_from_spec.sh <rule_name>` itself — no input from you.
 
 The PR is opened automatically.
@@ -120,7 +120,7 @@ The PR is opened automatically.
   - `lib/custom_lint_rules/<rule_name>.dart`
   - `lib/ripplearc_linter.dart` (updated)
   - `test/custom_lint_rules/<rule_name>_test.dart`
-  - Optionally: `example/`, `docs/<rule_name>.md`
+  - `example/`, `docs/<rule_name>.md`
 
 ---
 
