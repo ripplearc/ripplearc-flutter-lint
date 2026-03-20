@@ -1,10 +1,12 @@
 # Changelog
 
-## 0.3.1 - AvoidTestTimeouts Detection Fix (patch)
+## 0.3.1 - Bug Fixes (patch)
 
 ### Bug Fixes
 
 - **Fixed `Future<void>.delayed()` and `Future.microtask()` not being detected**: The `avoid_test_timeouts` rule was missing violations for generic Future calls (`Future<void>.delayed()`, `Future<void>.microtask()`, etc.) because the Dart analyzer parses them as `InstanceCreationExpression` in unresolved mode even though they are static methods. The rule now correctly flags these patterns in test blocks.
+
+- **Fixed false positives for local classes extending allowed types**: The `no_direct_instantiation` rule was incorrectly flagging direct instantiations of local classes (e.g. StatefulWidget subclasses defined in the same file) in unresolved mode. The rule now uses import-based detection to correctly exclude these cases, resolving single-file false positives.
 
 ## 0.3.0 - New Rules (minor)
 
