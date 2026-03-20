@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - AvoidTestTimeouts Detection Fix (patch)
+
+### Bug Fixes
+
+- **Fixed `Future<void>.delayed()` and `Future.microtask()` not being detected**: The `avoid_test_timeouts` rule was missing violations for generic Future calls (`Future<void>.delayed()`, `Future<void>.microtask()`, etc.) because the Dart analyzer parses them as `InstanceCreationExpression` in unresolved mode even though they are static methods. The rule now correctly flags these patterns in test blocks.
+
 ## 0.3.0 - New Rules (minor)
 
 ### New Rules
