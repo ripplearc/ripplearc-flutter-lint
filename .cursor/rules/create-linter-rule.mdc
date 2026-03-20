@@ -69,7 +69,7 @@ Reference: `lib/custom_lint_rules/forbid_datetime_now.dart`
 
 Reference: `test/custom_lint_rules/forbid_datetime_now_test.dart`
 
-### 6. Add example and docs (optional)
+### 6. Add example and docs (required)
 
 - `example/example_<rule_name>_rule.dart` — Bad/Good code with `// LINT` and `// OK` comments
 - `docs/<rule_name>.md` — same structure as `docs/forbid_datetime_now.md`
