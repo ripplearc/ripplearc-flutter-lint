@@ -58,6 +58,14 @@ fi
 RULE_NAME=$(echo "$RULE_NAME" | tr '[:upper:]' '[:lower:]' | tr -s ' ' '_' | tr '-' '_')
 BRANCH_NAME="rule/${RULE_NAME}"
 
+PR_BODY="Adds the \`${RULE_NAME}\` custom linter rule.
+
+- Analyzer: \`lib/core/analyzers/${RULE_NAME}_analyzer.dart\`
+- Rule: \`lib/custom_lint_rules/${RULE_NAME}.dart\`
+- Registered in \`lib/ripplearc_linter.dart\`
+
+Created via Cursor agent + \`scripts/create_linter_rule_from_spec.sh\`."
+
 # ---------------------------------------------------------------------------
 # Repo root
 # ---------------------------------------------------------------------------
@@ -73,7 +81,7 @@ cd "$REPO_ROOT"
 if [ -z "$(git status --porcelain)" ]; then
   CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
   if [ "$CURRENT_BRANCH" = "$BRANCH_NAME" ]; then
-    git push -u origin "$BRANCH_NAME" 2>/dev/null || true
+    git push -u origin "$BRANCH_NAME"
     if command -v gh >/dev/null 2>&1; then
       if gh pr view --head "$BRANCH_NAME" >/dev/null 2>&1; then
         echo "A PR for branch $BRANCH_NAME already exists."
@@ -81,17 +89,10 @@ if [ -z "$(git status --porcelain)" ]; then
       else
         gh pr create --base "$BASE_BRANCH" --head "$BRANCH_NAME" \
           --title "Add ${RULE_NAME} linter rule" \
-          --body "Adds the \`${RULE_NAME}\` custom linter rule.
-
-- Analyzer: \`lib/core/analyzers/${RULE_NAME}_analyzer.dart\`
-- Rule: \`lib/custom_lint_rules/${RULE_NAME}.dart\`
-- Registered in \`lib/ripplearc_linter.dart\`
-
-Created via Cursor agent + \`scripts/create_linter_rule_from_spec.sh\`."
+          --body "$PR_BODY"
       fi
     else
-      _open_pr_in_browser "$BASE_BRANCH" "$BRANCH_NAME" \
-        || echo "  Open: $(git remote get-url origin | sed 's/\.git$//')/compare/${BASE_BRANCH}...${BRANCH_NAME}"
+      _open_pr_in_browser "$BASE_BRANCH" "$BRANCH_NAME" || true
     fi
     exit 0
   fi
@@ -138,16 +139,9 @@ git push -u origin "$BRANCH_NAME"
 if command -v gh >/dev/null 2>&1; then
   gh pr create --base "$BASE_BRANCH" --head "$BRANCH_NAME" \
     --title "Add ${RULE_NAME} linter rule" \
-    --body "Adds the \`${RULE_NAME}\` custom linter rule.
-
-- Analyzer: \`lib/core/analyzers/${RULE_NAME}_analyzer.dart\`
-- Rule: \`lib/custom_lint_rules/${RULE_NAME}.dart\`
-- Registered in \`lib/ripplearc_linter.dart\`
-
-Created via Cursor agent + \`scripts/create_linter_rule_from_spec.sh\`."
+    --body "$PR_BODY"
 else
-  _open_pr_in_browser "$BASE_BRANCH" "$BRANCH_NAME" \
-    || echo "  Open: $(git remote get-url origin | sed 's/\.git$//')/compare/${BASE_BRANCH}...${BRANCH_NAME}"
+  _open_pr_in_browser "$BASE_BRANCH" "$BRANCH_NAME" || true
 fi
 
 echo "Done."
