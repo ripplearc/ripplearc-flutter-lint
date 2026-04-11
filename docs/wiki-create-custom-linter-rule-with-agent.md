@@ -114,7 +114,7 @@ The PR is opened automatically.
 
 ## 4. Where things live
 
-- **Rule spec**: `rule_specs/<rule_name>.md` (recommended) or any path you reference.
+- **Rule spec**: `rule_specs/<rule_name>.md` (recommended) or any path you reference — **your input only**; the automation script does not stage or commit spec files, only generated linter files.
 - **Agent instructions**: `.cursor/rules/create-linter-rule.mdc`
 - **Git/PR automation**: `scripts/create_linter_rule_from_spec.sh`
 - **Generated files**:

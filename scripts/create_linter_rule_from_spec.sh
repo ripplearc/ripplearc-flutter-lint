@@ -114,15 +114,14 @@ else
   git checkout -b "$BRANCH_NAME"
 fi
 
-# Stage only the files this rule touches
+# Stage only generated rule artifacts (not rule_specs/*.md — spec is user input, not committed)
 for f in \
   "lib/core/analyzers/${RULE_NAME}_analyzer.dart" \
   "lib/custom_lint_rules/${RULE_NAME}.dart" \
   "lib/ripplearc_linter.dart" \
   "test/custom_lint_rules/${RULE_NAME}_test.dart" \
   "example/example_${RULE_NAME}_rule.dart" \
-  "docs/${RULE_NAME}.md" \
-  "rule_specs/${RULE_NAME}.md"; do
+  "docs/${RULE_NAME}.md"; do
   [ -f "$f" ] && git add "$f"
 done
 

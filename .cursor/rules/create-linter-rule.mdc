@@ -18,6 +18,8 @@ The user will provide a rule spec — either a path to a `.md` or `.txt` file (e
 - `## Bad` — Dart code block(s) that should trigger the rule
 - `## Good` — Dart code block(s) showing correct code
 
+**Spec file is input only.** Do not stage or commit it. `scripts/create_linter_rule_from_spec.sh` stages only generated artifacts (analyzer, rule, registration, tests, example, docs). Do not create or copy the spec into `rule_specs/` as part of rule generation unless the user explicitly asks you to save it for their own workflow.
+
 ## Steps
 
 ### 0. Validate the spec
