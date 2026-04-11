@@ -11,6 +11,7 @@ import 'custom_lint_rules/no_internal_method_docs.dart';
 import 'custom_lint_rules/prefer_fake_over_mock_rule.dart';
 import 'custom_lint_rules/forbid_forced_unwrapping.dart';
 import 'custom_lint_rules/forbid_helper_util_naming.dart';
+import 'custom_lint_rules/forbid_modular_get_in_bloc.dart';
 import 'custom_lint_rules/forbid_datetime_now.dart';
 import 'custom_lint_rules/no_optional_operators_in_tests.dart';
 import 'custom_lint_rules/document_interface.dart';
@@ -30,6 +31,7 @@ class _RipplearcLintRules extends PluginBase {
     AvoidStaticTypography(),
     ForbidForcedUnwrapping(),
     ForbidHelperUtilNaming(),
+    ForbidModularGetInBloc(),
     ForbidDateTimeNow(),
     NoOptionalOperatorsInTests(),
     PreferFakeOverMockRule(),
