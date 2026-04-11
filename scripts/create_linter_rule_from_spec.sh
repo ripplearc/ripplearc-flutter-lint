@@ -131,6 +131,22 @@ if [ -z "$(git diff --cached --name-only)" ]; then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# Validate before committing
+# ---------------------------------------------------------------------------
+
+echo "Running dart analyze..."
+if ! dart analyze lib/ test/; then
+  echo "Error: dart analyze failed. Fix the issues above before committing."
+  exit 1
+fi
+
+echo "Running dart test..."
+if ! dart test "test/custom_lint_rules/${RULE_NAME}_test.dart"; then
+  echo "Error: dart test failed. Fix the failures above before committing."
+  exit 1
+fi
+
 git commit -m "Add ${RULE_NAME} linter rule"
 
 echo "Pushing branch $BRANCH_NAME..."

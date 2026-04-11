@@ -377,7 +377,7 @@ void main() {
           );
 
           final checker = StandaloneLintChecker();
-          final issues = await checker.check(
+          await checker.check(
             [testFile.path],
             enabledRules: ['test_file_mutation_coverage'],
           );

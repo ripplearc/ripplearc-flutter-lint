@@ -87,13 +87,15 @@ Or paste the spec inline:
 
 The agent will:
 
-1. Parse the spec (rule name, description, scope, exceptions, Bad/Good examples).
-2. Create `lib/core/analyzers/<rule_name>_analyzer.dart`.
-3. Create `lib/custom_lint_rules/<rule_name>.dart`.
-4. Update `lib/ripplearc_linter.dart`.
-5. Create `test/custom_lint_rules/<rule_name>_test.dart`.
-6. Add `example/` and `docs/` files.
-7. Run `./scripts/create_linter_rule_from_spec.sh <rule_name>` itself — no input from you.
+1. Validate the spec: `#` heading in `snake_case`, at least one `## Bad` and one `## Good` Dart code block; if anything is missing, ask you to complete the spec before continuing.
+2. Parse the spec (rule name, description, scope, exceptions, Bad/Good examples).
+3. Decide which AST node type the visitor will target (e.g. `MethodInvocation`); if the Bad example is ambiguous, ask you to clarify before writing the analyzer.
+4. Create `lib/core/analyzers/<rule_name>_analyzer.dart`.
+5. Create `lib/custom_lint_rules/<rule_name>.dart`.
+6. Update `lib/ripplearc_linter.dart`.
+7. Create `test/custom_lint_rules/<rule_name>_test.dart`.
+8. Add `example/` and `docs/` files (required).
+9. Run `./scripts/create_linter_rule_from_spec.sh <rule_name>` itself — no input from you. The script runs `dart analyze lib/ test/` and `dart test test/custom_lint_rules/<rule_name>_test.dart` before committing.
 
 The PR is opened automatically.
 
@@ -106,7 +108,7 @@ The PR is opened automatically.
 | 1 | You | Write or paste the rule spec. |
 | 2 | You | Ask the Cursor agent to create the rule. |
 | 3 | Agent | Generates all Dart files. |
-| 4 | Agent | Runs `create_linter_rule_from_spec.sh` — creates branch, commits, pushes, opens PR. |
+| 4 | Agent | Runs `create_linter_rule_from_spec.sh` — creates branch, runs `dart analyze` / rule tests, commits, pushes, opens PR. |
 
 ---
 
@@ -131,6 +133,7 @@ The PR is opened automatically.
 - **PR not created** — install and authenticate GitHub CLI: `gh auth login`.
 - **Rule name with hyphens** — the script normalises `forbid-foo` → `forbid_foo` correctly.
 - **Tests or analyzer don't match spec** — refine the Bad/Good examples and ask the agent to update accordingly.
+- **Script exits before commit** — `scripts/create_linter_rule_from_spec.sh` runs `dart analyze lib/ test/` and `dart test test/custom_lint_rules/<rule_name>_test.dart` before committing. Fix the reported issues, then rerun the script (or have the agent rerun it).
 
 ---
 

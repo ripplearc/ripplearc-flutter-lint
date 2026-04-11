@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:io' as io;
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:ripplearc_linter/custom_lint_rules/test_file_mutation_coverage.dart';

@@ -20,6 +20,16 @@ The user will provide a rule spec — either a path to a `.md` or `.txt` file (e
 
 ## Steps
 
+### 0. Validate the spec
+
+Before generating any files, confirm the spec contains:
+
+- A `#` heading with a `snake_case` rule name
+- At least one `## Bad` Dart code block showing a concrete violation
+- At least one `## Good` Dart code block showing compliant code
+
+If any of these are missing, stop and ask the user to complete the spec. Do not proceed with an incomplete spec.
+
 ### 1. Parse the spec
 
 Extract:
@@ -33,6 +43,7 @@ Extract:
 
 **File:** `lib/core/analyzers/<rule_name>_analyzer.dart`
 
+- Before writing the analyzer, state which AST node type the visitor will target (e.g. `MethodInvocation`, `InstanceCreationExpression`, `PrefixedIdentifier`). If the Bad example is ambiguous about the node to visit, ask the user to clarify before generating code.
 - Extend `BaseAnalyzer`
 - Implement `ruleName`, `problemMessage`, `correctionMessage`
 - Implement `analyze(CompilationUnit)` using a `RecursiveAstVisitor` to detect nodes matching the Bad examples
@@ -92,8 +103,9 @@ The script will:
 1. Normalize the rule name to `snake_case`
 2. Create branch `rule/<rule_name>`
 3. Stage only the rule-related files
-4. Commit with message `Add <rule_name> linter rule`
-5. Push the branch
-6. Create the PR via `gh` CLI (or print the compare URL if `gh` is unavailable)
+4. Run `dart analyze lib/ test/` and `dart test test/custom_lint_rules/<rule_name>_test.dart` (fails before commit if either fails)
+5. Commit with message `Add <rule_name> linter rule`
+6. Push the branch
+7. Create the PR via `gh` CLI (or print the compare URL if `gh` is unavailable)
 
 Do not ask the user to run this — run it yourself.
