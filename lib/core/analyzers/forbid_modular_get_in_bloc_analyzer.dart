@@ -31,11 +31,20 @@ class ForbidModularGetInBlocAnalyzer extends BaseAnalyzer {
     if (path == null || shouldSkipFile(path)) {
       return [];
     }
-    return analyze(unit);
+    return _analyzeInternally(unit);
   }
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
+    // This method is called directly by some test runners or parent classes.
+    // However, without a file path, we cannot determine if the file should be analyzed.
+    // To avoid false positives on non-BLoC files, this method returns an empty list.
+    // The path-aware [analyzeWithResolver] should be used instead.
+    return [];
+  }
+
+  /// Internal implementation of the analysis logic.
+  List<LintIssue> _analyzeInternally(CompilationUnit unit) {
     final visitor = _ModularGetVisitor(this);
     unit.accept(visitor);
     return visitor.issues;
@@ -56,7 +65,7 @@ class _ModularGetVisitor extends RecursiveAstVisitor<void> {
     super.visitMethodInvocation(node);
   }
 
-  /// Detects `Modular.get<...>()` and `prefix.Modular.get<...>()`.
+  /// Detects `Modular.get<...>()` and `alias.Modular.get<...>()` where Modular is the class name.
   bool _isModularGetCall(MethodInvocation node) {
     if (node.methodName.name != 'get') return false;
     final target = node.target;
