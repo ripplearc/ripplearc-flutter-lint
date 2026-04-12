@@ -170,5 +170,15 @@ class MyBloc extends Bloc<E, S> {
         expect(rule.code.problemMessage, contains('_module.dart'));
       });
     });
+    group('direct analyze() call', () {
+      test('analyze() returns empty list (bypass check)', () {
+        const source = 'class Modular { static T get<T>() => throw ""; } void f() { Modular.get<int>(); }';
+        final parseResult = parseString(content: source);
+        final unit = parseResult.unit;
+        
+        final issues = rule.analyzer.analyze(unit);
+        expect(issues, isEmpty, reason: 'analyze() should return an empty list to prevent path-unaware analysis');
+      });
+    });
   });
 }
