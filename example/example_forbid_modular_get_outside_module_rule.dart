@@ -1,5 +1,14 @@
 // ignore_for_file: unused_local_variable
-import 'package:flutter_modular/flutter_modular.dart';
+
+class Modular {
+  static T get<T>() => throw UnimplementedError();
+}
+class Module {
+  void binds(Injector i) {}
+}
+class Injector {
+  void addFactory<T>(T Function() f) {}
+}
 
 class Foo {}
 

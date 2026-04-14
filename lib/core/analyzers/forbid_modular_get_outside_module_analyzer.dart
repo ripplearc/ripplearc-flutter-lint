@@ -14,16 +14,18 @@ class ForbidModularGetOutsideModuleAnalyzer extends BaseAnalyzer {
 
   @override
   String get correctionMessage =>
-      'Pass the dependency into the constructor and register the instance in a *_module.dart factory using Modular.get there if needed.';
+      'Pass the dependency into the constructor.';
 
   @override
   bool shouldSkipFile(String path) {
     final normalized = path.replaceAll('\\', '/');
     
     // Skip test files inside the top-level test/ folder
-    if (normalized.contains('/test/')) return true;
+    final segments = normalized.split('/');
+    final testIndex = segments.indexOf('test');
+    if (testIndex != -1 && testIndex <= 1) return true;
     
-    final basename = normalized.split('/').last;
+    final basename = segments.last;
 
     // Skip generated files
     if (basename.endsWith('.g.dart') || basename.endsWith('.freezed.dart')) {

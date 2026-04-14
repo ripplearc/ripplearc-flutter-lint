@@ -13,10 +13,10 @@ void main() {
 
     setUp(() {
       rule = ForbidModularGetOutsideModule();
-      reporter = TestErrorReporter();
     });
 
     Future<void> analyzeCode(String sourceCode, {required String path}) async {
+      reporter = TestErrorReporter();
       final parseResult = parseString(content: sourceCode);
       unit = parseResult.unit;
       rule.run(
