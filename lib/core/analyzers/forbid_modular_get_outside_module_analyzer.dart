@@ -3,25 +3,36 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
-/// Analyzer that forbids `Modular.get<T>()` in BLoC files.
-class ForbidModularGetInBlocAnalyzer extends BaseAnalyzer {
+/// Analyzer that forbids `Modular.get<T>()` outside of module files.
+class ForbidModularGetOutsideModuleAnalyzer extends BaseAnalyzer {
   @override
-  String get ruleName => 'forbid_modular_get_in_bloc';
+  String get ruleName => 'forbid_modular_get_outside_module';
 
   @override
   String get problemMessage =>
-      'Modular.get<T>() is not allowed in BLoC files. Inject dependencies through the BLoC constructor; use Modular.get only in *_module.dart.';
+      'Modular.get<T>() is not allowed outside of module files. Inject dependencies through constructors; use Modular.get only in *_module.dart.';
 
   @override
   String get correctionMessage =>
-      'Pass the dependency into the BLoC constructor and register the BLoC in a *_module.dart factory using Modular.get there if needed.';
+      'Pass the dependency into the constructor and register the instance in a *_module.dart factory using Modular.get there if needed.';
 
   @override
   bool shouldSkipFile(String path) {
     final normalized = path.replaceAll('\\', '/');
+    
+    // Skip test files inside the top-level test/ folder
+    if (normalized.contains('/test/')) return true;
+    
     final basename = normalized.split('/').last;
+
+    // Skip generated files
+    if (basename.endsWith('.g.dart') || basename.endsWith('.freezed.dart')) {
+      return true;
+    }
+    
+    // Allow Modular.get in _module.dart files
     if (basename.endsWith('_module.dart')) return true;
-    if (!basename.endsWith('_bloc.dart')) return true;
+    
     return false;
   }
 
@@ -38,8 +49,7 @@ class ForbidModularGetInBlocAnalyzer extends BaseAnalyzer {
   List<LintIssue> analyze(CompilationUnit unit) {
     // This method is called directly by some test runners or parent classes.
     // However, without a file path, we cannot determine if the file should be analyzed.
-    // To avoid false positives on non-BLoC files, this method returns an empty list.
-    // The path-aware [analyzeWithResolver] should be used instead.
+    // We only rely on path-aware [analyzeWithResolver]
     return [];
   }
 
@@ -52,7 +62,7 @@ class ForbidModularGetInBlocAnalyzer extends BaseAnalyzer {
 }
 
 class _ModularGetVisitor extends RecursiveAstVisitor<void> {
-  final ForbidModularGetInBlocAnalyzer analyzer;
+  final ForbidModularGetOutsideModuleAnalyzer analyzer;
   final List<LintIssue> issues = [];
 
   _ModularGetVisitor(this.analyzer);
