@@ -14,8 +14,10 @@ import '../core/analyzers/forbid_modular_get_outside_module_analyzer.dart';
 class ForbidModularGetOutsideModule extends BaseLintRule {
   ForbidModularGetOutsideModule() : super(BaseLintRule.createLintCode(_analyzer));
 
+  /// The analyzer instance used by this lint rule.
   static final _analyzer = ForbidModularGetOutsideModuleAnalyzer();
 
+  /// Gets the analyzer instance that performs the actual AST traversal and linting logic.
   @override
   BaseAnalyzer get analyzer => _analyzer;
 }

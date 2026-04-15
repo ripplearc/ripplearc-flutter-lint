@@ -130,6 +130,19 @@ class MyService {
         expect(reporter.errors, isEmpty);
       });
 
+      test('does not flag Modular.get in absolute path test files', () async {
+        const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        void main() {
+          Modular.get<int>();
+        }
+        ''';
+        await analyzeCode(source, path: '/home/user/myproject/test/some_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
       test('does not flag Modular.get in generated files', () async {
         const source = r'''
         class Modular {

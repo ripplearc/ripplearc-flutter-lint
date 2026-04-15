@@ -18,23 +18,13 @@ class ForbidModularGetOutsideModuleAnalyzer extends BaseAnalyzer {
 
   @override
   bool shouldSkipFile(String path) {
+    if (BaseAnalyzer.isTestFile(path)) return true;
     final normalized = path.replaceAll('\\', '/');
-    
-    // Skip test files inside the top-level test/ folder
-    final segments = normalized.split('/');
-    final testIndex = segments.indexOf('test');
-    if (testIndex != -1 && testIndex <= 1) return true;
-    
-    final basename = segments.last;
-
-    // Skip generated files
+    final basename = normalized.split('/').last;
     if (basename.endsWith('.g.dart') || basename.endsWith('.freezed.dart')) {
       return true;
     }
-    
-    // Allow Modular.get in _module.dart files
     if (basename.endsWith('_module.dart')) return true;
-    
     return false;
   }
 
@@ -49,9 +39,9 @@ class ForbidModularGetOutsideModuleAnalyzer extends BaseAnalyzer {
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
-    // This method is called directly by some test runners or parent classes.
-    // However, without a file path, we cannot determine if the file should be analyzed.
-    // We only rely on path-aware [analyzeWithResolver]
+    // This method is intentionally overridden to return empty.
+    // This rule requires a path context to correctly bypass test/generated/module files.
+    // Tools (like StandaloneLintChecker and custom_lint) must use analyzeWithResolver.
     return [];
   }
 
