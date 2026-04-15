@@ -26,3 +26,4 @@ Dive into our collection of custom lint rules that help teams write cleaner, mor
 | [restrict_core_icon_data](restrict_core_icon_data.md) | Restricts CoreIconData usage to icons directory for consistent management |
 | [document_enum](document_enum.md) | Enforces documentation on enums and their values |
 | [forbid_datetime_now](forbid_datetime_now.md) | Forbids DateTime.now() in production code for testability |
+| [forbid_modular_get_outside_module](forbid_modular_get_outside_module.md) | Forbids Modular.get\<T\>() outside `*_module.dart` files to enforce constructor injection |
