@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.3.2 - Forbid Modular.get Outside Module (minor)
+
+### New Rule
+
+- **`forbid_modular_get_outside_module`**: New production rule that forbids calling `Modular.get<T>()` anywhere in the codebase except inside `*_module.dart` files. This enforces constructor-based dependency injection and prevents arbitrary service-locator lookups scattered across the codebase.
+
+### Rule Details
+
+- **Scope**: All production Dart files
+- **Exceptions**: `*_module.dart` files (e.g., `app_core_module.dart`), files inside the top-level `test/` directory, and auto-generated files (`*.g.dart`, `*.freezed.dart`)
+- **Severity**: Error
+- **Standalone checker**: `forbid_modular_get_outside_module` is now included in the `standalone_checker` CLI tool and can be run with `--rules forbid_modular_get_outside_module`
+
+---
+
+## 0.3.1 - Bug Fixes (patch)
+
+### Bug Fixes
+
+- **Fixed `Future<void>.delayed()` and `Future.microtask()` not being detected**: The `avoid_test_timeouts` rule was missing violations for generic Future calls (`Future<void>.delayed()`, `Future<void>.microtask()`, etc.) because the Dart analyzer parses them as `InstanceCreationExpression` in unresolved mode even though they are static methods. The rule now correctly flags these patterns in test blocks.
+
+- **Fixed false positives for local classes extending allowed types**: The `no_direct_instantiation` rule was incorrectly flagging direct instantiations of local classes (e.g. StatefulWidget subclasses defined in the same file) in unresolved mode. The rule now uses import-based detection to correctly exclude these cases, resolving single-file false positives.
+
+## 0.3.0 - New Rules (minor)
+
+### New Rules
+
+- **`forbid_helper_util_naming`**: Forbids class names containing "Helper" or "Util" to encourage more descriptive, domain-specific names (e.g., `AssetHelper` → `AssetLoader`, `StringUtil` → `StringParser`).
+
+- **`forbid_datetime_now`**: Forbids `DateTime.now()` in production code. Use `clock.now()` from dependency injection for testable code.
+
+- **`document_enum`**: Requires documentation on enum declarations, their values, and extensions on enums.
+
+- **`prevent_feature_module_dependencies`**: Prevents feature modules from importing other feature modules. Features can only depend on the same feature, core, shared, or external packages.
+
+- **`prevent_library_module_dependencies`**: Prevents library modules from importing feature modules. Libraries should only depend on other libraries, core packages, or external packages.
+
+- **`restrict_core_icon_data`**: Restricts direct usage of `CoreIconData` and `CoreMaterialIcons`. Use `CoreIcons` constants instead for consistent icon management.
+
 ## 0.2.3 - No Direct Instantiation Rule Critical Bug Fixes (patch)
 
 ### Critical Bug Fixes
