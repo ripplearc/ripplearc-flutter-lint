@@ -9,7 +9,7 @@ This rule specifically ignores files inside the `test/` directory as well as gen
 ```dart
 // Normal production file (not _module.dart)
 class UserService {
-  final _http = Modular.get<HttpClient>(); // LINT: Modular.get should only be outside _module.dart files
+  final _http = Modular.get<HttpClient>(); // LINT: Modular.get should only be inside _module.dart files
   
   void fetch() {
      // LINT: Modular.get not allowed here

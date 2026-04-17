@@ -53,8 +53,10 @@ class ForbidModularGetOutsideModuleAnalyzer extends BaseAnalyzer {
   }
 }
 
+/// AST visitor that collects [LintIssue]s for every `Modular.get<T>()` call
+/// found outside an allowed module file.
 class _ModularGetVisitor extends RecursiveAstVisitor<void> {
-  final ForbidModularGetOutsideModuleAnalyzer analyzer;
+  final BaseAnalyzer analyzer;
   final List<LintIssue> issues = [];
 
   _ModularGetVisitor(this.analyzer);

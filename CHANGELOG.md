@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.2 - Forbid Modular.get Outside Module (minor)
+## 0.4.0 - Forbid Modular.get Outside Module (minor)
 
 ### New Rule
 
