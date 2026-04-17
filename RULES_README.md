@@ -765,3 +765,31 @@ class SystemClock implements Clock {
   }
 }
 ```
+
+### forbid_modular_get_outside_module
+
+Forbids calling `Modular.get<T>()` across production code, except in `*_module.dart` files. This enforces proper dependency constructor injection rather than accessing the service locator arbitrarily.
+ 
+#### Bad ❌
+```dart
+class UserService {
+  final _http = Modular.get<HttpClient>(); // LINT
+}
+```
+
+#### Good ✅
+```dart
+class UserService {
+  final HttpClient _http;
+  UserService(this._http);
+}
+
+class AppCoreModule extends Module {
+  @override
+  void binds(Injector i) {
+    i.addFactory<UserService>(
+      () => UserService(Modular.get<HttpClient>()) // OK
+    );
+  }
+}
+```

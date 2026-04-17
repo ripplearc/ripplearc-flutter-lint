@@ -166,6 +166,7 @@ This configuration file includes all our custom lint rules:
 - `avoid_static_typography` - Enforce theme-based typography instead of static typography or raw TextStyle/GoogleFonts usage
 - `prefer_fake_over_mock` - Prefer using Fake over Mock for test doubles
 - `forbid_forced_unwrapping` - Forbid forced unwrapping in production code
+- `forbid_modular_get_outside_module` - Forbid `Modular.get<T>()` outside `*_module.dart` files; enforce constructor injection
 - `no_optional_operators_in_tests` - Forbid optional operators in test files
 - `no_direct_instantiation` - Enforce dependency injection by forbidding direct class instantiation
 - `document_fake_parameters` - Enforce documentation on Fake classes and their non-private members
@@ -223,6 +224,7 @@ To update your project to use the latest version of `ripplearc_linter` and enabl
        - avoid_static_colors
        - prefer_fake_over_mock
        - forbid_forced_unwrapping
+       - forbid_modular_get_outside_module
        - no_optional_operators_in_tests
        - no_direct_instantiation
        - document_fake_parameters

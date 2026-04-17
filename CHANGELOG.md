@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0 - Forbid Modular.get Outside Module (minor)
+
+### New Rule
+
+- **`forbid_modular_get_outside_module`**: New production rule that forbids calling `Modular.get<T>()` anywhere in the codebase except inside `*_module.dart` files. This enforces constructor-based dependency injection and prevents arbitrary service-locator lookups scattered across the codebase.
+
+### Rule Details
+
+- **Scope**: All production Dart files
+- **Exceptions**: `*_module.dart` files (e.g., `app_core_module.dart`), files inside the top-level `test/` directory, and auto-generated files (`*.g.dart`, `*.freezed.dart`)
+- **Severity**: Error
+- **Standalone checker**: `forbid_modular_get_outside_module` is now included in the `standalone_checker` CLI tool and can be run with `--rules forbid_modular_get_outside_module`
+
+---
+
 ## 0.3.1 - Bug Fixes (patch)
 
 ### Bug Fixes
