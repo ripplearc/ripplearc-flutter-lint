@@ -16,6 +16,23 @@ class GoogleFonts {
   static TextStyle lato({double? fontSize}) => const TextStyle();
 }
 
+class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
+  final Color? textDark;
+  final Color? textHeadline;
+
+  const AppColorsExtension({this.textDark, this.textHeadline});
+
+  @override
+  AppColorsExtension copyWith({Color? textDark, Color? textHeadline}) =>
+      AppColorsExtension(
+        textDark: textDark ?? this.textDark,
+        textHeadline: textHeadline ?? this.textHeadline,
+      );
+
+  @override
+  AppColorsExtension lerp(AppColorsExtension? other, double t) => this;
+}
+
 class TypographyExtension extends ThemeExtension<TypographyExtension> {
   final TextStyle? bodyLargeRegular;
   final TextStyle? bodyLargeMedium;

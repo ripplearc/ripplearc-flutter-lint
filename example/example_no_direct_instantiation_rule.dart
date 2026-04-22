@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 // ============================================================================
 // ❌ BAD: Direct instantiation of classes (VIOLATIONS)
@@ -326,8 +329,12 @@ sealed class Result<T> {
   Result(this.value);
 }
 
+final class Success<T> extends Result<T> {
+  Success(super.value);
+}
+
 void sealedExample() {
-  final result = Result<String>('data'); // ✅ Allowed: Sealed class
+  final result = Success<String>('data'); // ✅ Allowed: Sealed class hierarchy
 }
 
 // ============================================================================
@@ -404,5 +411,32 @@ class Modular {
 class Binder {
   void singleton<T>(T Function() factory) {}
   void factory<T>(T Function() factory) {}
+}
+
+// Stubs for whitelisted third-party utility classes
+class Uuid {
+  String v4() => '';
+}
+
+class DateFormat {
+  DateFormat.yMd();
+}
+
+class NumberFormat {
+  NumberFormat.currency();
+}
+
+class Faker {}
+
+class BehaviorSubject<T> {}
+
+class PublishSubject<T> {}
+
+class ReplaySubject<T> {}
+
+// TickerProvider stub for TabController examples
+class _TickerProvider implements TickerProvider {
+  @override
+  Ticker createTicker(TickerCallback onTick) => Ticker(onTick);
 }
 

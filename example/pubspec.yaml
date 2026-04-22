@@ -4,13 +4,18 @@ version: 1.0.0
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
+  flutter: '>=3.0.0'
 
 dependencies:
+  flutter:
+    sdk: flutter
   mockito: ^5.4.4
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   test: ^1.25.0
-  custom_lint: ^0.7.4
+  custom_lint: ^0.8.1
   flutter_lints: ^3.0.1
   ripplearc_linter:
-    path: ../ 
+    path: ../
