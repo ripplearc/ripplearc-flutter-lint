@@ -5,6 +5,21 @@
 
 This rule specifically ignores files inside the `test/` directory as well as generated files like `*.g.dart` or `*.freezed.dart`.
 
+It also supports narrow presentation and global exceptions:
+- `Modular.get<AppRouter>()` is always allowed.
+- `Modular.get<T>()` is allowed inside classes extending `StatelessWidget`, `StatefulWidget`, or classes named/extending `*Page`.
+
+For project-specific global services, extend the exception list in `analysis_options.yaml`:
+
+```yaml
+custom_lint:
+  rules:
+    forbid_modular_get_outside_module:
+      allow_list:
+        - AppRouter
+        - GlobalAnalytics
+```
+
 ## Bad
 ```dart
 // Normal production file (not _module.dart)
@@ -37,6 +52,16 @@ class AppCoreModule extends Module {
     i.addFactory<UserService>(
       () => UserService(Modular.get<HttpClient>(), Modular.get<UserRepository>()) // OK
     );
+  }
+}
+```
+
+```dart
+class AppRouter {}
+
+class CheckoutPage extends StatelessWidget {
+  void openCheckout() {
+    final router = Modular.get<AppRouter>(); // OK
   }
 }
 ```

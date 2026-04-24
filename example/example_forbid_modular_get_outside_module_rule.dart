@@ -3,14 +3,20 @@
 class Modular {
   static T get<T>() => throw UnimplementedError();
 }
+
 class Module {
   void binds(Injector i) {}
 }
+
 class Injector {
   void addFactory<T>(T Function() f) {}
 }
 
 class Foo {}
+
+class AppRouter {}
+
+class StatelessWidget {}
 
 // Normal production code
 class ServiceClass {
@@ -24,6 +30,13 @@ class FakeService {
   void mock() {
     // LINT
     final mockFoo = Modular.get<Foo>();
+  }
+}
+
+class CheckoutPage extends StatelessWidget {
+  void openCheckout() {
+    // OK
+    final router = Modular.get<AppRouter>();
   }
 }
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:ripplearc_linter/custom_lint_rules/forbid_modular_get_outside_module.dart';
@@ -10,9 +12,19 @@ void main() {
     late ForbidModularGetOutsideModule rule;
     late TestErrorReporter reporter;
     late CompilationUnit unit;
+    final tempDirectories = <Directory>[];
 
     setUp(() {
       rule = ForbidModularGetOutsideModule();
+    });
+
+    tearDown(() async {
+      for (final directory in tempDirectories) {
+        if (await directory.exists()) {
+          await directory.delete(recursive: true);
+        }
+      }
+      tempDirectories.clear();
     });
 
     Future<void> analyzeCode(String sourceCode, {required String path}) async {
@@ -39,7 +51,10 @@ void main() {
           }
         }
         ''';
-        await analyzeCode(source, path: '/lib/features/project_dropdown_bloc.dart');
+        await analyzeCode(
+          source,
+          path: '/lib/features/project_dropdown_bloc.dart',
+        );
         expect(reporter.errors, hasLength(1));
       });
 
@@ -57,9 +72,24 @@ void main() {
         expect(reporter.errors, hasLength(1));
       });
 
+      test('does not flag Modular.get<AppRouter>() outside a module', () async {
+        const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        class AppRouter {}
+        class NavigationService {
+          NavigationService() {
+            final router = Modular.get<AppRouter>();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: '/lib/navigation_service.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
       test('flags import-prefixed Modular.get', () async {
-        await analyzeCode(
-          r'''
+        await analyzeCode(r'''
 import 'no_such_lib.dart' as fm;
 
 class R {}
@@ -69,9 +99,7 @@ class MyService {
     fm.Modular.get<R>();
   }
 }
-''',
-          path: '/lib/prefixed_service.dart',
-        );
+''', path: '/lib/prefixed_service.dart');
         expect(reporter.errors, hasLength(1));
       });
 
@@ -92,6 +120,60 @@ class MyService {
     });
 
     group('allowed locations', () {
+      test(
+        'does not flag Modular.get inside StatelessWidget classes',
+        () async {
+          const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        class StatelessWidget {}
+        class BuildContext {}
+        class FeatureController {}
+        class LoginPage extends StatelessWidget {
+          Object build(BuildContext context) {
+            return Modular.get<FeatureController>();
+          }
+        }
+        ''';
+          await analyzeCode(source, path: '/lib/login_page.dart');
+          expect(reporter.errors, isEmpty);
+        },
+      );
+
+      test('does not flag Modular.get inside StatefulWidget classes', () async {
+        const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        class StatefulWidget {}
+        class FeatureController {}
+        class LoginFlow extends StatefulWidget {
+          void open() {
+            Modular.get<FeatureController>();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: '/lib/login_flow.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('does not flag Modular.get inside classes named *Page', () async {
+        const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        class FeatureController {}
+        class CheckoutPage {
+          void open() {
+            Modular.get<FeatureController>();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: '/lib/checkout_page.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
       test('does not flag Modular.get in *_module.dart', () async {
         const source = r'''
         class Modular {
@@ -139,7 +221,10 @@ class MyService {
           Modular.get<int>();
         }
         ''';
-        await analyzeCode(source, path: '/home/user/myproject/test/some_test.dart');
+        await analyzeCode(
+          source,
+          path: '/home/user/myproject/test/some_test.dart',
+        );
         expect(reporter.errors, isEmpty);
       });
 
@@ -173,6 +258,40 @@ class MyService {
         await analyzeCode(source, path: '/lib/wrong_target.dart');
         expect(reporter.errors, isEmpty);
       });
+
+      test('supports allow_list from analysis_options.yaml', () async {
+        final tempDir = await Directory.systemTemp.createTemp(
+          'forbid_modular_get_config_test_',
+        );
+        tempDirectories.add(tempDir);
+
+        final analysisOptions = File('${tempDir.path}/analysis_options.yaml');
+        await analysisOptions.writeAsString('''
+custom_lint:
+  rules:
+    forbid_modular_get_outside_module:
+      allow_list:
+        - GlobalAnalytics
+''');
+
+        const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        class GlobalAnalytics {}
+        class AnalyticsConsumer {
+          AnalyticsConsumer() {
+            Modular.get<GlobalAnalytics>();
+          }
+        }
+        ''';
+
+        await analyzeCode(
+          source,
+          path: '${tempDir.path}/lib/analytics_consumer.dart',
+        );
+        expect(reporter.errors, isEmpty);
+      });
     });
 
     group('rule metadata', () {
@@ -188,12 +307,18 @@ class MyService {
 
     group('direct analyze() call', () {
       test('analyze() returns empty list (bypass check)', () {
-        const source = 'class Modular { static T get<T>() => throw ""; } void f() { Modular.get<int>(); }';
+        const source =
+            'class Modular { static T get<T>() => throw ""; } void f() { Modular.get<int>(); }';
         final parseResult = parseString(content: source);
         final unit = parseResult.unit;
-        
+
         final issues = rule.analyzer.analyze(unit);
-        expect(issues, isEmpty, reason: 'analyze() should return an empty list to prevent path-unaware analysis');
+        expect(
+          issues,
+          isEmpty,
+          reason:
+              'analyze() should return an empty list to prevent path-unaware analysis',
+        );
       });
     });
   });
