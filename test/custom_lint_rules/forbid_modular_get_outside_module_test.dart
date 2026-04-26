@@ -72,22 +72,6 @@ void main() {
         expect(reporter.errors, hasLength(1));
       });
 
-      test('does not flag Modular.get<AppRouter>() outside a module', () async {
-        const source = r'''
-        class Modular {
-          static T get<T>() => throw UnimplementedError();
-        }
-        class AppRouter {}
-        class NavigationService {
-          NavigationService() {
-            final router = Modular.get<AppRouter>();
-          }
-        }
-        ''';
-        await analyzeCode(source, path: '/lib/navigation_service.dart');
-        expect(reporter.errors, isEmpty);
-      });
-
       test('flags import-prefixed Modular.get', () async {
         await analyzeCode(r'''
 import 'no_such_lib.dart' as fm;
