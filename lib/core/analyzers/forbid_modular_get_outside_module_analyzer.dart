@@ -66,9 +66,10 @@ class ForbidModularGetOutsideModuleAnalyzer extends BaseAnalyzer {
   ForbidModularGetOutsideModuleConfig _resolveConfig(String path) {
     if (_config != null) return _config;
 
-    final normalizedPath = path.replaceAll('\\', '/');
+    final root =
+        ForbidModularGetOutsideModuleConfigParser.findProjectRoot(path) ?? path;
     return _configCache.putIfAbsent(
-      normalizedPath,
+      root,
       () => ForbidModularGetOutsideModuleConfigParser.loadFromFile(path),
     );
   }

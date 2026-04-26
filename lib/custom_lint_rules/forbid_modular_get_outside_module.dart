@@ -18,7 +18,7 @@ class ForbidModularGetOutsideModule extends BaseLintRule {
   ForbidModularGetOutsideModule()
     : super(BaseLintRule.createLintCode(_analyzer));
 
-  /// The analyzer instance used by this lint rule.
+  /// Config injection is for tests only; production always loads from disk via [_resolveConfig].
   static final _analyzer = ForbidModularGetOutsideModuleAnalyzer();
 
   /// Gets the analyzer instance that performs the actual AST traversal and linting logic.

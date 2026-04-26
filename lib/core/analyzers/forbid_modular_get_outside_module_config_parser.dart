@@ -12,7 +12,7 @@ class ForbidModularGetOutsideModuleConfigParser {
     final defaults = ForbidModularGetOutsideModuleConfig.defaults();
 
     try {
-      final projectRoot = _findProjectRoot(filePath);
+      final projectRoot = findProjectRoot(filePath);
       if (projectRoot == null) return defaults;
 
       final configFile = File(path.join(projectRoot, 'analysis_options.yaml'));
@@ -72,7 +72,7 @@ class ForbidModularGetOutsideModuleConfigParser {
         .toSet();
   }
 
-  static String? _findProjectRoot(String? filePath) {
+  static String? findProjectRoot(String? filePath) {
     if (filePath == null || filePath.isEmpty) return null;
 
     try {
