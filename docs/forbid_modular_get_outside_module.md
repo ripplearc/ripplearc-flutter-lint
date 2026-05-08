@@ -4,10 +4,7 @@
 `Modular.get<T>()` is only allowed in module files (`*_module.dart`). This rule prevents developers from making arbitrary dependencies retrievals inline elsewhere in the application, promoting proper constructor-based dependency injection.
 
 This rule specifically ignores files inside the `test/` directory as well as generated files like `*.g.dart` or `*.freezed.dart`.
-
-It also supports narrow presentation and global exceptions:
-- `Modular.get<AppRouter>()` is always allowed.
-- `Modular.get<T>()` is allowed inside classes extending `StatelessWidget`, `StatefulWidget`, or classes named/extending `*Page`.
+All non-module usages are flagged unless the requested type is explicitly listed in `allow_list`.
 
 For project-specific global services, extend the exception list in `analysis_options.yaml`:
 
@@ -61,7 +58,7 @@ class AppRouter {}
 
 class CheckoutPage extends StatelessWidget {
   void openCheckout() {
-    final router = Modular.get<AppRouter>(); // OK
+    final router = Modular.get<AppRouter>(); // OK (because AppRouter is in allow_list)
   }
 }
 ```

@@ -104,60 +104,6 @@ class MyService {
     });
 
     group('allowed locations', () {
-      test(
-        'does not flag Modular.get inside StatelessWidget classes',
-        () async {
-          const source = r'''
-        class Modular {
-          static T get<T>() => throw UnimplementedError();
-        }
-        class StatelessWidget {}
-        class BuildContext {}
-        class FeatureController {}
-        class LoginPage extends StatelessWidget {
-          Object build(BuildContext context) {
-            return Modular.get<FeatureController>();
-          }
-        }
-        ''';
-          await analyzeCode(source, path: '/lib/login_page.dart');
-          expect(reporter.errors, isEmpty);
-        },
-      );
-
-      test('does not flag Modular.get inside StatefulWidget classes', () async {
-        const source = r'''
-        class Modular {
-          static T get<T>() => throw UnimplementedError();
-        }
-        class StatefulWidget {}
-        class FeatureController {}
-        class LoginFlow extends StatefulWidget {
-          void open() {
-            Modular.get<FeatureController>();
-          }
-        }
-        ''';
-        await analyzeCode(source, path: '/lib/login_flow.dart');
-        expect(reporter.errors, isEmpty);
-      });
-
-      test('does not flag Modular.get inside classes named *Page', () async {
-        const source = r'''
-        class Modular {
-          static T get<T>() => throw UnimplementedError();
-        }
-        class FeatureController {}
-        class CheckoutPage {
-          void open() {
-            Modular.get<FeatureController>();
-          }
-        }
-        ''';
-        await analyzeCode(source, path: '/lib/checkout_page.dart');
-        expect(reporter.errors, isEmpty);
-      });
-
       test('does not flag Modular.get in *_module.dart', () async {
         const source = r'''
         class Modular {
@@ -241,6 +187,57 @@ class MyService {
         ''';
         await analyzeCode(source, path: '/lib/wrong_target.dart');
         expect(reporter.errors, isEmpty);
+      });
+
+      test('flags Modular.get inside StatelessWidget classes', () async {
+        const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        class StatelessWidget {}
+        class BuildContext {}
+        class FeatureController {}
+        class LoginPage extends StatelessWidget {
+          Object build(BuildContext context) {
+            return Modular.get<FeatureController>();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: '/lib/login_page.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('flags Modular.get inside StatefulWidget classes', () async {
+        const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        class StatefulWidget {}
+        class FeatureController {}
+        class LoginFlow extends StatefulWidget {
+          void open() {
+            Modular.get<FeatureController>();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: '/lib/login_flow.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('flags Modular.get inside classes named *Page', () async {
+        const source = r'''
+        class Modular {
+          static T get<T>() => throw UnimplementedError();
+        }
+        class FeatureController {}
+        class CheckoutPage {
+          void open() {
+            Modular.get<FeatureController>();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: '/lib/checkout_page.dart');
+        expect(reporter.errors, hasLength(1));
       });
 
       test('supports allow_list from analysis_options.yaml', () async {

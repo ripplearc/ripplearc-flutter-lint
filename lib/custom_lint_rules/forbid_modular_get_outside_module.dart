@@ -11,8 +11,6 @@ import '../core/analyzers/forbid_modular_get_outside_module_analyzer.dart';
 /// **Exceptions**:
 /// - `Modular.get<T>()` is allowed in files ending with `_module.dart`.
 /// - Test files (`test/`) and generated files (`.g.dart`, `.freezed.dart`) are skipped.
-/// - `Modular.get<AppRouter>()` is allowed globally.
-/// - UI classes extending `StatelessWidget`, `StatefulWidget`, or `*Page` are exempt.
 /// - Additional globally allowed types can be configured with `allow_list`.
 class ForbidModularGetOutsideModule extends BaseLintRule {
   ForbidModularGetOutsideModule()

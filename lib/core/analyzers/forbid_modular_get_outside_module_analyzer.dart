@@ -95,7 +95,6 @@ class _ModularGetVisitor extends RecursiveAstVisitor<void> {
   bool _isForbiddenModularGetCall(MethodInvocation node) {
     if (!_isModularGetCall(node)) return false;
     if (_isAllowedType(node)) return false;
-    if (_isInsideAllowedUiClass(node)) return false;
     return true;
   }
 
@@ -119,22 +118,5 @@ class _ModularGetVisitor extends RecursiveAstVisitor<void> {
     final rawType = typeArguments.first.toSource();
     final normalizedType = rawType.split('<').first.split('.').last.trim();
     return config.allowsType(normalizedType);
-  }
-
-  bool _isInsideAllowedUiClass(AstNode node) {
-    final enclosingClass = node.thisOrAncestorOfType<ClassDeclaration>();
-    if (enclosingClass == null) return false;
-
-    final className = enclosingClass.name.lexeme;
-    if (className.endsWith('Page')) return true;
-
-    final superclass =
-        enclosingClass.extendsClause?.superclass.toSource() ?? '';
-    final normalizedSuperclass =
-        superclass.split('<').first.split('.').last.trim();
-
-    return normalizedSuperclass == 'StatelessWidget' ||
-        normalizedSuperclass == 'StatefulWidget' ||
-        normalizedSuperclass.endsWith('Page');
   }
 }
