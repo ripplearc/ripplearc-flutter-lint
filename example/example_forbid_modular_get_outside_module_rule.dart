@@ -16,8 +16,6 @@ class Foo {}
 
 class AppRouter {}
 
-class StatelessWidget {}
-
 // Normal production code
 class ServiceClass {
   void doWork() {
@@ -33,20 +31,10 @@ class FakeService {
   }
 }
 
-class CheckoutPage extends StatelessWidget {
-  void openCheckout() {
-    // OK
+class AnalyticsConsumer {
+  void track() {
+    // OK — AppRouter declared in allow_list in analysis_options.yaml
     final router = Modular.get<AppRouter>();
   }
 }
 
-class CoreModule extends Module {
-  @override
-  void binds(Injector i) {
-    i.addFactory<ServiceClass>(() {
-      // OK
-      final okFoo = Modular.get<Foo>();
-      return ServiceClass();
-    });
-  }
-}

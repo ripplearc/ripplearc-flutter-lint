@@ -56,9 +56,10 @@ class AppCoreModule extends Module {
 ```dart
 class AppRouter {}
 
-class CheckoutPage extends StatelessWidget {
-  void openCheckout() {
-    final router = Modular.get<AppRouter>(); // OK (because AppRouter is in allow_list)
+class AnalyticsConsumer {
+  void track() {
+    // OK — AppRouter declared in allow_list in analysis_options.yaml
+    final router = Modular.get<AppRouter>();
   }
 }
 ```
