@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.1 - Fix Restrict Core Icon Data Scope (patch)
+
+### Bug Fixes
+
+- **Fixed `restrict_core_icon_data` false positives inside `coreui`**: The `restrict_core_icon_data` rule previously only exempted the `/lib/src/theme/icons/` directory. It has been updated to exempt the entire `coreui` package (`/coreui/lib/` and `/coreui/test/`), resolving false positive violations when `CoreIconData` is used legitimately inside internal `coreui` components (like `core_icon.dart`).
+- **Added `restrict_core_icon_data` to standalone checker**: This rule is now fully supported by the `standalone_checker` CLI tool.
+
+---
+
 ## 0.4.0 - Forbid Modular.get Outside Module (minor)
 
 ### New Rule

@@ -175,6 +175,7 @@ This configuration file includes all our custom lint rules:
 - `document_interface` - Enforce documentation on abstract classes and their public methods
 - `prevent_feature_module_dependencies` - Enforce feature module independence by preventing features from depending on other features
 - `prevent_library_module_dependencies` - Enforce library module independence by preventing libraries from depending on features
+- `restrict_core_icon_data` - Restrict `CoreIconData` and `CoreMaterialIcons` usage to the `coreui` package
 
 #### Rule Configuration
 - Each rule is listed under the `rules` section
@@ -233,6 +234,7 @@ To update your project to use the latest version of `ripplearc_linter` and enabl
        - no_internal_method_docs
        - prevent_feature_module_dependencies
        - prevent_library_module_dependencies
+       - restrict_core_icon_data
      ```
    - Only include the rules you want to enforce in your project.
 
