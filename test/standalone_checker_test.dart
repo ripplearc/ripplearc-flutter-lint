@@ -47,6 +47,7 @@ void main() {
           'feature_module_isolation',
           'prevent_library_module_dependencies',
           'forbid_modular_get_outside_module',
+          'forbid_raw_icon_and_image_usage',
         };
 
         expect(ruleNames, equals(expectedRules));
