@@ -25,7 +25,7 @@ void main() {
       test('should initialize with all 18 custom lint analyzers', () {
         final checker = StandaloneLintChecker();
 
-        expect(checker.analyzers.length, equals(18));
+        expect(checker.analyzers.length, equals(19));
 
         final ruleNames = checker.analyzers.map((a) => a.ruleName).toSet();
         final expectedRules = {
