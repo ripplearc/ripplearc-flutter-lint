@@ -143,7 +143,106 @@ void main() {
       });
     });
 
-    group('Image.asset() path exclusion', () {
+    group('Image.asset() usage', () {
+      test('should flag Image.asset() in app code', () async {
+        const source = '''
+        class Image {
+          Image.asset(String name);
+        }
+        class MyWidget {
+          void build() {
+            final image = new Image.asset('assets/image.png');
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag Image.asset() in test files', () async {
+        const source = '''
+        class Image {
+          Image.asset(String name);
+        }
+        void main() {
+          test('example', () {
+            final image = new Image.asset('assets/logo.png');
+          });
+        }
+        ''';
+        await analyzeCode(source, path: 'test/widgets/my_widget_test.dart');
+        expect(reporter.errors, hasLength(1));
+      });
+
+      test('should flag multiple Image.asset() usages', () async {
+        const source = '''
+        class Image {
+          Image.asset(String name);
+        }
+        class MyWidget {
+          void build() {
+            final img1 = new Image.asset('assets/image1.png');
+            final img2 = new Image.asset('assets/image2.png');
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
+        expect(reporter.errors, hasLength(2));
+      });
+
+      test('should not flag Image.network() (only Image.asset is restricted)',
+          () async {
+        const source = '''
+        class Image {
+          Image.network(String url);
+        }
+        class MyWidget {
+          void build() {
+            final image = new Image.network('https://example.com/img.png');
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should not flag plain Image() default constructor', () async {
+        const source = '''
+        class Image {
+          Image();
+        }
+        class MyWidget {
+          void build() {
+            final image = new Image();
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should flag both Icon() and Image.asset() in same file', () async {
+        const source = '''
+        class Icons {
+          static const home = 1;
+        }
+        class Icon {
+          const Icon(dynamic iconData);
+        }
+        class Image {
+          Image.asset(String name);
+        }
+        class MyWidget {
+          void build() {
+            final icon = new Icon(Icons.home);
+            final image = new Image.asset('assets/image.png');
+          }
+        }
+        ''';
+        await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
+        expect(reporter.errors, hasLength(2));
+      });
+
       test('should not flag Image constructors in coreui/lib path', () async {
         const source = '''
         class Image {

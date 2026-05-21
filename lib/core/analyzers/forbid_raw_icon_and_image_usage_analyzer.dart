@@ -44,7 +44,8 @@ class ForbidRawIconAndImageUsageAnalyzer extends BaseAnalyzer {
   @override
   bool shouldSkipFile(String path) {
     final normalized = path.replaceAll('\\', '/');
-    return normalized.contains('/coreui/lib/') || normalized.contains('/coreui/test/');
+    return normalized.contains('/coreui/lib/') ||
+        normalized.contains('/coreui/test/');
   }
 }
 
@@ -67,19 +68,37 @@ class _ForbidRawIconAndImageUsageVisitor extends RecursiveAstVisitor<void> {
               'Direct usage of Icon() is restricted. Use CoreIcons and coreui components instead.',
         ),
       );
-    } else if (typeName == 'Image') {
-      final constructor = constructorName.name?.name;
-      if (constructor == 'asset') {
-        issues.add(
-          analyzer.createIssue(
-            node,
-            customMessage:
-                'Direct usage of Image.asset() is restricted. Use coreui components instead.',
-          ),
-        );
-      }
+    }
+
+    final importPrefix = constructorName.type.importPrefix?.name.lexeme;
+    if (importPrefix == 'Image' && typeName == 'asset') {
+      issues.add(
+        analyzer.createIssue(
+          node,
+          customMessage:
+              'Direct usage of Image.asset() is restricted. Use coreui components instead.',
+        ),
+      );
     }
 
     super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    final target = node.target;
+    if (target is SimpleIdentifier &&
+        target.name == 'Image' &&
+        node.methodName.name == 'asset') {
+      issues.add(
+        analyzer.createIssue(
+          node,
+          customMessage:
+              'Direct usage of Image.asset() is restricted. Use coreui components instead.',
+        ),
+      );
+    }
+
+    super.visitMethodInvocation(node);
   }
 }
