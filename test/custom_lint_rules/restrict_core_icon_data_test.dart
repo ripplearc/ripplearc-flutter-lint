@@ -66,6 +66,19 @@ void main() {
           expect(reporter.errors, isEmpty);
         },
       );
+
+      test('should not flag CoreIconData.svg() in coreui icons directory', () async {
+        const source = '''
+        class CoreIcons {
+          static const microsoft = CoreIconData.svg('packages/coreui/assets/microsoft.svg');
+        }
+        ''';
+        await analyzeCode(
+          source,
+          path: 'packages/coreui/lib/src/theme/icons/core_icons.dart',
+        );
+        expect(reporter.errors, isEmpty);
+      });
     });
 
     group('CoreIconData.material() usage', () {
@@ -155,6 +168,22 @@ void main() {
             path: 'packages/coreui/test/components/core_icon_test.dart',
           );
           expect(reporter.errors, hasLength(1));
+        },
+      );
+
+      test(
+        'should not flag CoreMaterialIcons in coreui icons directory',
+        () async {
+          const source = '''
+        class CoreIcons {
+          static const arrowRight = CoreMaterialIcons.arrowRight;
+        }
+        ''';
+          await analyzeCode(
+            source,
+            path: 'packages/coreui/lib/src/theme/icons/core_icons.dart',
+          );
+          expect(reporter.errors, isEmpty);
         },
       );
     });
