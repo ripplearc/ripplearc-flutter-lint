@@ -5,8 +5,7 @@ class CoreModule extends Module {
   void binds(Injector i) {
     i.addFactory<ServiceClass>(() {
       // OK — this file ends in _module.dart
-      final okFoo = Modular.get<Foo>();
-      okFoo.hashCode;
+      Modular.get<Foo>();
       return ServiceClass();
     });
   }

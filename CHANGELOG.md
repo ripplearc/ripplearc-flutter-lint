@@ -1,12 +1,10 @@
 # Changelog
 
-## 0.4.1 - forbid_modular_get_outside_module Exceptions (patch)
+## 0.4.1 - forbid_modular_get_outside_module allow_list support (patch)
 
 ### Improvements
 
-- **`forbid_modular_get_outside_module`**: Added a built-in exception for `Modular.get<AppRouter>()` so global navigation access remains available without weakening the rest of the rule.
-- **`forbid_modular_get_outside_module`**: Added presentation-layer exemptions for classes extending `StatelessWidget`, `StatefulWidget`, or `*Page`.
-- **`forbid_modular_get_outside_module`**: Added optional `allow_list` support in `analysis_options.yaml` for additional approved global services.
+- **`forbid_modular_get_outside_module`**: Added optional `allow_list` support in `analysis_options.yaml` for project-specific global types that are allowed to be fetched with `Modular.get<T>()` outside module files. No types are exempt by default; all exceptions must be declared explicitly.
 
 ## 0.4.0 - Forbid Modular.get Outside Module (minor)
 

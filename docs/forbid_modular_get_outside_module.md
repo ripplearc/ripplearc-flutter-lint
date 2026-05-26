@@ -13,8 +13,7 @@ custom_lint:
   rules:
     forbid_modular_get_outside_module:
       allow_list:
-        - AppRouter
-        - GlobalAnalytics
+        - GlobalCrashReporter
 ```
 
 ## Bad
@@ -54,12 +53,12 @@ class AppCoreModule extends Module {
 ```
 
 ```dart
-class AppRouter {}
+class GlobalCrashReporter {}
 
-class AnalyticsConsumer {
-  void track() {
-    // OK — AppRouter declared in allow_list in analysis_options.yaml
-    final router = Modular.get<AppRouter>();
+class CrashReportingBootstrapper {
+  void init() {
+    // OK — GlobalCrashReporter declared in allow_list in analysis_options.yaml
+    final reporter = Modular.get<GlobalCrashReporter>();
   }
 }
 ```
