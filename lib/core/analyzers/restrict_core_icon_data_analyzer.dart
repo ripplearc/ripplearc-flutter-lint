@@ -25,7 +25,7 @@ import '../models/lint_issue.dart';
 /// ```
 ///
 /// This rule is excluded for specific icon-defining files such as
-/// `/lib/src/theme/icons/` and `lib/src/components/core_icon.dart`.
+/// `/lib/src/theme/icons/` and `/lib/src/components/core_icon.dart`.
 class RestrictCoreIconDataAnalyzer extends BaseAnalyzer {
   static const _restrictedClasses = ['CoreIconData', 'CoreMaterialIcons'];
 
