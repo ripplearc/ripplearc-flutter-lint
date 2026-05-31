@@ -4,6 +4,17 @@
 `Modular.get<T>()` is only allowed in module files (`*_module.dart`). This rule prevents developers from making arbitrary dependencies retrievals inline elsewhere in the application, promoting proper constructor-based dependency injection.
 
 This rule specifically ignores files inside the `test/` directory as well as generated files like `*.g.dart` or `*.freezed.dart`.
+All non-module usages are flagged unless the requested type is explicitly listed in `allow_list`.
+
+For project-specific global services, extend the exception list in `analysis_options.yaml`:
+
+```yaml
+custom_lint:
+  rules:
+    forbid_modular_get_outside_module:
+      allow_list:
+        - GlobalCrashReporter
+```
 
 ## Bad
 ```dart
@@ -37,6 +48,17 @@ class AppCoreModule extends Module {
     i.addFactory<UserService>(
       () => UserService(Modular.get<HttpClient>(), Modular.get<UserRepository>()) // OK
     );
+  }
+}
+```
+
+```dart
+class GlobalCrashReporter {}
+
+class CrashReportingBootstrapper {
+  void init() {
+    // OK — GlobalCrashReporter declared in allow_list in analysis_options.yaml
+    final reporter = Modular.get<GlobalCrashReporter>();
   }
 }
 ```

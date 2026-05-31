@@ -8,13 +8,15 @@ import '../core/analyzers/forbid_modular_get_outside_module_analyzer.dart';
 /// (`Modular.get<T>()`) is only permitted in module registration files
 /// (`*_module.dart`), where the object graph is assembled.
 ///
-/// **Exceptions**: 
+/// **Exceptions**:
 /// - `Modular.get<T>()` is allowed in files ending with `_module.dart`.
 /// - Test files (`test/`) and generated files (`.g.dart`, `.freezed.dart`) are skipped.
+/// - Additional globally allowed types can be configured with `allow_list`.
 class ForbidModularGetOutsideModule extends BaseLintRule {
-  ForbidModularGetOutsideModule() : super(BaseLintRule.createLintCode(_analyzer));
+  ForbidModularGetOutsideModule()
+    : super(BaseLintRule.createLintCode(_analyzer));
 
-  /// The analyzer instance used by this lint rule.
+  /// Config injection is for tests only; production always loads from disk via [_resolveConfig].
   static final _analyzer = ForbidModularGetOutsideModuleAnalyzer();
 
   /// Gets the analyzer instance that performs the actual AST traversal and linting logic.

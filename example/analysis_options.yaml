@@ -3,3 +3,9 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   plugins:
     - custom_lint
+
+custom_lint:
+  rules:
+    forbid_modular_get_outside_module:
+      allow_list:
+        - GlobalCrashReporter

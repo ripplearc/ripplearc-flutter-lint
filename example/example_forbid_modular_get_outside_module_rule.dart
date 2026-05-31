@@ -3,14 +3,18 @@
 class Modular {
   static T get<T>() => throw UnimplementedError();
 }
+
 class Module {
   void binds(Injector i) {}
 }
+
 class Injector {
   void addFactory<T>(T Function() f) {}
 }
 
 class Foo {}
+
+class GlobalCrashReporter {}
 
 // Normal production code
 class ServiceClass {
@@ -27,13 +31,10 @@ class FakeService {
   }
 }
 
-class CoreModule extends Module {
-  @override
-  void binds(Injector i) {
-    i.addFactory<ServiceClass>(() {
-      // OK
-      final okFoo = Modular.get<Foo>();
-      return ServiceClass();
-    });
+class CrashReportingBootstrapper {
+  void init() {
+    // OK — GlobalCrashReporter declared in allow_list in analysis_options.yaml
+    final reporter = Modular.get<GlobalCrashReporter>();
   }
 }
+

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 - forbid_modular_get_outside_module allow_list support (patch)
+
+### Improvements
+
+- **`forbid_modular_get_outside_module`**: Added optional `allow_list` support in `analysis_options.yaml` for project-specific global types that are allowed to be fetched with `Modular.get<T>()` outside module files. No types are exempt by default; all exceptions must be declared explicitly.
+
 ## 0.4.0 - Forbid Modular.get Outside Module (minor)
 
 ### New Rule
