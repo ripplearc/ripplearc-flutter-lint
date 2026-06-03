@@ -15,7 +15,6 @@ import '../models/lint_issue.dart';
 /// final icon = CoreIconData.svg('assets/icon.svg');         // LINT
 /// final icon = CoreIconData.material(Icons.home);           // LINT
 /// final icon = CoreMaterialIcons.arrowRight;                // LINT
-/// CoreIconData getIcon() => CoreIcons.home;                 // LINT (type annotation)
 /// ```
 ///
 /// Example of correct code:
