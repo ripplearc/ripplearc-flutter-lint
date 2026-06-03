@@ -70,8 +70,11 @@ class _ForbidRawIconAndImageUsageVisitor extends RecursiveAstVisitor<void> {
       );
     }
 
-    final importPrefix = constructorName.type.importPrefix?.name.lexeme;
-    if (importPrefix == 'Image' && typeName == 'asset') {
+    // Without type resolution, the parser treats `new Image.asset(...)` as a
+    // prefixed type: importPrefix='Image', name2='asset'. This is the correct
+    // way to detect the named constructor in an unresolved AST.
+    final classPrefix = constructorName.type.importPrefix?.name.lexeme;
+    if (classPrefix == 'Image' && typeName == 'asset') {
       issues.add(
         analyzer.createIssue(
           node,
