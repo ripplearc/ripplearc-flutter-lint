@@ -78,7 +78,7 @@ class PackageChecker {
     LinterConfig config,
   ) {
     final library = classElement.library;
-    final uri = library.source.uri;
+    final uri = library.uri;
 
     if (library.isInSdk) return true;
 

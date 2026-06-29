@@ -58,16 +58,16 @@ class _DateTimeNowVisitor extends RecursiveAstVisitor<void> {
   bool _isDateTimeNowCall(MethodInvocation node) {
     if (node.methodName.name != 'now') return false;
 
-    final element = node.methodName.staticElement;
+    final element = node.methodName.element;
     if (element != null) {
       if (element is ConstructorElement) {
-        final enclosingElement = element.enclosingElement3;
+        final enclosingElement = element.enclosingElement;
         return enclosingElement is ClassElement &&
             enclosingElement.name == 'DateTime' &&
             enclosingElement.library.isDartCore;
       }
       if (element is MethodElement && element.isStatic) {
-        final enclosingElement = element.enclosingElement3;
+        final enclosingElement = element.enclosingElement;
         return enclosingElement is ClassElement &&
             enclosingElement.name == 'DateTime' &&
             enclosingElement.library.isDartCore;

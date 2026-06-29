@@ -103,7 +103,7 @@ class ContextChecker {
 
     if (isInConstOrFactoryContext(node, config)) return true;
 
-    final constructorElement = node.constructorName.staticElement;
+    final constructorElement = node.constructorName.element;
     if (constructorElement is ConstructorElement &&
         constructorElement.isConst) {
       return true;
