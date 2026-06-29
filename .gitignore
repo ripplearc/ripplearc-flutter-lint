@@ -22,4 +22,7 @@ coverage/
 
 # Logs
 *.log
-pubspec.lock 
+pubspec.lock
+
+# FVM — local version cache is excluded; .fvmrc is committed
+.fvm/ 

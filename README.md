@@ -2,6 +2,20 @@
 
 A Dart/Flutter library providing custom lint rules for better code quality and testing practices.
 
+## Development Setup
+
+This project uses [FVM](https://fvm.app) to pin the Flutter SDK. Install FVM, then:
+
+```bash
+fvm install       # install pinned Flutter version
+fvm flutter pub get
+fvm flutter test
+```
+
+> To update the pinned version: `fvm use <version>` and commit `.fvmrc`.
+
+---
+
 ## Project Structure
 
 ```
