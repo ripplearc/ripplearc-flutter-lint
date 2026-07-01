@@ -1,17 +1,17 @@
 # Changelog
 
-## 0.4.2 - Analyzer v14 & custom_lint_builder v0.8 compatibility (patch)
+## 0.4.2 - analyzer ^8.4.0 & custom_lint_builder ^0.8.1 compatibility (patch)
 
 ### Bug Fixes
 
-- **Deprecated API migration**: Updated all occurrences of `.staticElement` → `.element` across `context_checker.dart`, `type_checker.dart`, `visitor.dart`, and `forbid_datetime_now_analyzer.dart` to match the analyzer v14 API.
+- **Deprecated API migration**: Updated all occurrences of `.staticElement` → `.element` across `context_checker.dart`, `type_checker.dart`, `visitor.dart`, and `forbid_datetime_now_analyzer.dart` to match the analyzer package v8 breaking API changes.
 - **`forbid_datetime_now_analyzer`**: Replaced deprecated `.enclosingElement3` with `.enclosingElement` for compatibility with analyzer v14.
 - **`package_checker`**: Replaced deprecated `library.source.uri` with `library.uri`.
 - **`TestErrorReporter`**: Migrated from the removed `ErrorReporter`/`AnalysisError` API to the new `DiagnosticReporter`/`Diagnostic` API introduced in analyzer v14.
 
 ### Dependency Upgrades
 
-- **`analyzer`**: upgraded from `^7.3.0` to `^14.0.0`.
+- **`analyzer`**: upgraded from `^7.3.0` to `^8.4.0`.
 - **`custom_lint_builder`**: upgraded from `^0.7.5` to `^0.8.1`.
 - **Example project**: updated `custom_lint` to `^0.8.1`; added Flutter SDK dependency required by example rules.
 

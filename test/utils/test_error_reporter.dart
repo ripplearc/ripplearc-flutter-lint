@@ -23,7 +23,6 @@ import 'package:source_span/source_span.dart';
 class TestErrorReporter implements DiagnosticReporter {
   /// The list of diagnostics that have been reported.
   final List<Diagnostic> errors = [];
-  final bool isNonNullableByDefault = false;
   final _dummySource = StringSource('test.dart', '');
   int _lockLevel = 0;
 
@@ -61,7 +60,12 @@ class TestErrorReporter implements DiagnosticReporter {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
-  }) => _make(0, 0, errorCode, contextMessages);
+  }) => _make(
+    element.firstFragment.nameOffset ?? element.firstFragment.offset,
+    element.name?.length ?? 0,
+    errorCode,
+    contextMessages,
+  );
 
   @override
   Diagnostic atEntity(
@@ -90,7 +94,11 @@ class TestErrorReporter implements DiagnosticReporter {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
-  }) => _make(offset, length, (diagnosticCode ?? errorCode)!, contextMessages);
+  }) {
+    final code = diagnosticCode ?? errorCode;
+    assert(code != null, 'atOffset: provide diagnosticCode or errorCode');
+    return _make(offset, length, code!, contextMessages);
+  }
 
   @override
   Diagnostic atSourceSpan(
