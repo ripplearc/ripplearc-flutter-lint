@@ -11,7 +11,7 @@ import 'package_checker.dart';
 class TypeChecker {
   static bool isExcludedBySubtype(InstanceCreationExpression node, LinterConfig config) {
     try {
-      final element = node.constructorName.staticElement;
+      final element = node.constructorName.element;
       if (element == null) return false;
       final typeElement = element.returnType.element;
       if (typeElement is! ClassElement) return false;
@@ -55,7 +55,7 @@ class TypeChecker {
 
   static bool isSealedClass(InstanceCreationExpression node, LinterConfig config) {
     try {
-      final element = node.constructorName.staticElement;
+      final element = node.constructorName.element;
       if (element == null) return false;
       final typeElement = element.returnType.element;
       if (typeElement is! ClassElement) return false;

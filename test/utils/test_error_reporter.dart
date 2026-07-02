@@ -1,18 +1,17 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/error.dart' show DiagnosticCode;
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:source_span/source_span.dart';
 
-/// A test implementation of [ErrorReporter] that collects analysis errors.
+/// A test implementation of [DiagnosticReporter] that collects diagnostics.
 ///
 /// This class is used in tests to verify that lint rules are reporting the
-/// expected errors. It implements the [ErrorReporter] interface and stores
+/// expected errors. It implements the [DiagnosticReporter] interface and stores
 /// all reported errors in the [errors] list.
 ///
 /// Example:
@@ -21,122 +20,107 @@ import 'package:source_span/source_span.dart';
 /// rule.checkClassDeclaration(node, reporter);
 /// expect(reporter.errors, hasLength(1));
 /// ```
-class TestErrorReporter implements ErrorReporter {
-  /// The list of analysis errors that have been reported.
-  final List<AnalysisError> errors = [];
-  final bool isNonNullableByDefault = false;
+class TestErrorReporter implements DiagnosticReporter {
+  /// The list of diagnostics that have been reported.
+  final List<Diagnostic> errors = [];
   final _dummySource = StringSource('test.dart', '');
   int _lockLevel = 0;
 
+  Diagnostic _make(
+    int offset,
+    int length,
+    DiagnosticCode code,
+    List<DiagnosticMessage>? contextMessages,
+  ) {
+    final error = Diagnostic.forValues(
+      source: _dummySource,
+      offset: offset,
+      length: length,
+      diagnosticCode: code,
+      message: code.problemMessage,
+      contextMessages: contextMessages ?? const [],
+    );
+    errors.add(error);
+    return error;
+  }
+
   @override
-  void atConstructorDeclaration(
+  Diagnostic atConstructorDeclaration(
     ConstructorDeclaration node,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
-  }) {
-    errors.add(
-      AnalysisError.forValues(
-        source: _dummySource,
-        offset: node.offset,
-        length: node.length,
-        errorCode: errorCode,
-        message: errorCode.problemMessage,
-        contextMessages: contextMessages ?? const [],
-      ),
-    );
-  }
+  }) => _make(node.offset, node.length, errorCode, contextMessages);
 
   @override
-  void atElement(
+  Diagnostic atElement2(
     Element element,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
-  }) {}
+  }) => _make(
+    element.firstFragment.nameOffset ?? element.firstFragment.offset,
+    element.name?.length ?? 0,
+    errorCode,
+    contextMessages,
+  );
 
   @override
-  void atElement2(
-    Element2 element,
-    ErrorCode errorCode, {
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  }) {}
-
-  @override
-  void atEntity(
+  Diagnostic atEntity(
     SyntacticEntity entity,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
-  }) {}
+  }) => _make(entity.offset, entity.length, errorCode, contextMessages);
 
   @override
-  void atNode(
+  Diagnostic atNode(
     AstNode node,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
-  }) {
-    errors.add(
-      AnalysisError.forValues(
-        source: _dummySource,
-        offset: node.offset,
-        length: node.length,
-        errorCode: errorCode,
-        message: errorCode.problemMessage,
-        contextMessages: contextMessages ?? const [],
-      ),
-    );
-  }
+  }) => _make(node.offset, node.length, errorCode, contextMessages);
 
   @override
-  void atOffset({
+  Diagnostic atOffset({
     required int offset,
     required int length,
-    required ErrorCode errorCode,
+    DiagnosticCode? diagnosticCode,
+    DiagnosticCode? errorCode,
     List<Object>? arguments,
-    List<dynamic>? contextMessages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    errors.add(
-      AnalysisError.forValues(
-        source: _dummySource,
-        offset: offset,
-        length: length,
-        errorCode: errorCode,
-        message: errorCode.problemMessage,
-        contextMessages: const [],
-      ),
-    );
+    final code = diagnosticCode ?? errorCode;
+    assert(code != null, 'atOffset: provide diagnosticCode or errorCode');
+    return _make(offset, length, code!, contextMessages);
   }
 
   @override
-  void atSourceSpan(
+  Diagnostic atSourceSpan(
     SourceSpan span,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
-    List<dynamic>? contextMessages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
-  }) {}
+  }) => _make(span.start.offset, span.length, errorCode, contextMessages);
 
   @override
-  void atToken(
+  Diagnostic atToken(
     Token token,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
-    List<dynamic>? contextMessages,
+    List<DiagnosticMessage>? contextMessages,
     Object? data,
-  }) {}
+  }) => _make(token.offset, token.length, errorCode, contextMessages);
 
   @override
-  void reportError(AnalysisError error) {
-    errors.add(error);
+  void reportError(Diagnostic diagnostic) {
+    errors.add(diagnostic);
   }
 
   @override

@@ -225,7 +225,7 @@ class DirectInstantiationVisitor extends RecursiveAstVisitor<void> {
       return _checkImportBasedExclusions(className, node);
     }
 
-    final element = node.constructorName.staticElement;
+    final element = node.constructorName.element;
     final typeElement = element?.returnType.element;
     final hasFullTypeResolution =
         element != null && typeElement != null && typeElement is ClassElement;
