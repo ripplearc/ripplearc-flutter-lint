@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 - Forbid Raw Icon and Image Usage (minor)
+
+### New Rule
+
+- **`forbid_raw_icon_and_image_usage`**: Forbids direct instantiation of `Icon(Icons.xxx)`
+  and `Image.asset()` in all Dart files except `coreui/lib/` and `coreui/test/`.
+  Use `CoreIcons` constants and coreui abstraction components instead.
+
+---
+
 ## 0.4.3 - restrict_core_icon_data Scope Fix (patch)
 
 ### Bug Fixes
