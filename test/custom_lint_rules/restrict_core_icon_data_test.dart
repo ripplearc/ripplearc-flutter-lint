@@ -52,7 +52,7 @@ void main() {
       });
 
       test(
-        'should not flag CoreIconData.svg() in coreui icons directory',
+        'should not flag CoreIconData.svg() in coreui package inside core_icon.dart',
         () async {
           const source = '''
         class CoreIcons {
@@ -61,11 +61,24 @@ void main() {
         ''';
           await analyzeCode(
             source,
-            path: 'packages/coreui/lib/src/theme/icons/core_icons.dart',
+            path: 'packages/coreui/lib/src/components/core_icon.dart',
           );
           expect(reporter.errors, isEmpty);
         },
       );
+
+      test('should not flag CoreIconData.svg() in coreui icons directory', () async {
+        const source = '''
+        class CoreIcons {
+          static const microsoft = CoreIconData.svg('packages/coreui/assets/microsoft.svg');
+        }
+        ''';
+        await analyzeCode(
+          source,
+          path: 'packages/coreui/lib/src/theme/icons/core_icons.dart',
+        );
+        expect(reporter.errors, isEmpty);
+      });
     });
 
     group('CoreIconData.material() usage', () {
@@ -82,7 +95,23 @@ void main() {
       });
 
       test(
-        'should not flag CoreIconData.material() in coreui icons directory',
+        'should flag CoreIconData.material() in coreui package outside theme folder or core_icon',
+        () async {
+          const source = '''
+        class CoreMaterialIcons {
+          static const arrowRight = CoreIconData.material(Icons.keyboard_arrow_right);
+        }
+        ''';
+          await analyzeCode(
+            source,
+            path: 'packages/coreui/lib/src/components/material_icons.dart',
+          );
+          expect(reporter.errors, hasLength(1));
+        },
+      );
+
+      test(
+        'should not flag CoreIconData.material() in coreui theme icons folder',
         () async {
           const source = '''
         class CoreMaterialIcons {
@@ -125,6 +154,22 @@ void main() {
         );
         expect(reporter.errors, hasLength(1));
       });
+
+      test(
+        'should flag CoreMaterialIcons in coreui test folder (not allowed path)',
+        () async {
+          const source = '''
+        class CoreIcons {
+          static const arrowRight = CoreMaterialIcons.arrowRight;
+        }
+        ''';
+          await analyzeCode(
+            source,
+            path: 'packages/coreui/test/components/core_icon_test.dart',
+          );
+          expect(reporter.errors, hasLength(1));
+        },
+      );
 
       test(
         'should not flag CoreMaterialIcons in coreui icons directory',
@@ -183,7 +228,7 @@ void main() {
         expect(reporter.errors, hasLength(2));
       });
 
-      test('should flag CoreIconData type annotation', () async {
+      test('should not flag CoreIconData type annotation', () async {
         const source = '''
         class MyWidget {
           CoreIconData getIcon() {
@@ -192,7 +237,7 @@ void main() {
         }
         ''';
         await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
-        expect(reporter.errors, hasLength(1));
+        expect(reporter.errors, isEmpty);
       });
 
       test('should not flag unrelated classes', () async {
@@ -218,24 +263,24 @@ void main() {
         expect(reporter.errors, hasLength(1));
       });
 
-      test('should flag CoreIconData in generic type parameters', () async {
+      test('should not flag CoreIconData in generic type parameters', () async {
         const source = '''
         class MyWidget {
           List<CoreIconData> getIcons() => [];
         }
         ''';
         await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
-        expect(reporter.errors, hasLength(1));
+        expect(reporter.errors, isEmpty);
       });
 
-      test('should flag CoreIconData as function parameter type', () async {
+      test('should not flag CoreIconData as function parameter type', () async {
         const source = '''
         class MyWidget {
           void setIcon(CoreIconData icon) {}
         }
         ''';
         await analyzeCode(source, path: 'lib/widgets/my_widget.dart');
-        expect(reporter.errors, hasLength(1));
+        expect(reporter.errors, isEmpty);
       });
     });
   });

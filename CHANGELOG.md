@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.3 - restrict_core_icon_data Scope Fix (patch)
+
+### Bug Fixes
+
+- **`restrict_core_icon_data`**: Expanded allowed paths to include
+  `/lib/src/components/core_icon.dart` in addition to `/lib/src/theme/icons/`,
+  eliminating false positives in the core icon widget file.
+- **`restrict_core_icon_data`**: Type annotations (`CoreIconData` as return type,
+  parameter type, or generic argument) are no longer flagged — only construction
+  (`CoreIconData.svg()`, `CoreIconData.material()`) and direct member access
+  (`CoreMaterialIcons.x`) remain violations.
+- **Standalone checker**: `restrict_core_icon_data` is now included in the
+  standalone_checker CLI tool.
+
+---
+
 ## 0.4.2 - analyzer ^8.4.0 & custom_lint_builder ^0.8.1 compatibility (patch)
 
 ### Bug Fixes

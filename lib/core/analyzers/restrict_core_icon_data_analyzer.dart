@@ -15,7 +15,6 @@ import '../models/lint_issue.dart';
 /// final icon = CoreIconData.svg('assets/icon.svg');         // LINT
 /// final icon = CoreIconData.material(Icons.home);           // LINT
 /// final icon = CoreMaterialIcons.arrowRight;                // LINT
-/// CoreIconData getIcon() => CoreIcons.home;                 // LINT (type annotation)
 /// ```
 ///
 /// Example of correct code:
@@ -24,8 +23,8 @@ import '../models/lint_issue.dart';
 /// final icon = CoreIcons.microsoft;   // OK
 /// ```
 ///
-/// Files under `/lib/src/theme/icons/` are excluded from this rule as they
-/// define the CoreIcons constants.
+/// This rule is excluded for specific icon-defining files such as
+/// `/lib/src/theme/icons/` and `/lib/src/components/core_icon.dart`.
 class RestrictCoreIconDataAnalyzer extends BaseAnalyzer {
   static const _restrictedClasses = ['CoreIconData', 'CoreMaterialIcons'];
 
@@ -61,11 +60,12 @@ class RestrictCoreIconDataAnalyzer extends BaseAnalyzer {
   @override
   bool shouldSkipFile(String path) {
     final normalized = path.replaceAll('\\', '/');
-    return _isInCoreuiIconsDirectory(normalized);
+    return _isAllowedPath(normalized);
   }
 
-  bool _isInCoreuiIconsDirectory(String path) {
-    return path.contains('/lib/src/theme/icons/');
+  bool _isAllowedPath(String path) {
+    return path.contains('/lib/src/theme/icons/') ||
+        path.contains('/lib/src/components/core_icon.dart');
   }
 
   bool isRestrictedClass(String identifier) {
@@ -139,7 +139,7 @@ class _RestrictCoreIconDataVisitor extends RecursiveAstVisitor<void> {
         analyzer.createIssue(
           node,
           customMessage:
-              '$prefix usage is restricted outside coreui icons directory. '
+              '$prefix usage is restricted outside coreui package. '
               'Use CoreIcons constants instead.',
         ),
       );
@@ -148,21 +148,4 @@ class _RestrictCoreIconDataVisitor extends RecursiveAstVisitor<void> {
     super.visitPrefixedIdentifier(node);
   }
 
-  @override
-  void visitNamedType(NamedType node) {
-    final typeName = node.name2.lexeme;
-
-    if (analyzer.isRestrictedClass(typeName)) {
-      issues.add(
-        analyzer.createIssue(
-          node,
-          customMessage:
-              '$typeName type usage is restricted outside coreui icons directory. '
-              'Use CoreIcons constants instead.',
-        ),
-      );
-    }
-
-    super.visitNamedType(node);
-  }
 }
