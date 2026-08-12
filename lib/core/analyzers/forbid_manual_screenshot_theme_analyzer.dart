@@ -3,6 +3,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'base_analyzer.dart';
 import '../models/lint_issue.dart';
 
+/// Flags manual dual-theme patterns (`ThemeData?` params, `_dark.png`
+/// golden suffixes) in `*_screenshot_test.dart` files.
 class ForbidManualScreenshotThemeAnalyzer extends BaseAnalyzer {
   @override
   String get ruleName => 'forbid_manual_screenshot_theme';

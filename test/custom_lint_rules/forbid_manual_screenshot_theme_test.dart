@@ -65,6 +65,16 @@ void main() {
             path: '/test/my_widget_screenshot_test.dart');
         expect(reporter.errors, isEmpty);
       });
+
+      test('does not flag a type that merely contains "ThemeData" as a substring',
+          () async {
+        const source = '''
+        void pumpWidget(WidgetTester tester, AppThemeData? theme) async {}
+        ''';
+        await analyzeCode(source,
+            path: '/test/my_widget_screenshot_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
     });
 
     group('_dark.png suffix detection in matchesGoldenFile', () {
