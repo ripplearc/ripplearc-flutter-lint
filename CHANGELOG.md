@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0] - Enforce screenshotThemeGroups adoption
+
+### ✨ New Rules
+
+- **forbid_manual_screenshot_theme**: Flags manual dual-theme patterns in `*_screenshot_test.dart` files — `ThemeData?` parameters and hard-coded `_dark.png` suffixes in `matchesGoldenFile` calls. Use `screenshotThemeGroups` instead.
+
+---
+
 ## 0.5.0 - Forbid Raw Icon and Image Usage (minor)
 
 ### New Rule
