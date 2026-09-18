@@ -19,6 +19,7 @@ import 'package:ripplearc_linter/core/analyzers/prefer_fake_over_mock_analyzer.d
 import 'package:ripplearc_linter/core/analyzers/test_file_mutation_coverage_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/forbid_helper_util_naming_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/prevent_feature_module_dependencies_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/forbid_feature_import_outside_provider_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/prevent_library_module_dependencies_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/forbid_modular_get_outside_module_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/forbid_raw_icon_and_image_usage_analyzer.dart';
@@ -87,6 +88,7 @@ class StandaloneLintChecker {
       PreferFakeOverMockAnalyzer(),
       TestFileMutationCoverageAnalyzer(),
       FeatureModuleIsolationAnalyzer(),
+      ForbidFeatureImportOutsideProviderAnalyzer(),
       LibraryModuleDependenciesAnalyzer(),
       ForbidModularGetOutsideModuleAnalyzer(),
       ForbidRawIconAndImageUsageAnalyzer(),
@@ -379,7 +381,7 @@ void main(List<String> args) async {
       'standalone_checker [--rules rule1,rule2] <files_or_directories> (after global activate)',
     );
     print(
-      'Available rules: avoid_static_typography, avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage, prevent_feature_module_dependencies, forbid_modular_get_outside_module, forbid_raw_icon_and_image_usage, restrict_core_icon_data, forbid_manual_screenshot_theme',
+      'Available rules: avoid_static_typography, avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage, prevent_feature_module_dependencies, forbid_feature_import_outside_provider, forbid_modular_get_outside_module, forbid_raw_icon_and_image_usage, restrict_core_icon_data, forbid_manual_screenshot_theme',
     );
     exit(1);
   }

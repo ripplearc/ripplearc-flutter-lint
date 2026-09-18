@@ -19,6 +19,7 @@ import 'custom_lint_rules/private_subject.dart';
 import 'custom_lint_rules/specific_exception_types.dart';
 import 'custom_lint_rules/test_file_mutation_coverage.dart';
 import 'custom_lint_rules/prevent_feature_module_dependencies.dart';
+import 'custom_lint_rules/forbid_feature_import_outside_provider.dart';
 import 'custom_lint_rules/prevent_library_module_dependencies.dart';
 import 'custom_lint_rules/restrict_core_icon_data.dart';
 import 'custom_lint_rules/forbid_raw_icon_and_image_usage.dart';
@@ -49,6 +50,7 @@ class _RipplearcLintRules extends PluginBase {
     SpecificExceptionTypes(),
     TestFileMutationCoverage(),
     PreventFeatureModuleDependencies(),
+    ForbidFeatureImportOutsideProvider(),
     PreventLibraryModuleDependencies(),
     RestrictCoreIconData(),
     ForbidRawIconAndImageUsage(),
