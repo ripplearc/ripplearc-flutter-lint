@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0] - Enforce feature provider-only imports
+
+### ✨ New Rules
+
+- **forbid_feature_import_outside_provider**: Extends the `feature_module_isolation` family (CA-451, CA-456, CA-642). Forbids importing a feature's internals from outside `lib/features/{feature_name}/` except through that feature's own provider file, `{feature_name}_feature_module.dart` — the single door the "Per-Flavor Feature Module Exclusion" design (CA-923) relies on to keep excluded features out of a flavor's compiled output.
+
+---
+
 ## [0.6.0] - Enforce screenshotThemeGroups adoption
 
 ### ✨ New Rules
