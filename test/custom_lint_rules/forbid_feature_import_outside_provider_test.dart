@@ -73,6 +73,19 @@ void main() {
         },
       );
 
+      test(
+        'should flag a relative import reaching into a feature from outside it',
+        () async {
+          const source = '''
+        import '../features/estimation/domain/entities/estimate.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+          expect(reporter.errors, hasLength(1));
+        },
+      );
+
       test('should flag multiple deep imports from different features', () async {
         const source = '''
         import 'package:project/features/auth/data/models/user.dart';
@@ -111,6 +124,19 @@ void main() {
             source,
             path: '/project/lib/features/auth/presentation/screens/login.dart',
           );
+          expect(reporter.errors, isEmpty);
+        },
+      );
+
+      test(
+        'should not flag a relative import of the provider file itself',
+        () async {
+          const source = '''
+        import '../features/estimation/estimation_feature_module.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
           expect(reporter.errors, isEmpty);
         },
       );

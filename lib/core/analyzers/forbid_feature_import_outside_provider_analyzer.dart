@@ -81,8 +81,12 @@ class _ProviderImportVisitor extends RecursiveAstVisitor<void> {
 
   void _validateProviderOnlyImport(UriBasedDirective node) {
     final uri = node.uri.stringValue;
-    if (uri == null || !uri.startsWith('package:')) return;
+    if (uri == null) return;
 
+    // A relative import (e.g. '../features/estimation/domain/...') can reach
+    // a feature's internals just as easily as a package: import, and must be
+    // checked the same way — extractFeatureNameFromImport's regex matches
+    // '/features/<name>/' regardless of the URI's scheme or prefix.
     final featureName = extractFeatureNameFromImport(uri);
     if (featureName == null) return;
     if (_isProviderFileImport(uri, featureName)) return;
