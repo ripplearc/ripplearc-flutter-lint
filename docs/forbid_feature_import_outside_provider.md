@@ -34,3 +34,11 @@ import 'package:project/features/estimation/domain/entities/estimate.dart'; // O
 
 ## Out of Scope
 Feature-to-feature deep imports (one feature reaching directly into another feature's internals) are already caught by `prevent_feature_module_dependencies`. This rule only covers imports from code outside `lib/features/` altogether — the app/shell layer, core, or libraries — reaching into a feature.
+
+## Not reported
+- Code inside `lib/features/{feature_name}/` (covered by `feature_module_isolation`).
+- A feature's own tests under `test/features/{feature_name}/`, which import that feature's internals on purpose.
+- Other test files, such as `test/utils/`, are still checked.
+
+## Relative imports
+A relative import is checked the same way as a `package:` import, including a path that starts with `features/` and has no slash before it (for a file directly in `lib/`).

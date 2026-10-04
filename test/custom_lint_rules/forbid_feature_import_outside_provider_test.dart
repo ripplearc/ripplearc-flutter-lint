@@ -26,6 +26,62 @@ void main() {
       );
     }
 
+    group('relative imports and test files', () {
+      test(
+        'should flag a bare relative URI with no slash before features',
+        () async {
+          const source = '''
+        import 'features/estimation/domain/e.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(source, path: '/project/lib/main.dart');
+          expect(reporter.errors, hasLength(1));
+        },
+      );
+
+      test('should allow a bare relative URI to the provider file', () async {
+        const source = '''
+        import 'features/estimation/estimation_feature_module.dart';
+
+        void main() {}
+        ''';
+        await analyzeCode(source, path: '/project/lib/main.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test(
+        'should not flag a feature test importing its own feature',
+        () async {
+          const source = '''
+        import 'package:project/features/estimation/domain/e.dart';
+        import '../../../../lib/features/estimation/domain/e.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(
+            source,
+            path: '/project/test/features/estimation/domain/e_test.dart',
+          );
+          expect(reporter.errors, isEmpty);
+        },
+      );
+
+      test(
+        'should still flag a test file outside test/features that imports a '
+        'feature internal',
+        () async {
+          const source = '''
+        import 'package:project/features/estimation/domain/e.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(source, path: '/project/test/utils/helper.dart');
+          expect(reporter.errors, hasLength(1));
+        },
+      );
+    });
+
     group('violations - deep import from outside the feature', () {
       test(
         'should flag a shell file importing a feature entity directly',

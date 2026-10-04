@@ -55,11 +55,20 @@ class ForbidFeatureImportOutsideProviderAnalyzer extends BaseAnalyzer {
     // Code inside a feature is already covered by feature_module_isolation.
     if (isFeatureModuleFile(filePath)) return [];
 
+    // A feature's own tests (test/features/{feature_name}/...) import that
+    // feature's internals on purpose.
+    if (_isFeatureTestFile(filePath)) return [];
+
     final visitor = _ProviderImportVisitor(this);
     unit.accept(visitor);
     return visitor.issues;
   }
 }
+
+bool _isFeatureTestFile(String path) =>
+    path.replaceAll('\\', '/').contains('/test/features/');
+
+final RegExp _featureInUriRegExp = RegExp(r'(?:^|/)features/([^/]+)/');
 
 class _ProviderImportVisitor extends RecursiveAstVisitor<void> {
   final ForbidFeatureImportOutsideProviderAnalyzer analyzer;
@@ -83,11 +92,12 @@ class _ProviderImportVisitor extends RecursiveAstVisitor<void> {
     final uri = node.uri.stringValue;
     if (uri == null) return;
 
-    // A relative import (e.g. '../features/estimation/domain/...') can reach
-    // a feature's internals just as easily as a package: import, and must be
-    // checked the same way — extractFeatureNameFromImport's regex matches
-    // '/features/<name>/' regardless of the URI's scheme or prefix.
-    final featureName = extractFeatureNameFromImport(uri);
+    // A relative import can reach a feature's internals just as easily as a
+    // package: import. The pattern also matches a URI that starts with
+    // 'features/' (for a file directly in lib/), which has no slash before it.
+    final featureName = _featureInUriRegExp
+        .firstMatch(uri.replaceAll('\\', '/'))
+        ?.group(1);
     if (featureName == null) return;
     if (_isProviderFileImport(uri, featureName)) return;
 
@@ -104,6 +114,8 @@ class _ProviderImportVisitor extends RecursiveAstVisitor<void> {
 
   bool _isProviderFileImport(String uri, String featureName) {
     final normalized = uri.replaceAll('\\', '/');
-    return normalized.endsWith('/features/$featureName/${featureName}_feature_module.dart');
+    final providerPath =
+        'features/$featureName/${featureName}_feature_module.dart';
+    return normalized == providerPath || normalized.endsWith('/$providerPath');
   }
 }
