@@ -11,6 +11,11 @@ import 'package:project/features/estimation/domain/entities/estimate.dart'; // L
 import 'package:project/features/estimation/presentation/pages/estimation_page.dart'; // LINT: deep import
 ```
 
+```dart
+// lib/core/helper.dart
+import '../features/estimation/domain/entities/estimate.dart'; // LINT: relative deep import
+```
+
 ## Good ✅
 ```dart
 // lib/app/enabled_features.dart
@@ -27,6 +32,11 @@ const enabledFeatures = <FeatureModule>[
 import 'package:project/features/estimation/domain/entities/estimate.dart'; // OK: same feature
 ```
 
+```dart
+// lib/core/helper.dart
+import '../features/estimation/estimation_feature_module.dart'; // OK: relative import of the provider file
+```
+
 ## Allowed Patterns
 - **The provider file itself**: `package:project/features/{feature_name}/{feature_name}_feature_module.dart` can be imported from anywhere.
 - **Imports from within the same feature**: any file under `lib/features/{feature_name}/` can import other files in that same feature directly.
@@ -41,4 +51,9 @@ Feature-to-feature deep imports (one feature reaching directly into another feat
 - Other test files, such as `test/utils/`, are still checked.
 
 ## Relative imports
-A relative import is checked the same way as a `package:` import, including a path that starts with `features/` and has no slash before it (for a file directly in `lib/`).
+A relative import is checked the same way as a `package:` import, including a path that starts with `features/` and has no slash before it (for a file directly in `lib/`). Every URI of a conditional import (`import 'a.dart' if (dart.library.io) '...'`) is checked.
+
+## Known limits
+- The rule matches the path segment `features/{name}/` in the URI. It does not check that a `package:` URI belongs to this project, so a third-party package with a `features/foo/` path would be reported. The sibling rule `prevent_feature_module_dependencies` has the same limit.
+- A relative path through any folder named `features` is reported, even one outside `lib/features/`.
+- In the editor, `custom_lint` shows the fixed message. The message with the feature name appears only in the standalone checker.

@@ -88,27 +88,40 @@ class _ProviderImportVisitor extends RecursiveAstVisitor<void> {
     super.visitExportDirective(node);
   }
 
-  void _validateProviderOnlyImport(UriBasedDirective node) {
-    final uri = node.uri.stringValue;
-    if (uri == null) return;
+  void _validateProviderOnlyImport(NamespaceDirective node) {
+    // A conditional import ('a.dart' if (dart.library.io) 'features/...') has
+    // more URIs than node.uri, and each one can reach a feature's internals.
+    final uris = [
+      node.uri.stringValue,
+      for (final configuration in node.configurations)
+        configuration.uri.stringValue,
+    ];
+    for (final uri in uris) {
+      if (uri == null) continue;
+      final issue = _validateUri(node, uri);
+      if (issue != null) {
+        issues.add(issue);
+        return;
+      }
+    }
+  }
 
+  LintIssue? _validateUri(NamespaceDirective node, String uri) {
     // A relative import can reach a feature's internals just as easily as a
     // package: import. The pattern also matches a URI that starts with
     // 'features/' (for a file directly in lib/), which has no slash before it.
     final featureName = _featureInUriRegExp
         .firstMatch(uri.replaceAll('\\', '/'))
         ?.group(1);
-    if (featureName == null) return;
-    if (_isProviderFileImport(uri, featureName)) return;
+    if (featureName == null) return null;
+    if (_isProviderFileImport(uri, featureName)) return null;
 
-    issues.add(
-      analyzer.createIssue(
-        node,
-        customMessage:
-            'Feature "$featureName" must only be imported through its provider file '
-            '"${featureName}_feature_module.dart". Move this code behind that file '
-            'or import it instead.',
-      ),
+    return analyzer.createIssue(
+      node,
+      customMessage:
+          'Feature "$featureName" must only be imported through its provider file '
+          '"${featureName}_feature_module.dart". Move this code behind that file '
+          'or import it instead.',
     );
   }
 

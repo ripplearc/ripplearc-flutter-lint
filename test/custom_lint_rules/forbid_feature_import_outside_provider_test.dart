@@ -198,7 +198,7 @@ void main() {
       );
 
       test(
-        'should not confuse another feature\'s file that merely ends with the right suffix pattern for the wrong feature',
+        'should flag a file in the same feature whose name is not the exact provider file name',
         () async {
           const source = '''
         import 'package:project/features/estimation/legacy_estimation_feature_module.dart';
@@ -207,6 +207,34 @@ void main() {
         ''';
           await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
           expect(reporter.errors, hasLength(1));
+        },
+      );
+    });
+
+    group('conditional imports', () {
+      test(
+        'should flag a deep import in the second URI of a conditional import',
+        () async {
+          const source = '''
+        import 'a.dart' if (dart.library.io) '../features/estimation/domain/e.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(source, path: '/project/lib/core/a.dart');
+          expect(reporter.errors, hasLength(1));
+        },
+      );
+
+      test(
+        'should allow a conditional import whose URIs are not feature internals',
+        () async {
+          const source = '''
+        import 'a.dart' if (dart.library.io) 'b.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(source, path: '/project/lib/core/a.dart');
+          expect(reporter.errors, isEmpty);
         },
       );
     });
