@@ -67,19 +67,16 @@ void main() {
         },
       );
 
-      test(
-        'should still flag a test file outside test/features that imports a '
-        'feature internal',
-        () async {
-          const source = '''
+      test('should still flag a test file outside test/features that imports a '
+          'feature internal', () async {
+        const source = '''
         import 'package:project/features/estimation/domain/e.dart';
 
         void main() {}
         ''';
-          await analyzeCode(source, path: '/project/test/utils/helper.dart');
-          expect(reporter.errors, hasLength(1));
-        },
-      );
+        await analyzeCode(source, path: '/project/test/utils/helper.dart');
+        expect(reporter.errors, hasLength(1));
+      });
     });
 
     group('violations - deep import from outside the feature', () {
@@ -91,7 +88,10 @@ void main() {
 
         void main() {}
         ''';
-          await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+          await analyzeCode(
+            source,
+            path: '/project/lib/app/enabled_features.dart',
+          );
           expect(reporter.errors, hasLength(1));
           expect(
             reporter.errors.first.message.toString(),
@@ -106,7 +106,10 @@ void main() {
         const source = '''
         export 'package:project/features/estimation/presentation/screens/estimation_page.dart';
         ''';
-        await analyzeCode(source, path: '/project/lib/app/shell/tab_module_manager.dart');
+        await analyzeCode(
+          source,
+          path: '/project/lib/app/shell/tab_module_manager.dart',
+        );
         expect(reporter.errors, hasLength(1));
       });
 
@@ -137,21 +140,30 @@ void main() {
 
         void main() {}
         ''';
-          await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+          await analyzeCode(
+            source,
+            path: '/project/lib/app/enabled_features.dart',
+          );
           expect(reporter.errors, hasLength(1));
         },
       );
 
-      test('should flag multiple deep imports from different features', () async {
-        const source = '''
+      test(
+        'should flag multiple deep imports from different features',
+        () async {
+          const source = '''
         import 'package:project/features/auth/data/models/user.dart';
         import 'package:project/features/product/domain/entities/product.dart';
 
         void main() {}
         ''';
-        await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
-        expect(reporter.errors, hasLength(2));
-      });
+          await analyzeCode(
+            source,
+            path: '/project/lib/app/enabled_features.dart',
+          );
+          expect(reporter.errors, hasLength(2));
+        },
+      );
     });
 
     group('allowed imports - provider file', () {
@@ -163,7 +175,10 @@ void main() {
 
         void main() {}
         ''';
-          await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+          await analyzeCode(
+            source,
+            path: '/project/lib/app/enabled_features.dart',
+          );
           expect(reporter.errors, isEmpty);
         },
       );
@@ -192,7 +207,10 @@ void main() {
 
         void main() {}
         ''';
-          await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+          await analyzeCode(
+            source,
+            path: '/project/lib/app/enabled_features.dart',
+          );
           expect(reporter.errors, isEmpty);
         },
       );
@@ -205,7 +223,10 @@ void main() {
 
         void main() {}
         ''';
-          await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+          await analyzeCode(
+            source,
+            path: '/project/lib/app/enabled_features.dart',
+          );
           expect(reporter.errors, hasLength(1));
         },
       );
@@ -239,6 +260,34 @@ void main() {
       );
     });
 
+    group('part directives', () {
+      test(
+        'should flag a part directive that pulls in a feature file',
+        () async {
+          const source = '''
+        part '../features/estimation/domain/e.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(source, path: '/project/lib/core/a.dart');
+          expect(reporter.errors, hasLength(1));
+        },
+      );
+
+      test(
+        'should allow a part directive for a file outside the features',
+        () async {
+          const source = '''
+        part 'a.g.dart';
+
+        void main() {}
+        ''';
+          await analyzeCode(source, path: '/project/lib/core/a.dart');
+          expect(reporter.errors, isEmpty);
+        },
+      );
+    });
+
     group('allowed imports - inside the feature itself', () {
       test('should not apply the rule to files inside the feature', () async {
         const source = '''
@@ -249,7 +298,8 @@ void main() {
         ''';
         await analyzeCode(
           source,
-          path: '/project/lib/features/estimation/estimation_feature_module.dart',
+          path:
+              '/project/lib/features/estimation/estimation_feature_module.dart',
         );
         expect(reporter.errors, isEmpty);
       });
@@ -262,7 +312,8 @@ void main() {
         ''';
         await analyzeCode(
           source,
-          path: '/project/lib/features/estimation/presentation/screens/estimation_page.dart',
+          path:
+              '/project/lib/features/estimation/presentation/screens/estimation_page.dart',
         );
         expect(reporter.errors, isEmpty);
       });
@@ -276,7 +327,10 @@ void main() {
 
         void main() {}
         ''';
-        await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+        await analyzeCode(
+          source,
+          path: '/project/lib/app/enabled_features.dart',
+        );
         expect(reporter.errors, isEmpty);
       });
 
@@ -288,7 +342,10 @@ void main() {
 
         void main() {}
         ''';
-          await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+          await analyzeCode(
+            source,
+            path: '/project/lib/app/enabled_features.dart',
+          );
           expect(reporter.errors, isEmpty);
         },
       );
@@ -301,7 +358,10 @@ void main() {
 
         void main() {}
         ''';
-        await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+        await analyzeCode(
+          source,
+          path: '/project/lib/app/enabled_features.dart',
+        );
         expect(reporter.errors, hasLength(1));
       });
 
@@ -311,19 +371,28 @@ void main() {
 
         void main() {}
         ''';
-        await analyzeCode(source, path: '/project/lib/app/enabled_features.dart');
+        await analyzeCode(
+          source,
+          path: '/project/lib/app/enabled_features.dart',
+        );
         expect(reporter.errors, isEmpty);
       });
 
-      test('should handle Windows-style paths for the provider file itself', () async {
-        const source = '''
+      test(
+        'should handle Windows-style paths for the provider file itself',
+        () async {
+          const source = '''
         import 'package:project/features/estimation/estimation_feature_module.dart';
 
         void main() {}
         ''';
-        await analyzeCode(source, path: r'C:\project\lib\app\enabled_features.dart');
-        expect(reporter.errors, isEmpty);
-      });
+          await analyzeCode(
+            source,
+            path: r'C:\project\lib\app\enabled_features.dart',
+          );
+          expect(reporter.errors, isEmpty);
+        },
+      );
     });
   });
 }

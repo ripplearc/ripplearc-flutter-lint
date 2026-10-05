@@ -117,6 +117,7 @@ class StandaloneLintChecker {
     'forbid_helper_util_naming',
     'forbid_raw_icon_and_image_usage',
     'restrict_core_icon_data',
+    'forbid_feature_import_outside_provider',
   };
 
   /// Analyzes the given files and directories for linting issues.

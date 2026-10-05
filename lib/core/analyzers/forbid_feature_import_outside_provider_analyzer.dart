@@ -88,6 +88,16 @@ class _ProviderImportVisitor extends RecursiveAstVisitor<void> {
     super.visitExportDirective(node);
   }
 
+  // A part directive pulls a file into the library, so 'part
+  // "../features/x/y.dart"' reaches a feature's internals like an import.
+  @override
+  void visitPartDirective(PartDirective node) {
+    final uri = node.uri.stringValue;
+    final issue = uri == null ? null : _validateUri(node, uri);
+    if (issue != null) issues.add(issue);
+    super.visitPartDirective(node);
+  }
+
   void _validateProviderOnlyImport(NamespaceDirective node) {
     // A conditional import ('a.dart' if (dart.library.io) 'features/...') has
     // more URIs than node.uri, and each one can reach a feature's internals.
@@ -106,7 +116,7 @@ class _ProviderImportVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  LintIssue? _validateUri(NamespaceDirective node, String uri) {
+  LintIssue? _validateUri(UriBasedDirective node, String uri) {
     // A relative import can reach a feature's internals just as easily as a
     // package: import. The pattern also matches a URI that starts with
     // 'features/' (for a file directly in lib/), which has no slash before it.

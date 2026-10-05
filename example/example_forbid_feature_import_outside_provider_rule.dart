@@ -15,6 +15,10 @@ import 'package:project/features/estimation/estimation_feature_module.dart';
 // OK: external packages are never in scope
 import 'package:flutter/material.dart';
 
+class EstimationFeatureModule {
+  const EstimationFeatureModule();
+}
+
 void main() {
   const enabledFeatures = <EstimationFeatureModule>[EstimationFeatureModule()];
   print(enabledFeatures);

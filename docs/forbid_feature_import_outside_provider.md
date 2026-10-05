@@ -43,15 +43,16 @@ import '../features/estimation/estimation_feature_module.dart'; // OK: relative 
 - **External packages**: Flutter, Dart SDK, and pub.dev packages are never in scope for this rule.
 
 ## Out of Scope
-Feature-to-feature deep imports (one feature reaching directly into another feature's internals) are already caught by `prevent_feature_module_dependencies`. This rule only covers imports from code outside `lib/features/` altogether — the app/shell layer, core, or libraries — reaching into a feature.
+Feature-to-feature deep imports (one feature reaching directly into another feature's internals) are caught by `prevent_feature_module_dependencies` for files in `lib/features/`. This rule only covers imports from code outside `lib/features/` altogether — the app/shell layer, core, or libraries — reaching into a feature.
 
 ## Not reported
 - Code inside `lib/features/{feature_name}/` (covered by `feature_module_isolation`).
 - A feature's own tests under `test/features/{feature_name}/`, which import that feature's internals on purpose.
+- A feature's own tests that import a different feature, such as `test/features/{a}/` importing feature `{b}`. This rule skips them and `prevent_feature_module_dependencies` does not see them either, so nothing reports them. The test folder name does not always match the feature name (for example `estimations` and `estimation`), so reporting them is a later change.
 - Other test files, such as `test/utils/`, are still checked.
 
 ## Relative imports
-A relative import is checked the same way as a `package:` import, including a path that starts with `features/` and has no slash before it (for a file directly in `lib/`). Every URI of a conditional import (`import 'a.dart' if (dart.library.io) '...'`) is checked.
+A relative import is checked the same way as a `package:` import, including a path that starts with `features/` and has no slash before it (for a file directly in `lib/`). Every URI of a conditional import (`import 'a.dart' if (dart.library.io) '...'`) is checked, and so is a `part` directive.
 
 ## Known limits
 - The rule matches the path segment `features/{name}/` in the URI. It does not check that a `package:` URI belongs to this project, so a third-party package with a `features/foo/` path would be reported. The sibling rule `prevent_feature_module_dependencies` has the same limit.

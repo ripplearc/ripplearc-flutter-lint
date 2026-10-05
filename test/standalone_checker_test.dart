@@ -390,6 +390,34 @@ void main() {
       );
 
       test(
+        'should check test files for forbid_feature_import_outside_provider',
+        () async {
+          final testUtilsDir = Directory(p.join(tempDirPath, 'test', 'utils'))
+            ..createSync(recursive: true);
+          final testFile = await _createTempFile(
+            testUtilsDir.path,
+            'dashboard_shell_test_module.dart',
+            '''
+// ignore_for_file: unused_import, uri_does_not_exist
+import 'package:project/features/estimation/domain/entities/estimate.dart';
+''',
+          );
+
+          final checker = StandaloneLintChecker();
+          final issues = await checker.check(
+            [testFile.path],
+            enabledRules: ['forbid_feature_import_outside_provider'],
+          );
+
+          expect(issues, hasLength(1));
+          expect(
+            issues.single,
+            contains('forbid_feature_import_outside_provider'),
+          );
+        },
+      );
+
+      test(
         'should correctly identify test files using BaseAnalyzer.isTestFile',
         () {
           expect(BaseAnalyzer.isTestFile('widget_test.dart'), isTrue);
