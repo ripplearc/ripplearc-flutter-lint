@@ -22,10 +22,10 @@ void main() {
     });
 
     group('Bridge Initialization and Configuration', () {
-      test('should initialize with all 21 custom lint analyzers', () {
+      test('should initialize with all 22 custom lint analyzers', () {
         final checker = StandaloneLintChecker();
 
-        expect(checker.analyzers.length, equals(21));
+        expect(checker.analyzers.length, equals(22));
 
         final ruleNames = checker.analyzers.map((a) => a.ruleName).toSet();
         final expectedRules = {
@@ -45,6 +45,7 @@ void main() {
           'prefer_fake_over_mock',
           'test_file_mutation_coverage',
           'feature_module_isolation',
+          'forbid_feature_import_outside_provider',
           'prevent_library_module_dependencies',
           'forbid_modular_get_outside_module',
           'forbid_raw_icon_and_image_usage',
@@ -384,6 +385,34 @@ void main() {
           await checker.check(
             [testFile.path],
             enabledRules: ['test_file_mutation_coverage'],
+          );
+        },
+      );
+
+      test(
+        'should check test files for forbid_feature_import_outside_provider',
+        () async {
+          final testUtilsDir = Directory(p.join(tempDirPath, 'test', 'utils'))
+            ..createSync(recursive: true);
+          final testFile = await _createTempFile(
+            testUtilsDir.path,
+            'dashboard_shell_test_module.dart',
+            '''
+// ignore_for_file: unused_import, uri_does_not_exist
+import 'package:project/features/estimation/domain/entities/estimate.dart';
+''',
+          );
+
+          final checker = StandaloneLintChecker();
+          final issues = await checker.check(
+            [testFile.path],
+            enabledRules: ['forbid_feature_import_outside_provider'],
+          );
+
+          expect(issues, hasLength(1));
+          expect(
+            issues.single,
+            contains('forbid_feature_import_outside_provider'),
           );
         },
       );

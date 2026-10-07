@@ -1,0 +1,144 @@
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'base_analyzer.dart';
+import '../models/lint_issue.dart';
+import '../utils/feature_path_utils.dart';
+
+/// Analyzer that forbids importing a feature's internals from outside the
+/// feature except through that feature's own provider file.
+///
+/// A feature's provider file is `{feature_name}_feature_module.dart` inside
+/// `lib/features/{feature_name}/` — the single file that implements the
+/// `FeatureModule`/`TabEntry` contract and is meant to be the feature's only
+/// public door (see the "Per-Flavor Feature Module Exclusion" HLD, CA-923).
+///
+/// Rules:
+/// - Code inside `lib/features/{feature_name}/*` CAN import anything within
+///   the same feature freely (already covered by `feature_module_isolation`).
+/// - Code outside `lib/features/{feature_name}/*` CAN only import
+///   `package:.../features/{feature_name}/{feature_name}_feature_module.dart`.
+///   Any deeper import (e.g. a domain entity, a screen, a bloc) is forbidden.
+///
+/// Example violation:
+/// ```dart
+/// // lib/app/enabled_features.dart
+/// import 'package:project/features/estimation/domain/entities/estimate.dart'; // ❌ deep import
+/// ```
+///
+/// Example correct code:
+/// ```dart
+/// // lib/app/enabled_features.dart
+/// import 'package:project/features/estimation/estimation_feature_module.dart'; // ✅ provider file
+/// ```
+class ForbidFeatureImportOutsideProviderAnalyzer extends BaseAnalyzer {
+  @override
+  String get ruleName => 'forbid_feature_import_outside_provider';
+
+  @override
+  String get problemMessage =>
+      'A feature can only be imported from outside through its own provider file.';
+
+  @override
+  String get correctionMessage =>
+      'Import that feature\'s own "*_feature_module.dart" file instead, or move this code inside the feature.';
+
+  @override
+  List<LintIssue> analyze(CompilationUnit unit) {
+    // Requires file path context; use analyzeWithResolver.
+    return [];
+  }
+
+  @override
+  List<LintIssue> analyzeWithResolver(CompilationUnit unit, dynamic resolver) {
+    final filePath = resolver.path ?? '';
+
+    // Code inside a feature is already covered by feature_module_isolation.
+    if (isFeatureModuleFile(filePath)) return [];
+
+    // A feature's own tests (test/features/{feature_name}/...) import that
+    // feature's internals on purpose.
+    if (_isFeatureTestFile(filePath)) return [];
+
+    final visitor = _ProviderImportVisitor(this);
+    unit.accept(visitor);
+    return visitor.issues;
+  }
+}
+
+bool _isFeatureTestFile(String path) =>
+    path.replaceAll('\\', '/').contains('/test/features/');
+
+final RegExp _featureInUriRegExp = RegExp(r'(?:^|/)features/([^/]+)/');
+
+class _ProviderImportVisitor extends RecursiveAstVisitor<void> {
+  final ForbidFeatureImportOutsideProviderAnalyzer analyzer;
+  final List<LintIssue> issues = [];
+
+  _ProviderImportVisitor(this.analyzer);
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    _validateProviderOnlyImport(node);
+    super.visitImportDirective(node);
+  }
+
+  @override
+  void visitExportDirective(ExportDirective node) {
+    _validateProviderOnlyImport(node);
+    super.visitExportDirective(node);
+  }
+
+  // A part directive pulls a file into the library, so 'part
+  // "../features/x/y.dart"' reaches a feature's internals like an import.
+  @override
+  void visitPartDirective(PartDirective node) {
+    final uri = node.uri.stringValue;
+    final issue = uri == null ? null : _validateUri(node, uri);
+    if (issue != null) issues.add(issue);
+    super.visitPartDirective(node);
+  }
+
+  void _validateProviderOnlyImport(NamespaceDirective node) {
+    // A conditional import ('a.dart' if (dart.library.io) 'features/...') has
+    // more URIs than node.uri, and each one can reach a feature's internals.
+    final uris = [
+      node.uri.stringValue,
+      for (final configuration in node.configurations)
+        configuration.uri.stringValue,
+    ];
+    for (final uri in uris) {
+      if (uri == null) continue;
+      final issue = _validateUri(node, uri);
+      if (issue != null) {
+        issues.add(issue);
+        return;
+      }
+    }
+  }
+
+  LintIssue? _validateUri(UriBasedDirective node, String uri) {
+    // A relative import can reach a feature's internals just as easily as a
+    // package: import. The pattern also matches a URI that starts with
+    // 'features/' (for a file directly in lib/), which has no slash before it.
+    final featureName = _featureInUriRegExp
+        .firstMatch(uri.replaceAll('\\', '/'))
+        ?.group(1);
+    if (featureName == null) return null;
+    if (_isProviderFileImport(uri, featureName)) return null;
+
+    return analyzer.createIssue(
+      node,
+      customMessage:
+          'Feature "$featureName" must only be imported through its provider file '
+          '"${featureName}_feature_module.dart". Move this code behind that file '
+          'or import it instead.',
+    );
+  }
+
+  bool _isProviderFileImport(String uri, String featureName) {
+    final normalized = uri.replaceAll('\\', '/');
+    final providerPath =
+        'features/$featureName/${featureName}_feature_module.dart';
+    return normalized == providerPath || normalized.endsWith('/$providerPath');
+  }
+}
