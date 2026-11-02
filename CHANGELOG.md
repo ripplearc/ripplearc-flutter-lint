@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.7.0] - Enforce feature provider-only imports and flag fixed waits in tests
+
+### ✨ New Rules
+
+- **forbid_feature_import_outside_provider**: Extends the `feature_module_isolation` family (CA-451, CA-456, CA-642). Forbids importing a feature's internals from outside `lib/features/{feature_name}/` except through that feature's own provider file, `{feature_name}_feature_module.dart` — the single door the "Per-Flavor Feature Module Exclusion" design (CA-923) relies on to keep excluded features out of a flavor's compiled output.
+
+### 🔧 Rule Changes
+
+- **avoid_test_timeouts** (CA-1383): Also flags the `wait:` argument of `blocTest` and `pumpEventQueue()` in test files. `pumpEventQueue()`, `tester.pump(Duration)` and `pumpAndSettle()` inside `testWidgets` are not flagged, because widget tests run on a fake clock. Wait on the stream with `expectLater(bloc.stream, emitsInOrder([...]))` or `stream.firstWhere(...)`, and make a debounce time a parameter so the test can pass `Duration.zero`.
+
+### 🐛 Bug Fixes
+
+- **standalone_checker**: Registers `avoid_test_timeouts`. Before this, `--rules avoid_test_timeouts` found nothing, so CI never ran the rule. The help text now lists the registered rules by their real names.
+
+### ⚠️ Upgrade Note
+
+- CI that runs `standalone_checker --rules avoid_test_timeouts` starts reporting existing `.timeout()`, `Future.delayed()`, `Future.microtask()`, `blocTest` `wait:` and `pumpEventQueue()` lines in tests. Fix them in the same change that bumps the linter.
+
+---
+
 ## [0.6.0] - Enforce screenshotThemeGroups adoption
 
 ### ✨ New Rules
