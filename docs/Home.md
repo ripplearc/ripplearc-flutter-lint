@@ -14,7 +14,7 @@ Dive into our collection of custom lint rules that help teams write cleaner, mor
 | [prefer_fake_over_mock](prefer_fake_over_mock.md) | Recommends using Fake instead of Mock for test doubles |
 | [forbid_forced_unwrapping](forbid_forced_unwrapping.md) | Forbids forced unwrapping in production code to prevent runtime errors |
 | [no_optional_operators_in_tests](no_optional_operators_in_tests.md) | Forbids optional operators in test files for explicit failure handling |
-| [avoid_test_timeouts](avoid_test_timeouts.md) | Forbids timeout patterns in tests to prevent flaky test failures |
+| [avoid_test_timeouts](avoid_test_timeouts.md) | Forbids fixed waits in tests (timeouts, delays, `blocTest` `wait:`, `pumpEventQueue()`) to prevent flaky test failures |
 | [no_direct_instantiation](no_direct_instantiation.md) | Enforces dependency injection by forbidding direct class instantiation |
 | [document_fake_parameters](document_fake_parameters.md) | Enforces documentation on Fake classes and their non-private members |
 | [todo_with_story_links](todo_with_story_links.md) | Ensures TODO comments include YouTrack story links for project management |

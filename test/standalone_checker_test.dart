@@ -22,10 +22,10 @@ void main() {
     });
 
     group('Bridge Initialization and Configuration', () {
-      test('should initialize with all 22 custom lint analyzers', () {
+      test('should initialize with all 23 custom lint analyzers', () {
         final checker = StandaloneLintChecker();
 
-        expect(checker.analyzers.length, equals(22));
+        expect(checker.analyzers.length, equals(23));
 
         final ruleNames = checker.analyzers.map((a) => a.ruleName).toSet();
         final expectedRules = {
@@ -51,6 +51,7 @@ void main() {
           'forbid_raw_icon_and_image_usage',
           'restrict_core_icon_data',
           'forbid_manual_screenshot_theme',
+          'avoid_test_timeouts',
         };
 
         expect(ruleNames, equals(expectedRules));
@@ -414,6 +415,35 @@ import 'package:project/features/estimation/domain/entities/estimate.dart';
             issues.single,
             contains('forbid_feature_import_outside_provider'),
           );
+        },
+      );
+
+      test(
+        'should check test files for avoid_test_timeouts fixed waits',
+        () async {
+          final testFile = await _createTempFile(
+            tempDirPath,
+            'search_bloc_test.dart',
+            '''
+void main() {
+  blocTest('debounces', wait: const Duration(milliseconds: 310));
+  test('loads', () async {
+    await pumpEventQueue();
+  });
+}
+''',
+          );
+
+          final checker = StandaloneLintChecker();
+          final issues = await checker.check(
+            [testFile.path],
+            enabledRules: ['avoid_test_timeouts'],
+          );
+
+          expect(issues, hasLength(2));
+          expect(issues[0], contains('search_bloc_test.dart:2:'));
+          expect(issues[1], contains('search_bloc_test.dart:4:'));
+          expect(issues, everyElement(contains('avoid_test_timeouts')));
         },
       );
 
