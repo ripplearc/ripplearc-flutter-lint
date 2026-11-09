@@ -8,7 +8,7 @@
 
 ### 🔧 Rule Changes
 
-- **avoid_test_timeouts** (CA-1383): Also flags the `wait:` argument of `blocTest` and `pumpEventQueue()` in test files. `pumpEventQueue()`, `tester.pump(Duration)` and `pumpAndSettle()` inside `testWidgets` are not flagged, because widget tests run on a fake clock. Wait on the stream with `expectLater(bloc.stream, emitsInOrder([...]))` or `stream.firstWhere(...)`, and make a debounce time a parameter so the test can pass `Duration.zero`.
+- **avoid_test_timeouts** (CA-1383): Also flags the `wait:` argument of `blocTest` and `pumpEventQueue()` in test files. `tester.pump(Duration)` and `pumpAndSettle()` inside `testWidgets` are not flagged, because widget tests run on a fake clock. `pumpEventQueue()` inside `testWidgets` is also not flagged, because a bare call there never finishes and the test times out. Use `tester.pump()` there instead. Waits inside `fakeAsync` are not flagged, because their timers only run when the test moves the fake clock. Wait on the stream with `expectLater(bloc.stream, emitsInOrder([...]))` or `stream.firstWhere(...)`, and make a debounce time a parameter so the test can pass `Duration.zero`. To check that nothing happened yet, run the test in `fakeAsync` and call `async.elapse(Duration.zero)` first.
 
 ### 🐛 Bug Fixes
 
@@ -16,7 +16,7 @@
 
 ### ⚠️ Upgrade Note
 
-- CI that runs `standalone_checker --rules avoid_test_timeouts` starts reporting existing `.timeout()`, `Future.delayed()`, `Future.microtask()`, `blocTest` `wait:` and `pumpEventQueue()` lines in tests. Fix them in the same change that bumps the linter.
+- CI that runs `standalone_checker --rules avoid_test_timeouts` starts reporting existing `.timeout()`, `Future.delayed()`, `Future.microtask()`, `blocTest` `wait:` and `pumpEventQueue()` lines in tests, outside `fakeAsync`. Fix them in the same change that bumps the linter.
 
 ---
 
