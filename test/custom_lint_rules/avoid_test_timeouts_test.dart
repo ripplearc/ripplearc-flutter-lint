@@ -289,5 +289,217 @@ void main() {
       await analyzeCode(source, path: 'test/example_test.dart');
       expect(reporter.errors.length, equals(3));
     });
+
+    group('fixed waits', () {
+      List<String> flaggedCode(String source) => reporter.errors
+          .map((e) => source.substring(e.offset, e.offset + e.length))
+          .toList();
+
+      test('should flag wait: Duration in blocTest', () async {
+        const source = '''
+void main() {
+  blocTest<SearchBloc, SearchState>(
+    'debounces',
+    build: () => SearchBloc(),
+    wait: const Duration(milliseconds: 310),
+    expect: () => [],
+  );
+}
+''';
+        await analyzeCode(source, path: 'test/search_bloc_test.dart');
+        expect(
+          flaggedCode(source),
+          equals(['wait: const Duration(milliseconds: 310)']),
+        );
+        expect(
+          reporter.errors.single.diagnosticCode.name,
+          equals('avoid_test_timeouts'),
+        );
+      });
+
+      test('should flag wait: in blocTest without type arguments', () async {
+        const source = '''
+void main() {
+  group('bloc', () {
+    blocTest('loads', build: () => Bloc(), wait: Duration.zero);
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/bloc_test.dart');
+        expect(flaggedCode(source), equals(['wait: Duration.zero']));
+      });
+
+      test('should not flag blocTest without wait:', () async {
+        const source = '''
+void main() {
+  blocTest<SearchBloc, SearchState>(
+    'loads',
+    build: () => SearchBloc(),
+    expect: () => [],
+  );
+}
+''';
+        await analyzeCode(source, path: 'test/search_bloc_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should not flag wait: on a call that is not blocTest', () async {
+        const source = '''
+void main() {
+  test('example', () async {
+    await retry(wait: const Duration(seconds: 1));
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/example_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should flag every pumpEventQueue() in a unit test', () async {
+        const source = '''
+void main() {
+  setUp(() async {
+    await pumpEventQueue();
+  });
+  test('example', () async {
+    await pumpEventQueue();
+    await pumpEventQueue(times: 50);
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/notifier_test.dart');
+        expect(
+          flaggedCode(source),
+          equals([
+            'pumpEventQueue()',
+            'pumpEventQueue()',
+            'pumpEventQueue(times: 50)',
+          ]),
+        );
+      });
+
+      test('should flag pumpEventQueue() in a helper outside test blocks',
+          () async {
+        const source = '''
+Future<void> settle() => pumpEventQueue();
+void main() {
+  test('example', () async {
+    await settle();
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/notifier_test.dart');
+        expect(flaggedCode(source), equals(['pumpEventQueue()']));
+      });
+
+      test('should not flag a pumpEventQueue() method on an object',
+          () async {
+        const source = '''
+void main() {
+  test('example', () async {
+    await scheduler.pumpEventQueue();
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/scheduler_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test(
+          'should flag pumpEventQueue() in a unit test of a file that also '
+          'has testWidgets', () async {
+        const source = '''
+void main() {
+  testWidgets('widget', (tester) async {
+    await pumpEventQueue();
+  });
+  test('unit', () async {
+    await pumpEventQueue(times: 3);
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/mixed_test.dart');
+        expect(flaggedCode(source), equals(['pumpEventQueue(times: 3)']));
+      });
+
+      test(
+          'should not flag pump(Duration), pumpAndSettle() or '
+          'pumpEventQueue() inside testWidgets', () async {
+        const source = '''
+void main() {
+  group('widget', () {
+    testWidgets('example', (tester) async {
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      await pumpEventQueue();
+    });
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/widget_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should not flag waits inside fakeAsync', () async {
+        const source = '''
+void main() {
+  group('timeoutInForeground', () {
+    test('completes in time', () {
+      fakeAsync((async) {
+        Future<String>.delayed(const Duration(seconds: 3), () => 'logs');
+        Future.delayed(const Duration(seconds: 1));
+        Future.microtask(() {});
+        completer.future.timeout(const Duration(seconds: 15));
+        pumpEventQueue();
+        async.elapse(const Duration(seconds: 3));
+      });
+    });
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/foreground_timeout_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should flag the same waits after fakeAsync ends', () async {
+        const source = '''
+void main() {
+  test('example', () async {
+    fakeAsync((async) {
+      Future.delayed(const Duration(seconds: 1));
+    });
+    await Future<String>.delayed(const Duration(seconds: 3), () => 'logs');
+    await Future.microtask(() {});
+    await completer.future.timeout(const Duration(seconds: 15));
+    await pumpEventQueue();
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/foreground_timeout_test.dart');
+        expect(
+          flaggedCode(source),
+          equals([
+            "Future<String>.delayed(const Duration(seconds: 3), () => 'logs')",
+            'Future.microtask(() {})',
+            'completer.future.timeout(const Duration(seconds: 15))',
+            'pumpEventQueue()',
+          ]),
+        );
+      });
+
+      test('should not flag blocTest wait: or pumpEventQueue() outside test/',
+          () async {
+        const source = '''
+void main() {
+  blocTest('loads', wait: const Duration(milliseconds: 310));
+  test('example', () async {
+    await pumpEventQueue();
+  });
+}
+''';
+        await analyzeCode(source, path: 'lib/example.dart');
+        expect(reporter.errors, isEmpty);
+      });
+    });
   });
 }

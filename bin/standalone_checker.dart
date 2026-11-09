@@ -3,6 +3,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:ripplearc_linter/core/analyzers/avoid_static_typography_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/avoid_static_colors_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/avoid_test_timeouts_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/base_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/direct_instantiation_helpers/config_parser.dart';
 import 'package:ripplearc_linter/core/analyzers/forced_unwrapping_analyzer.dart';
@@ -47,7 +48,7 @@ class _SimpleResolver {
 /// **Performance Characteristics:**
 /// - Individual files are analyzed using fast parsing (parseString)
 /// - Directories use the full analysis context for better accuracy
-/// - Test files are only analyzed when the 'test_file_mutation_coverage' rule is enabled
+/// - Test files are only analyzed when a rule that checks test files is enabled
 ///
 /// **Usage Examples:**
 /// ```dart
@@ -61,7 +62,7 @@ class _SimpleResolver {
 ///   enabledRules: ['forbid_forced_unwrapping', 'no_direct_instantiation']
 /// );
 ///
-/// // Check test files (requires test_file_mutation_coverage rule)
+/// // Check test files with a rule that checks test files
 /// final issues = await checker.check(
 ///   ['test/'],
 ///   enabledRules: ['test_file_mutation_coverage']
@@ -94,6 +95,7 @@ class StandaloneLintChecker {
       ForbidRawIconAndImageUsageAnalyzer(),
       RestrictCoreIconDataAnalyzer(),
       ForbidManualScreenshotThemeAnalyzer(),
+      AvoidTestTimeoutsAnalyzer(),
     ];
   }
 
@@ -137,7 +139,7 @@ class StandaloneLintChecker {
   /// **Analysis Strategy:**
   /// - **Individual files**: Uses fast parsing (parseString) for quick analysis
   /// - **Directories**: Uses full analysis context for better accuracy and symbol resolution
-  /// - **Test files**: Only analyzed when 'test_file_mutation_coverage' is in enabledRules
+  /// - **Test files**: Only analyzed when enabledRules has a rule that checks test files
   /// - **Performance**: Fast path is ~5-10x faster than full analysis context
   ///
   /// **Example Usage:**
@@ -354,7 +356,7 @@ String? _getConfigFilePathFromFiles(List<String> files) {
 /// # Check with only specific rules enabled
 /// dart run ripplearc_linter:standalone_checker --rules forbid_forced_unwrapping,no_direct_instantiation lib/
 ///
-/// # Check test files (requires test_file_mutation_coverage rule)
+/// # Check test files with a rule that checks test files
 /// dart run ripplearc_linter:standalone_checker --rules test_file_mutation_coverage test/
 /// ```
 void main(List<String> args) async {
@@ -382,7 +384,7 @@ void main(List<String> args) async {
       'standalone_checker [--rules rule1,rule2] <files_or_directories> (after global activate)',
     );
     print(
-      'Available rules: avoid_static_typography, avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage, prevent_feature_module_dependencies, forbid_feature_import_outside_provider, forbid_modular_get_outside_module, forbid_raw_icon_and_image_usage, restrict_core_icon_data, forbid_manual_screenshot_theme',
+      'Available rules: avoid_static_typography, avoid_static_colors, forbid_forced_unwrapping, no_direct_instantiation, sealed_over_dynamic, private_subject, specific_exception_types, document_fake_parameters, document_interface, no_internal_method_docs, todo_with_story_links, no_optional_operators_in_tests, prefer_fake_over_mock, test_file_mutation_coverage, forbid_helper_util_naming, feature_module_isolation, forbid_feature_import_outside_provider, prevent_library_module_dependencies, forbid_modular_get_outside_module, forbid_raw_icon_and_image_usage, restrict_core_icon_data, forbid_manual_screenshot_theme, avoid_test_timeouts',
     );
     exit(1);
   }
