@@ -22,6 +22,7 @@ Dive into our collection of custom lint rules that help teams write cleaner, mor
 | [document_interface](document_interface.md) | Enforces documentation on abstract classes and their public methods |
 | [prevent_feature_module_dependencies](prevent_feature_module_dependencies.md) | Prevents feature modules from depending on other feature modules |
 | [prevent_library_module_dependencies](prevent_library_module_dependencies.md) | Prevents library modules from importing feature modules |
+| [forbid_feature_import_outside_provider](forbid_feature_import_outside_provider.md) | Forbids importing a feature's internals from outside the feature, except through its `{feature_name}_feature_module.dart` provider file |
 | [forbid_helper_util_naming](forbid_helper_util_naming.md) | Forbids generic Helper/Util class names for better clarity |
 | [restrict_core_icon_data](restrict_core_icon_data.md) | Restricts CoreIconData usage to icons directory for consistent management |
 | [document_enum](document_enum.md) | Enforces documentation on enums and their values |
