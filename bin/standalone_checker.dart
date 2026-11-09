@@ -62,7 +62,7 @@ class _SimpleResolver {
 ///   enabledRules: ['forbid_forced_unwrapping', 'no_direct_instantiation']
 /// );
 ///
-/// // Check test files (requires test_file_mutation_coverage rule)
+/// // Check test files with a rule that checks test files
 /// final issues = await checker.check(
 ///   ['test/'],
 ///   enabledRules: ['test_file_mutation_coverage']
@@ -356,7 +356,7 @@ String? _getConfigFilePathFromFiles(List<String> files) {
 /// # Check with only specific rules enabled
 /// dart run ripplearc_linter:standalone_checker --rules forbid_forced_unwrapping,no_direct_instantiation lib/
 ///
-/// # Check test files (requires test_file_mutation_coverage rule)
+/// # Check test files with a rule that checks test files
 /// dart run ripplearc_linter:standalone_checker --rules test_file_mutation_coverage test/
 /// ```
 void main(List<String> args) async {

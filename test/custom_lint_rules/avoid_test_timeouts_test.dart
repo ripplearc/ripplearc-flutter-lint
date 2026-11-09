@@ -440,6 +440,53 @@ void main() {
         expect(reporter.errors, isEmpty);
       });
 
+      test('should not flag waits inside fakeAsync', () async {
+        const source = '''
+void main() {
+  group('timeoutInForeground', () {
+    test('completes in time', () {
+      fakeAsync((async) {
+        Future<String>.delayed(const Duration(seconds: 3), () => 'logs');
+        Future.delayed(const Duration(seconds: 1));
+        Future.microtask(() {});
+        completer.future.timeout(const Duration(seconds: 15));
+        pumpEventQueue();
+        async.elapse(const Duration(seconds: 3));
+      });
+    });
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/foreground_timeout_test.dart');
+        expect(reporter.errors, isEmpty);
+      });
+
+      test('should flag the same waits after fakeAsync ends', () async {
+        const source = '''
+void main() {
+  test('example', () async {
+    fakeAsync((async) {
+      Future.delayed(const Duration(seconds: 1));
+    });
+    await Future<String>.delayed(const Duration(seconds: 3), () => 'logs');
+    await Future.microtask(() {});
+    await completer.future.timeout(const Duration(seconds: 15));
+    await pumpEventQueue();
+  });
+}
+''';
+        await analyzeCode(source, path: 'test/foreground_timeout_test.dart');
+        expect(
+          flaggedCode(source),
+          equals([
+            "Future<String>.delayed(const Duration(seconds: 3), () => 'logs')",
+            'Future.microtask(() {})',
+            'completer.future.timeout(const Duration(seconds: 15))',
+            'pumpEventQueue()',
+          ]),
+        );
+      });
+
       test('should not flag blocTest wait: or pumpEventQueue() outside test/',
           () async {
         const source = '''

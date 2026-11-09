@@ -31,7 +31,12 @@ import '../models/lint_issue.dart';
 /// });
 /// testWidgets('example', (tester) async {
 ///   await tester.pump(const Duration(milliseconds: 400));  // fake clock
-///   await pumpEventQueue();
+/// });
+/// test('example', () {
+///   fakeAsync((async) {
+///     Future.delayed(const Duration(seconds: 3), onDone);  // fake clock
+///     async.elapse(const Duration(seconds: 3));
+///   });
 /// });
 /// ```
 class AvoidTestTimeoutsAnalyzer extends BaseAnalyzer {
@@ -42,7 +47,7 @@ class AvoidTestTimeoutsAnalyzer extends BaseAnalyzer {
       'Using .timeout(), Future.delayed(), Future.microtask(), blocTest wait: or pumpEventQueue() in tests waits a fixed time and can cause flaky tests.';
   @override
   String get correctionMessage =>
-      'Wait on the real event instead: expectLater(bloc.stream, emitsInOrder([...])) or stream.firstWhere(...). For a debounce, make the debounce time a parameter so the test can pass Duration.zero.';
+      'Wait on the real event instead: expectLater(bloc.stream, emitsInOrder([...])) or stream.firstWhere(...). For a debounce, make the debounce time a parameter so the test can pass Duration.zero. To check that nothing happened yet, run the test in fakeAsync and call async.elapse(Duration.zero) first.';
 
   @override
   List<LintIssue> analyze(CompilationUnit unit) {
@@ -61,6 +66,7 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
   static const _waitArgumentName = 'wait';
   static const _pumpEventQueueMethodName = 'pumpEventQueue';
   static const _testWidgetsMethodName = 'testWidgets';
+  static const _fakeAsyncMethodName = 'fakeAsync';
 
   static const _testBlockMethods = {
     'test',
@@ -76,8 +82,11 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
   final List<LintIssue> issues = [];
   int _testBlockDepth = 0;
   int _testWidgetsDepth = 0;
+  int _fakeAsyncDepth = 0;
 
   bool get _isInTestBlock => _testBlockDepth > 0;
+  bool get _isOnFakeAsyncClock => _fakeAsyncDepth > 0;
+  bool get _checksTimers => _isInTestBlock && !_isOnFakeAsyncClock;
 
   _AvoidTestTimeoutsVisitor(this.analyzer);
 
@@ -103,21 +112,28 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
       super.visitMethodInvocation(node);
       if (isTestWidgets) _testWidgetsDepth--;
       _testBlockDepth--;
+    } else if (name == _fakeAsyncMethodName) {
+      // Timers and microtasks inside fakeAsync only run when the test calls
+      // async.elapse or a flush, so nothing in there waits in real time.
+      _fakeAsyncDepth++;
+      super.visitMethodInvocation(node);
+      _fakeAsyncDepth--;
     } else {
       if (name == _blocTestMethodName) {
         _reportWaitArgument(node.argumentList);
       }
-      // testWidgets runs on a fake clock, so pumpEventQueue() there does not
-      // wait in real time. Helpers outside any test block are checked too.
+      // A bare pumpEventQueue() in testWidgets never finishes, so it fails by
+      // timeout. Inside tester.runAsync it is a real wait, not caught yet.
       if (name == _pumpEventQueueMethodName &&
           node.target == null &&
-          _testWidgetsDepth == 0) {
+          _testWidgetsDepth == 0 &&
+          !_isOnFakeAsyncClock) {
         issues.add(analyzer.createIssue(node));
       }
-      if (_isInTestBlock && name == _timeoutMethodName) {
+      if (_checksTimers && name == _timeoutMethodName) {
         issues.add(analyzer.createIssue(node));
       }
-      if (_isInTestBlock &&
+      if (_checksTimers &&
           (name == _delayedMethodName || name == _microtaskMethodName)) {
         final target = node.target;
         final targetString = target?.toString();
@@ -157,7 +173,7 @@ class _AvoidTestTimeoutsVisitor extends RecursiveAstVisitor<void> {
     final typeName = constructorName.type.toString();
     final name = constructorName.name?.name;
     final isFutureType = _isFutureTypeName(typeName);
-    if (_isInTestBlock &&
+    if (_checksTimers &&
         isFutureType &&
         _isGenericStaticCallParsedAsConstructor(name)) {
       issues.add(analyzer.createIssue(node));
