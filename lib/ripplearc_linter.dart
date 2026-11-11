@@ -24,6 +24,7 @@ import 'custom_lint_rules/prevent_library_module_dependencies.dart';
 import 'custom_lint_rules/restrict_core_icon_data.dart';
 import 'custom_lint_rules/forbid_raw_icon_and_image_usage.dart';
 import 'custom_lint_rules/forbid_manual_screenshot_theme.dart';
+import 'custom_lint_rules/forbid_direct_storage_access.dart';
 
 PluginBase createPlugin() => _RipplearcLintRules();
 
@@ -55,5 +56,6 @@ class _RipplearcLintRules extends PluginBase {
     RestrictCoreIconData(),
     ForbidRawIconAndImageUsage(),
     ForbidManualScreenshotTheme(),
+    ForbidDirectStorageAccess(),
   ];
 }

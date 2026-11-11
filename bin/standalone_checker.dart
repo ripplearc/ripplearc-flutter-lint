@@ -25,6 +25,7 @@ import 'package:ripplearc_linter/core/analyzers/forbid_modular_get_outside_modul
 import 'package:ripplearc_linter/core/analyzers/forbid_raw_icon_and_image_usage_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/restrict_core_icon_data_analyzer.dart';
 import 'package:ripplearc_linter/core/analyzers/forbid_manual_screenshot_theme_analyzer.dart';
+import 'package:ripplearc_linter/core/analyzers/forbid_direct_storage_access_analyzer.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -94,6 +95,7 @@ class StandaloneLintChecker {
       ForbidRawIconAndImageUsageAnalyzer(),
       RestrictCoreIconDataAnalyzer(),
       ForbidManualScreenshotThemeAnalyzer(),
+      ForbidDirectStorageAccessAnalyzer(),
     ];
   }
 
@@ -118,6 +120,7 @@ class StandaloneLintChecker {
     'forbid_raw_icon_and_image_usage',
     'restrict_core_icon_data',
     'forbid_feature_import_outside_provider',
+    'forbid_direct_storage_access',
   };
 
   /// Analyzes the given files and directories for linting issues.
