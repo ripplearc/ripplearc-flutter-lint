@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0] - Forbid direct storage access
+
+### ✨ New Rules
+
+- **forbid_direct_storage_access** (CA-14): Bans direct use of `shared_preferences`, `path_provider` and `flutter_secure_storage` outside the storage library, so everything an app keeps on the device goes through one place that sign-out can delete. Allowed: `lib/libraries/storage/`, `test/libraries/storage/`, and the exact files listed in `allowed_files` of `analysis_options.yaml`. Paths are never matched by file-name ending.
+
+---
+
 ## [0.6.0] - Enforce screenshotThemeGroups adoption
 
 ### ✨ New Rules
