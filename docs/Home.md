@@ -27,3 +27,4 @@ Dive into our collection of custom lint rules that help teams write cleaner, mor
 | [document_enum](document_enum.md) | Enforces documentation on enums and their values |
 | [forbid_datetime_now](forbid_datetime_now.md) | Forbids DateTime.now() in production code for testability |
 | [forbid_modular_get_outside_module](forbid_modular_get_outside_module.md) | Forbids Modular.get\<T\>() outside `*_module.dart` files to enforce constructor injection |
+| [forbid_direct_storage_access](forbid_direct_storage_access.md) | Bans direct use of shared_preferences, path_provider and flutter_secure_storage outside the storage library and a named list of files |
