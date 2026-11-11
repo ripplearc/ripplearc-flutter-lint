@@ -22,10 +22,10 @@ void main() {
     });
 
     group('Bridge Initialization and Configuration', () {
-      test('should initialize with all 22 custom lint analyzers', () {
+      test('should initialize with all 23 custom lint analyzers', () {
         final checker = StandaloneLintChecker();
 
-        expect(checker.analyzers.length, equals(22));
+        expect(checker.analyzers.length, equals(23));
 
         final ruleNames = checker.analyzers.map((a) => a.ruleName).toSet();
         final expectedRules = {
@@ -51,6 +51,7 @@ void main() {
           'forbid_raw_icon_and_image_usage',
           'restrict_core_icon_data',
           'forbid_manual_screenshot_theme',
+          'forbid_direct_storage_access',
         };
 
         expect(ruleNames, equals(expectedRules));
@@ -414,6 +415,31 @@ import 'package:project/features/estimation/domain/entities/estimate.dart';
             issues.single,
             contains('forbid_feature_import_outside_provider'),
           );
+        },
+      );
+
+      test(
+        'should check lib and test files for forbid_direct_storage_access',
+        () async {
+          final files = [
+            for (final folder in ['lib', 'test'])
+              await _createTempFile(
+                (Directory(p.join(tempDirPath, folder))
+                      ..createSync(recursive: true))
+                    .path,
+                'uses_preferences.dart',
+                """
+// ignore_for_file: unused_import, uri_does_not_exist
+import 'package:shared_preferences/shared_preferences.dart';
+""",
+              ),
+          ];
+
+          final issues = await StandaloneLintChecker().check([
+            for (final file in files) file.path,
+          ], enabledRules: ['forbid_direct_storage_access']);
+
+          expect(issues, hasLength(2));
         },
       );
 
