@@ -4,7 +4,9 @@
 
 ### ✨ New Rules
 
-- **forbid_direct_storage_access** (CA-14): Bans direct use of `shared_preferences`, `path_provider` and `flutter_secure_storage` outside the storage library, so everything an app keeps on the device goes through one place that sign-out can delete. Allowed: `lib/libraries/storage/`, `test/libraries/storage/`, and the exact files listed in `allowed_files` of `analysis_options.yaml`. Paths are never matched by file-name ending.
+- **forbid_direct_storage_access** (CA-14): Bans direct use of `shared_preferences`, `path_provider` and `flutter_secure_storage` outside the storage library, so everything an app keeps on the device goes through one place that sign-out can delete. Allowed: `lib/libraries/storage/`, `test/libraries/storage/`, and the exact files listed in `allowed_files` of `analysis_options.yaml`. Paths are never matched by file-name ending. Those places may import the packages, but an `export` of them is flagged in every file.
+
+- **forbid_feature_import_outside_provider** (CA-936): Forbids importing a feature's internals from anywhere outside that feature, except through the feature's own provider file, `{feature_name}_feature_module.dart` inside `lib/features/{feature_name}/`. Part of the `feature_module_isolation` family. It was added in lint #73 and had no release note before this one.
 
 ---
 
