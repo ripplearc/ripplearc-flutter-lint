@@ -797,7 +797,7 @@ class AppCoreModule extends Module {
 
 ### forbid_direct_storage_access
 
-Bans `shared_preferences`, `path_provider` and `flutter_secure_storage` outside the storage library, so every preference, file and cache goes through one place that sign-out can delete. It runs on every analysed Dart file, not only `lib/` and `test/`. Allowed: `lib/libraries/storage/`, `test/libraries/storage/`, and the exact files listed in `allowed_files` of `analysis_options.yaml`. Paths are never matched by file-name ending. Known limits are in the page below. See [docs/forbid_direct_storage_access.md](docs/forbid_direct_storage_access.md).
+Bans `shared_preferences`, `path_provider` and `flutter_secure_storage` outside the storage library, so every preference, file and cache goes through one place that sign-out can delete. It runs on every analysed Dart file, not only `lib/` and `test/`. Allowed: `lib/libraries/storage/`, `test/libraries/storage/`, and the exact files listed in `allowed_files` of `analysis_options.yaml`. Those places may import the packages, but an `export` of them is flagged everywhere. Paths are never matched by file-name ending. Known limits are in the page below. See [docs/forbid_direct_storage_access.md](docs/forbid_direct_storage_access.md).
 
 #### Bad ❌
 ```dart

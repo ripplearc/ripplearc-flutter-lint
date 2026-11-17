@@ -207,6 +207,40 @@ void main() {
         );
       });
 
+      test('still flags an export inside the storage library folder', () {
+        writeOptions('');
+        expect(
+          errorsFor(
+            "export 'package:shared_preferences/shared_preferences.dart';",
+            'lib/libraries/storage/a.dart',
+          ),
+          1,
+        );
+        expect(
+          errorsFor(
+            "export 'package:path_provider/path_provider.dart';",
+            'test/libraries/storage/units/a_test.dart',
+          ),
+          1,
+        );
+      });
+
+      test('still flags an export in a file listed in allowed_files', () {
+        writeOptions('''
+custom_lint:
+  forbid_direct_storage_access:
+    allowed_files:
+      - lib/libraries/secure_storage/wrapper.dart
+''');
+        expect(
+          errorsFor(
+            "export 'package:flutter_secure_storage/flutter_secure_storage.dart';",
+            'lib/libraries/secure_storage/wrapper.dart',
+          ),
+          1,
+        );
+      });
+
       test('allows a listed file by its exact path', () {
         writeOptions('''
 custom_lint:
@@ -371,7 +405,7 @@ custom_lint:
     });
 
     group('without a project root', () {
-      test('matches the path as given, without its leading slash', () {
+      test('flags a storage library file, because the path stays absolute', () {
         final analyzer = ForbidDirectStorageAccessAnalyzer(
           config: ForbidDirectStorageAccessConfig.defaults(),
         );
@@ -379,14 +413,10 @@ custom_lint:
         expect(
           analyzer.analyzeWithResolver(
             unit,
-            TestCustomLintResolver(unit, path: '/lib/libraries/storage/a.dart'),
-          ),
-          isEmpty,
-        );
-        expect(
-          analyzer.analyzeWithResolver(
-            unit,
-            TestCustomLintResolver(unit, path: '/lib/features/a.dart'),
+            TestCustomLintResolver(
+              unit,
+              path: '${project.path}/lib/libraries/storage/a.dart',
+            ),
           ),
           hasLength(1),
         );

@@ -13,6 +13,9 @@ import 'forbid_direct_storage_access_config_parser.dart';
 /// Everything an app keeps on the device goes through one storage library, so
 /// sign-out can find and delete it. A file outside the library folder may use
 /// these packages only when `analysis_options.yaml` lists its exact path.
+/// An `export` of one of them is flagged in every file, library folder
+/// included, because it hands the package to every file that imports the
+/// exporting file.
 ///
 /// Example violation:
 /// ```dart
@@ -59,47 +62,42 @@ class ForbidDirectStorageAccessAnalyzer extends BaseAnalyzer {
     final filePath = resolver.path as String?;
     if (filePath == null || shouldSkipFile(filePath)) return [];
 
-    final config = _configFor(filePath);
-    if (config.allows(_relativePathOf(filePath))) return [];
+    final root = ForbidDirectStorageAccessConfigParser.projectRootOf(filePath);
+    final config = _configFor(filePath, root);
+    final isAllowed = config.allows(_relativePathOf(filePath, root));
 
-    final visitor = _StorageImportVisitor(this);
+    final visitor = _StorageImportVisitor(this, flagsImports: !isAllowed);
     unit.accept(visitor);
     return visitor.issues;
   }
 
-  ForbidDirectStorageAccessConfig _configFor(String filePath) {
+  ForbidDirectStorageAccessConfig _configFor(String filePath, String? root) {
     final injected = _config;
     if (injected != null) return injected;
 
-    final root =
-        ForbidDirectStorageAccessConfigParser.projectRootOf(filePath) ??
-        filePath;
     return _configCache.putIfAbsent(
-      root,
+      root ?? filePath,
       () => ForbidDirectStorageAccessConfigParser.loadFromFile(filePath),
     );
   }
 
-  String _relativePathOf(String filePath) {
-    final root = ForbidDirectStorageAccessConfigParser.projectRootOf(filePath);
+  String _relativePathOf(String filePath, String? root) {
     final relative =
         root == null ? filePath : path.relative(filePath, from: root);
-    final normalized = ForbidDirectStorageAccessConfigParser.normalize(
-      relative,
-    );
-    return normalized.startsWith('/') ? normalized.substring(1) : normalized;
+    return ForbidDirectStorageAccessConfigParser.normalize(relative);
   }
 }
 
 class _StorageImportVisitor extends RecursiveAstVisitor<void> {
   final ForbidDirectStorageAccessAnalyzer analyzer;
+  final bool flagsImports;
   final List<LintIssue> issues = [];
 
-  _StorageImportVisitor(this.analyzer);
+  _StorageImportVisitor(this.analyzer, {required this.flagsImports});
 
   @override
   void visitImportDirective(ImportDirective node) {
-    _check(node);
+    if (flagsImports) _check(node);
     super.visitImportDirective(node);
   }
 

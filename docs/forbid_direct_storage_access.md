@@ -9,6 +9,8 @@ The rule checks `import` and `export` directives, including every URI of a condi
 - Any file inside `lib/libraries/storage/` or `test/libraries/storage/`.
 - Any file whose exact path is listed in `allowed_files`.
 
+This allows an `import` only. An `export` of one of the three packages is flagged in every file, these ones included, because it hands the package to every file that imports the exporting file.
+
 Paths are relative to the folder that holds `analysis_options.yaml`, written with `/`. A file is never allowed because of how its name ends, and a folder never allows a neighbour that only shares its name start (`lib/libraries/storage_other/` is not `lib/libraries/storage/`).
 
 ## Configuration
@@ -22,7 +24,7 @@ custom_lint:
       - lib/libraries/secure_storage/secure_storage_wrapper_impl.dart
 ```
 
-The options may sit next to `rules:` (as above) or inside a `rules:` map under the rule name. A single path instead of a list counts as a list of one. Any other value fails with `allowed_files must be a list of file paths`.
+The options may sit next to `rules:` (as above), inside a `rules:` list entry (`- forbid_direct_storage_access:` with `allowed_files:` under it), or inside a `rules:` map under the rule name. A single path instead of a list counts as a list of one. Any other value fails with `allowed_files must be a list of file paths`.
 
 ## Bad ❌
 ```dart
@@ -38,6 +40,7 @@ import 'package:project/libraries/storage/interfaces/storage_service.dart'; // O
 
 ## Known limits
 
+- When no `analysis_options.yaml` is found within 10 folders above a file, the file's absolute path is compared. It never starts with `lib/libraries/storage/` and never equals a listed path, so the file is flagged. That is an extra error, not a missed one.
 - `// ignore: forbid_direct_storage_access` and `// ignore_for_file:` bypass the rule, like any lint. Reviewers look for them.
 - Only the three packages are banned. Their companion packages, such as `shared_preferences_platform_interface` or `path_provider_platform_interface`, are not.
 - Only the nearest `analysis_options.yaml` is read. A nested one that only has `include:` does not inherit the parent's `allowed_files`, so list the files in the nested file too.
