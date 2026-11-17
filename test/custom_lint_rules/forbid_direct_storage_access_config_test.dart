@@ -108,6 +108,28 @@ custom_lint:
       expect(config.allowedFiles, {'lib/a.dart'});
     });
 
+    test('reads the files listed inside a rules list entry', () {
+      final config = load('''
+custom_lint:
+  rules:
+    - some_other_rule
+    - forbid_direct_storage_access:
+        allowed_files:
+          - lib/a.dart
+''');
+      expect(config.allowedFiles, {'lib/a.dart'});
+    });
+
+    test('keeps the defaults when a rules list has no entry for the rule', () {
+      final config = load('''
+custom_lint:
+  rules:
+    - some_other_rule
+    - forbid_direct_storage_access
+''');
+      expect(config.allowedFiles, isEmpty);
+    });
+
     test('reads a single path as a list of one', () {
       final config = load('''
 custom_lint:
@@ -169,6 +191,27 @@ custom_lint:
       );
     });
 
+    test('drops a blank list item instead of keeping the text null', () {
+      final config = load('''
+custom_lint:
+  forbid_direct_storage_access:
+    allowed_files:
+      -
+      - lib/a.dart
+''');
+      expect(config.allowedFiles, {'lib/a.dart'});
+    });
+
+    test('strips a leading slash so the entry can match', () {
+      final config = load('''
+custom_lint:
+  forbid_direct_storage_access:
+    allowed_files:
+      - /lib/a.dart
+''');
+      expect(config.allowedFiles, {'lib/a.dart'});
+    });
+
     test('fails loudly when the options file is not valid YAML', () {
       expect(
         () => load('custom_lint: [unclosed'),
@@ -183,6 +226,10 @@ custom_lint:
       );
       expect(
         ForbidDirectStorageAccessConfigParser.normalize('./././lib/a.dart'),
+        'lib/a.dart',
+      );
+      expect(
+        ForbidDirectStorageAccessConfigParser.normalize('/./lib/a.dart'),
         'lib/a.dart',
       );
     });
