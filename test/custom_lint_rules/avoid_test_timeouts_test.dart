@@ -291,9 +291,10 @@ void main() {
     });
 
     group('fixed waits', () {
-      List<String> flaggedCode(String source) => reporter.errors
-          .map((e) => source.substring(e.offset, e.offset + e.length))
-          .toList();
+      List<String> flaggedCode(String source) =>
+          reporter.errors
+              .map((e) => source.substring(e.offset, e.offset + e.length))
+              .toList();
 
       test('should flag wait: Duration in blocTest', () async {
         const source = '''
@@ -378,9 +379,10 @@ void main() {
         );
       });
 
-      test('should flag pumpEventQueue() in a helper outside test blocks',
-          () async {
-        const source = '''
+      test(
+        'should flag pumpEventQueue() in a helper outside test blocks',
+        () async {
+          const source = '''
 Future<void> settle() => pumpEventQueue();
 void main() {
   test('example', () async {
@@ -388,12 +390,12 @@ void main() {
   });
 }
 ''';
-        await analyzeCode(source, path: 'test/notifier_test.dart');
-        expect(flaggedCode(source), equals(['pumpEventQueue()']));
-      });
+          await analyzeCode(source, path: 'test/notifier_test.dart');
+          expect(flaggedCode(source), equals(['pumpEventQueue()']));
+        },
+      );
 
-      test('should not flag a pumpEventQueue() method on an object',
-          () async {
+      test('should not flag a pumpEventQueue() method on an object', () async {
         const source = '''
 void main() {
   test('example', () async {
@@ -405,8 +407,7 @@ void main() {
         expect(reporter.errors, isEmpty);
       });
 
-      test(
-          'should flag pumpEventQueue() in a unit test of a file that also '
+      test('should flag pumpEventQueue() in a unit test of a file that also '
           'has testWidgets', () async {
         const source = '''
 void main() {
@@ -422,8 +423,7 @@ void main() {
         expect(flaggedCode(source), equals(['pumpEventQueue(times: 3)']));
       });
 
-      test(
-          'should not flag pump(Duration), pumpAndSettle() or '
+      test('should not flag pump(Duration), pumpAndSettle() or '
           'pumpEventQueue() inside testWidgets', () async {
         const source = '''
 void main() {
@@ -487,9 +487,10 @@ void main() {
         );
       });
 
-      test('should not flag blocTest wait: or pumpEventQueue() outside test/',
-          () async {
-        const source = '''
+      test(
+        'should not flag blocTest wait: or pumpEventQueue() outside test/',
+        () async {
+          const source = '''
 void main() {
   blocTest('loads', wait: const Duration(milliseconds: 310));
   test('example', () async {
@@ -497,9 +498,10 @@ void main() {
   });
 }
 ''';
-        await analyzeCode(source, path: 'lib/example.dart');
-        expect(reporter.errors, isEmpty);
-      });
+          await analyzeCode(source, path: 'lib/example.dart');
+          expect(reporter.errors, isEmpty);
+        },
+      );
     });
   });
 }
